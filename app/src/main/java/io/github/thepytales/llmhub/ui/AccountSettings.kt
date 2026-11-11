@@ -240,7 +240,11 @@ private fun ProviderRow(c: AppContainer, p: ApiProvider) {
     }
     Row(verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
-            Text(p.name.ifBlank { p.providerKind.label }, style = MaterialTheme.typography.titleSmall)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(p.name.ifBlank { p.providerKind.label }, style = MaterialTheme.typography.titleSmall)
+                // Wohin die Daten gehen (AP-119): a server on this computer (e.g. Ollama) is local, others by their address.
+                DataPlaceChip(io.github.thepytales.llmhub.data.DataPlace.ofUrl(p.baseUrl))
+            }
             Text(p.providerKind.label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         IconButton(onClick = {

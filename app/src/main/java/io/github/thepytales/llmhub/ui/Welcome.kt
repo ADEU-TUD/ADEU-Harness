@@ -31,6 +31,8 @@ fun WelcomeCard(onApiKey: () -> Unit, onNavigate: (String) -> Unit) {
     AppCard(Modifier.widthIn(max = 520.dp).fillMaxWidth()) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(tr("Willkommen! So geht es los:"), style = MaterialTheme.typography.titleMedium)
+            // AP-120: the whole setup step by step.
+            Button(onClick = { onNavigate("setup") }, modifier = Modifier.fillMaxWidth()) { Text(tr("Lora Schritt für Schritt einrichten")) }
             Step(1, tr("API-Key holen"), tr("Im Self-Service-Portal der TU Dresden unter „ScaDS.AI LLM“ einen Schlüssel erzeugen (beginnt mit „sk-“)."))
             Step(2, tr("Eintragen"), tr("Er wird verschlüsselt nur auf diesem Gerät gespeichert."))
             Step(3, tr("Loslegen"), tr("Frage stellen, Datei anhängen oder eine Vorlage wählen."))

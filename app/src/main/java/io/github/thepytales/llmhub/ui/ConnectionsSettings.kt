@@ -196,7 +196,11 @@ private fun McpServerCard(c: AppContainer, s: McpServer, onEdit: () -> Unit) {
                 IconTile(Icons.Outlined.Hub, size = 32.dp)
                 Spacer(Modifier.size(10.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(s.name, style = MaterialTheme.typography.titleSmall)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(s.name, style = MaterialTheme.typography.titleSmall)
+                        // Wohin die Daten gehen (AP-119): a program on this computer is local, a web server by its address.
+                        DataPlaceChip(if (s.local) io.github.thepytales.llmhub.data.DataPlace.LOCAL else io.github.thepytales.llmhub.data.DataPlace.ofUrl(s.url))
+                    }
                     Text(
                         (if (s.local) tr("Lokal") + " · " else "") + s.where,
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis,

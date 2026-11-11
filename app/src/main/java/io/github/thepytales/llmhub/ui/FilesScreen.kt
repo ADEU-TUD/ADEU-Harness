@@ -197,6 +197,8 @@ fun FilesScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
                 PdfHandoff.open(item.path, page ?: 1, item.name)
                 onNavigate("pdf")
             }
+            // CSV-Lotse (AP-93), Archiv-Werkzeug (AP-99), protected Office files (AP-98).
+            item.path != null && FileTools.interceptOpen(File(item.path)) -> Unit
             item.path != null && io.github.thepytales.llmhub.docs.OfficeImport.canOpen(item.name) && item.kind != FileKind.TEXT -> scope.launch {
                 val doc = withContext(Dispatchers.IO) { DocsHandoff.importFile(c, File(item.path)) }
                 if (doc != null) onOpenDoc(doc.id) else openDocument(context, File(item.path))
@@ -339,6 +341,8 @@ fun FilesScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
         }
     }
 
+    // Dateiwerkzeuge (AP-91, AP-93, AP-97–AP-100).
+    FileToolDialogs(c, onOpenDoc = onOpenDoc, onChanged = { reload++ })
     convertFor?.let { item ->
         FormatConvertDialog(c, item, onDismiss = { convertFor = null }, onDone = { reload++ })
     }
@@ -442,6 +446,7 @@ private fun FileRow(item: FileItem, actions: FileActions, hit: FileHit? = null, 
                     if (item.path != null && io.github.thepytales.llmhub.docs.FormatConvert.targets(item.name).isNotEmpty()) {
                         DropdownMenuItem(text = { Text(tr("Umwandeln …")) }, leadingIcon = { Icon(Icons.Outlined.SwapHoriz, null) }, onClick = { menu = false; actions.convert(item) })
                     }
+                    item.path?.let { p -> FileToolMenuItems(File(p)) { menu = false } }
                     if (item.versions > 1) {
                         DropdownMenuItem(text = { Text(tr("Versionen vergleichen …")) }, leadingIcon = { Icon(Icons.Outlined.History, null) }, onClick = { menu = false; actions.versions(item) })
                     }

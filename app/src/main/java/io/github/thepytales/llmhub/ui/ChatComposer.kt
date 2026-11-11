@@ -119,6 +119,8 @@ fun Composer(
     placeholder: String,
     modelLabel: String,
     onModel: () -> Unit,
+    /** Wohin die Daten des gewählten Modells gehen (AP-119); null: nicht zeigen. */
+    modelPlace: io.github.thepytales.llmhub.data.DataPlace? = null,
     images: List<String>,
     files: List<FileAttachment>,
     loadingFiles: Int,
@@ -252,6 +254,7 @@ fun Composer(
                                     modelLabel, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier.weight(1f, fill = false),
                                 )
+                                modelPlace?.let { DataPlaceChip(it, Modifier.padding(start = 6.dp)) }
                                 Icon(Icons.Outlined.KeyboardArrowDown, contentDescription = tr("Modell wählen"), modifier = Modifier.size(18.dp))
                             }
                         }

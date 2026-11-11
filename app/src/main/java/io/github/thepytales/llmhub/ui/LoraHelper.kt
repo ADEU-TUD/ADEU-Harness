@@ -279,7 +279,9 @@ fun LoraHelperHost(c: AppContainer, go: (String) -> Unit) {
     // Who switched Lora off before is not asked again.
     val panelOpen by LoraHelper.isOpen.collectAsStateWithLifecycle()
     // AP-112: also without an API key – the first start then offers „Alles auf diesem Gerät“.
-    if (!s.loraIntroDone && !s.hideLora && !panelOpen) LoraIntroDialog(c)
+    // Lora einrichten Schritt für Schritt (AP-120): the first start opens the setup as a window; the earlier questions
+    // (AP-80 roles, AP-71 models, AP-112 place) are steps of it now.
+    if (!s.loraIntroDone && !s.hideLora && !panelOpen) SetupWizardDialog(c, go)
 }
 
 /** The functions of the host for the panel (one host per window). */
@@ -1235,89 +1237,6 @@ fun LoraTopBarButton(c: AppContainer, folderId: String? = null, compact: Boolean
     }
 }
 
-/**
- * Erster Start, kurz (AP-07): at most two questions – where Lora appears, and which tools are visible. Skippable; the
- * answers can be changed under Einstellungen › Lora and › Werkzeuge.
- */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun LoraIntroDialog(c: AppContainer) {
-    val s by c.settings.settings.collectAsStateWithLifecycle()
-    var mode by remember { mutableStateOf(s.loraMode) }
-    val tools = remember { AppTool.available(IS_ANDROID) }
-    val chosen = remember { mutableStateListOf<String>().apply { addAll(s.enabledToolIds) } }
-    // AP-71: which models come onto this device, and where Lora works.
-    val models = remember { IntroModelChoice(c) }
-    // AP-80: what Lora is used for – suggests tools, the order of the TU Vorlagen and contents to load.
-    val roles = remember { mutableStateListOf<io.github.thepytales.llmhub.data.Role>().apply { addAll(io.github.thepytales.llmhub.data.Role.parse(s.roles)) } }
-    fun toggleRole(r: io.github.thepytales.llmhub.data.Role) {
-        if (r in roles) roles -= r else {
-            roles += r
-            io.github.thepytales.llmhub.data.Roles.tools(setOf(r), IS_ANDROID).forEach { t -> if (t.id !in chosen) chosen += t.id }
-            io.github.thepytales.llmhub.data.Roles.packs(setOf(r)).forEach { p -> if (p !in models.packs) models.packs += p }
-        }
-    }
-    fun finish(save: Boolean) {
-        if (save) models.apply(c)
-        // „Alles auf diesem Gerät“ (AP-112): the setup step by step takes over with what is still missing.
-        if (save && models.wantsSetup) LoraHost.go("local-setup")
-        c.settings.update { cur ->
-            // Skipped or answered: the models were offered here, so the separate dialog for earlier users stays away.
-            var next = cur.copy(loraIntroDone = true, modelsIntroDone = true)
-            if (save) {
-                next = next.copy(loraMode = mode, hideLora = mode == "OFF", roles = io.github.thepytales.llmhub.data.Role.format(roles.toSet()))
-                tools.forEach { t -> next = next.withTool(t, t.id in chosen) }
-            }
-            next
-        }
-    }
-    Dialog(onDismissRequest = { finish(false) }) {
-        Surface(shape = RoundedCornerShape(24.dp), tonalElevation = 6.dp, modifier = Modifier.widthIn(max = 520.dp)) {
-            Column(Modifier.padding(20.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    LoraFigure(Modifier.size(64.dp, 45.dp), label = tr("Lora winkt"), director = rememberLoraDirector(listOf(LoraAction.WAVE, LoraAction.LOOK), LoraAction.WAVE))
-                    Spacer(Modifier.size(10.dp))
-                    Column {
-                        Text(tr("Hallo, ich bin Lora!"), style = MaterialTheme.typography.titleLarge)
-                        Text(tr(io.github.thepytales.llmhub.Brand.SLOGAN), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                }
-                Text(tr("Ein paar kurze Fragen, dann geht es los."), style = MaterialTheme.typography.bodyMedium)
-                if (!s.hasAnyApiKey) HintText(tr("Ohne API-Schlüssel geht es auch: Ich arbeite dann ganz auf diesem Gerät – ohne Uni-Server und ohne dass etwas hinausgeht."))
-                Text(tr("Wo soll ich erscheinen?"), style = MaterialTheme.typography.titleSmall)
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    LORA_MODES.forEach { (id, label) -> FilterChip(selected = mode == id, onClick = { mode = id }, label = { Text(tr(label)) }) }
-                }
-                Text(tr("Wofür nutzt du Lora vor allem?"), style = MaterialTheme.typography.titleSmall)
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    io.github.thepytales.llmhub.data.Role.entries.forEach { r ->
-                        FilterChip(selected = r in roles, onClick = { toggleRole(r) }, label = { Text(tr(r.label)) })
-                    }
-                }
-                if (roles.isNotEmpty()) HintText(tr("Ich schlage passende Werkzeuge und Inhalte vor (unten angehakt) und stelle die passenden TU Vorlagen nach oben."))
-                if (tools.isNotEmpty()) {
-                    Text(tr("Welche Werkzeuge sollen sichtbar sein?"), style = MaterialTheme.typography.titleSmall)
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        tools.forEach { t ->
-                            FilterChip(
-                                selected = t.id in chosen,
-                                onClick = { if (t.id in chosen) chosen -= t.id else chosen += t.id },
-                                label = { Text(t.label) },
-                            )
-                        }
-                    }
-                }
-                IntroModels(c, models)
-                HintText(tr("Alles lässt sich später unter Einstellungen › Lora, › Werkzeuge und › Modelle auf diesem Gerät ändern. Downloads laufen im Hintergrund weiter."))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    TextButton(onClick = { finish(false) }) { Text(tr("Überspringen")) }
-                    Button(onClick = { finish(true) }) { Text(tr("Fertig")) }
-                }
-            }
-        }
-    }
-}
-
 /** Where Lora appears (Einstellungen › Lora, first start). */
 val LORA_MODES = listOf("EVERYWHERE" to trLater("Überall"), "CHAT" to trLater("Nur im Chat"), "OFF" to trLater("Aus"))
 
@@ -1394,7 +1313,7 @@ fun LoraSettings(c: AppContainer) {
         SwitchRow(tr("Hinweise erlaubt"), tr("Lora darf einmal je Bereich auf etwas hinweisen, z. B. dass es für PDFs ein Werkzeug gibt. Sie unterbricht nie."), s.loraHints, spot = "lora.hints") { v ->
             c.settings.update { it.copy(loraHints = v) }
         }
-        TextButton(onClick = { c.settings.update { it.copy(loraIntroDone = false) } }) { Text(tr("Die Fragen vom ersten Start erneut stellen")) }
+        TextButton(onClick = { LoraHost.go("setup") }) { Text(tr("Lora Schritt für Schritt einrichten")) }
     }
     // AP-39, AP-41, AP-38: what Lora knows, tours, the protocol of her actions.
     LoraMemorySection(c)

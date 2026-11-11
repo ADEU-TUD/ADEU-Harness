@@ -165,6 +165,8 @@ private fun ModelRows(
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.Center) {
                             Text(m.displayName, style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp))
+                            // Wohin die Daten gehen (AP-119).
+                            DataPlaceChip(dataPlaceOf(m.id), Modifier.align(Alignment.CenterVertically))
                             if (m.id == defaultModel) Badge(tr("Standard"), Modifier.align(Alignment.CenterVertically))
                             m.badge?.let { Badge(it, Modifier.align(Alignment.CenterVertically)) }
                         }

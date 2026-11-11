@@ -313,6 +313,10 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
             }
             composable("usage") { back -> UsageScreen(c, onBack = { nav.back(back) }) }
             // Wo Lora arbeitet: Alles lokal einrichten (AP-112).
+            // Lora einrichten Schritt für Schritt (AP-120).
+            composable("setup") { back ->
+                SetupScreen(c, onBack = { nav.back(back) }, onNavigate = { nav.go(back, it) })
+            }
             composable("local-setup") { back ->
                 LocalSetupScreen(c, onBack = { nav.back(back) }, onNavigate = { nav.go(back, it) })
             }

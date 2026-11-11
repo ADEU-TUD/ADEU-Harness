@@ -157,7 +157,10 @@ private fun ModelCard(m: ModelInfo, state: ServerStatus.ModelState?, onStartChat
                     Box(Modifier.size(9.dp).background(if (st.up) LocalChatLook.current.success else MaterialTheme.colorScheme.error, CircleShape))
                     Spacer(Modifier.size(8.dp))
                 }
-                Text(m.displayName, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                Text(m.displayName, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f, fill = false))
+                // Wohin die Daten gehen (AP-119).
+                DataPlaceChip(dataPlaceOf(m.id), Modifier.padding(start = 8.dp))
+                Spacer(Modifier.weight(1f))
                 val tag = when {
                     m.type != ModelType.CHAT -> null
                     m.tier == ModelTier.FEATURED -> tr("Empfohlen")

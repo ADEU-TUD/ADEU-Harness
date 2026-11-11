@@ -505,6 +505,7 @@ fun ChatScreen(
                 placeholder = tr(if (hasMessages) "Antworten …" else "Wie kann ich helfen?"),
                 modelLabel = if (current.autoModel) tr("Automatisch") + " · " + modelInfo.displayName else modelInfo.displayName,
                 onModel = { showModelPicker = true },
+                modelPlace = io.github.thepytales.llmhub.data.DataPlace.ofModel(c, current.model),
                 images = images,
                 files = files,
                 loadingFiles = loadingFiles,
