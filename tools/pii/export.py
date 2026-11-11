@@ -118,7 +118,7 @@ Telefon, IBAN, Matrikelnummer …) und die eigene Liste bleiben bei den Regeln v
 - **Basismodell**: `{base}` (Version `{report.get("revision") or "neueste"}`) von {authors}, Lizenz **{lic_name}**.
   {NAME} ist eine abgeleitete Arbeit: Das Basismodell wurde **von uns feinabgestimmt und verändert**. {NAME} ist kein
   Produkt der Urheber des Basismodells; sie haben es weder geprüft noch gebilligt.
-- **Lizenz von {NAME}**: Bedingungen von PyTales in `License.md` im Repository ADEU-TUD/ADEU-Harness (kostenlos nutzbar;
+- **Lizenz von {NAME}**: Bedingungen von PyTales in `License.md` im Repository ADEU-TUD/Lora (kostenlos nutzbar;
   Änderungen und Weiterverbreitung nur mit Genehmigung). Das Basismodell bleibt unter seiner eigenen Lizenz (unten).
 - **Feintuning**: Token-Klassifikation (BIO), {report.get("daten", "?")} erfundene Trainingstexte, beste Epoche
   {report.get("beste_epoche", "?")} von {len(report.get("epochen", []))}.

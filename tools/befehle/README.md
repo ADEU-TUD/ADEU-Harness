@@ -190,7 +190,7 @@ die Vorlagen (`gen.py check`).
 vollem Lizenztext, Prüfsumme. Die Modelldatei selbst liegt gepackt (55 MB) auf dem Branch **`befehle-modell`** (Commit
 `6f996b1c45609fdc9e565a113cfb11bfa28e14ee`, wird nicht gemergt) zusammen mit Modellkarte, Lizenztext des Basismodells und
 `License.md`; die App lädt sie von dort:
-`https://raw.githubusercontent.com/ADEU-TUD/ADEU-Harness/6f996b1c45609fdc9e565a113cfb11bfa28e14ee/lora-befehle-pytales.int8.onnx.gz`.
+`https://raw.githubusercontent.com/ADEU-TUD/Lora/6f996b1c45609fdc9e565a113cfb11bfa28e14ee/lora-befehle-pytales.int8.onnx.gz`.
 Die Datei bis 1.0.65 (`befehle-modell.int8.onnx.gz`, Commit `cc168774477e3ac8b439b42fd7b03ab05c9908fa`) bleibt dort
 erreichbar; wer sie hat, arbeitet mit ihr weiter (gleiche Etiketten, gleicher Wortschatz, eigene Schwelle 0,8 und
 Untergrenze 0,3) und bekommt Lora Befehle einmal als Update angeboten. Nach dem Laden wird die alte Datei gelöscht.

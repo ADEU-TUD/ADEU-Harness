@@ -13,7 +13,7 @@ Ist die Sicherheit kleiner als die Schwelle, führt die App nichts aus, sondern 
 - **Basismodell**: `distilbert/distilbert-base-german-cased` (Version `6f96562de9886779ce7d48810dff8f5c4afb6d0b`) von Hugging Face (DistilBERT nach Sanh, Debut, Chaumond und Wolf, 2019), Lizenz **Apache-2.0**.
   Lora Befehle ist eine abgeleitete Arbeit: Das Basismodell wurde **von uns feinabgestimmt und verändert**. Lora Befehle ist kein
   Produkt der Urheber des Basismodells; sie haben es weder geprüft noch gebilligt.
-- **Lizenz von Lora Befehle**: Bedingungen von PyTales in `License.md` im Repository ADEU-TUD/ADEU-Harness (kostenlos nutzbar;
+- **Lizenz von Lora Befehle**: Bedingungen von PyTales in `License.md` im Repository ADEU-TUD/Lora (kostenlos nutzbar;
   Änderungen und Weiterverbreitung nur mit Genehmigung). Das Basismodell bleibt unter seiner eigenen Lizenz (unten).
 - **Feintuning**: Satz-Klassifikation, 33640 erfundene Trainingswünsche, beste Epoche
   4 von 5. Eingabe: was offen ist (ein Wort) und der Wunsch in Kleinbuchstaben.

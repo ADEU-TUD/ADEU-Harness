@@ -90,8 +90,8 @@ installieren, danach geht es automatisch.
 
 ## Für die Pflege
 
-Der Code liegt im (privaten) Repository `ADEU-TUD/ADEU-Harness`. **Hier nichts von Hand ändern** – Releases und diese
-README kommen von dort (Quelle der README: `.github/updater/README.md`).
+Der Code liegt im Repository `ADEU-TUD/Lora` (bis 11.11.2026 `ADEU-TUD/ADEU-Harness`). **Hier nichts von Hand ändern** –
+Releases und diese README kommen von dort (Quelle der README: `.github/updater/README.md`).
 
 **Neue Version veröffentlichen** (ausführlich: README im Code-Repo, *Neue Version veröffentlichen*):
 1. Änderungen per Pull Request in `main` des Code-Repos mergen.
