@@ -406,7 +406,8 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   Gerät“). Jede Zeile sagt, was das auf diesem Gerät heißt: *läuft auf diesem Gerät*, *noch nicht geladen* (mit *Laden*),
   *nicht auf diesem Gerät* (mit Grund und nötiger Stufe, z. B. „Zu langsam: etwa 69 s je Bild – braucht eine Grafikkarte
   ab 6 GB oder einen Apple-Chip“), *braucht Internet* oder *nur über API* (mit Schloss – nicht versteckt). Dieselbe
-  Kennzeichnung steht bei *Bilder erzeugen*, *Transkription*, *Vorlesen* und *Wissenssammlung*.
+  Kennzeichnung steht bei *Bilder erzeugen*, *Transkription*, *Vorlesen* und *Wissenssammlung*. Auch über Strg+K und
+  Lora erreichbar („alles lokal“, „Alles lokal einrichten“).
   - **Alles lokal einrichten**: ein Assistent Schritt für Schritt – Gerät messen, Zweck wählen, Sprachmodell mit Größe
     und Tempo („schreibt ≈ 13 Wörter/s“), laden mit Fortschritt, kurz ausprobieren („Frag Lora etwas“), Befehle und
     Namensschutz, Suche, Spracherkennung, Stimme, Bildteil, am Ende eine Übersicht. *Später* merkt sich den Schritt.
@@ -425,9 +426,9 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   Tests ohne Gerät: `OfflineProfileTest` (App ohne Schlüssel, Netz nur 127.0.0.1, nachgebauter llama-server) und
   `PlacesLookTest` (Bilder). Was nur am Gerät messbar ist: Arbeitsplan AP-112.
 
-  | Windows-Fenster (Gemischt) | Android, ohne Schlüssel | Einrichtung Schritt für Schritt |
-  | --- | --- | --- |
-  | ![Wo Lora arbeitet, Windows](docs/bilder/ap112-orte-windows.png) | ![Wo Lora arbeitet, Android](docs/bilder/ap112-orte-android.png) | ![Einrichtung](docs/bilder/ap112-einrichtung.png) |
+  | Windows-Fenster (Gemischt) | Android, ohne Schlüssel | Einrichtung Schritt für Schritt | Erster Start ohne Schlüssel (Android) |
+  | --- | --- | --- | --- |
+  | ![Wo Lora arbeitet, Windows](docs/bilder/ap112-orte-windows.png) | ![Wo Lora arbeitet, Android](docs/bilder/ap112-orte-android.png) | ![Einrichtung](docs/bilder/ap112-einrichtung.png) | ![Erster Start](docs/bilder/ap112-erster-start-android.png) |
 - **Natürliche Stimme auf diesem Gerät** (seit 1.0.67, AP-111): Unter *Einstellungen › Vorlesen & Spracheingabe* gibt es
   neben der KI-Stimme des Uni-Servers und der Stimme des Systems **Natürliche Stimme auf diesem Gerät**: die deutsche
   Piper-Stimme „Thorsten“ (Aufnahmen von Thorsten Müller, frei als CC0; 64 MB, einmal laden, fester Commit auf Hugging

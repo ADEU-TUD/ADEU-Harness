@@ -690,7 +690,8 @@ im Stil der App bauen, Änderungswünsche danach). Am Gerät zu messen, siehe un
   *noch nicht geladen* (mit *Laden*, springt in den passenden Schritt) · *nicht auf diesem Gerät* (Grund und Stufe, z. B.
   „Zu wenig Arbeitsspeicher (x GB) – braucht mindestens y GB“, Bilder ab 60 s je Bild) · *braucht Internet* · *nur über
   API* (Schloss) · *über API*. Dieselbe Kennzeichnung (`PlaceNote`) bei Bilder erzeugen, Transkription, Vorlesen und
-  Wissenssammlung. Eintrag in der Einstellungsübersicht, Strg+K und auf Loras Landkarte (`places.profile`).
+  Wissenssammlung. Eintrag in der Einstellungsübersicht, Strg+K und auf Loras Landkarte (`places.profile`; die
+  Einrichtung als eigener Ort `area.local-setup`). Englische Texte in `i18n/en.tsv`.
 - **Einrichtung Schritt für Schritt** (`ui/LocalSetup.kt`, Route `local-setup`): 9 Schritte – Gerät messen (AP-105),
   Zweck (AP-106), Sprachmodell (Empfehlung je Zweck mit Größe, Tempo, „langsam“; andere passende Modelle aufklappbar;
   Laden mit Fortschritt und Abbrechen; *Frag Lora etwas* mit Zeit), Befehle und Namensschutz, Suche, Spracherkennung,

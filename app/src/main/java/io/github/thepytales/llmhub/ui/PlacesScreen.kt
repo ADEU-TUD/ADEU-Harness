@@ -1,11 +1,14 @@
 package io.github.thepytales.llmhub.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -219,12 +222,18 @@ private fun AreaRow(c: AppContainer, area: Area, wide: Boolean, onNavigate: (Str
     val status: @Composable () -> Unit = {
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             androidx.compose.foundation.layout.FlowRow(verticalArrangement = Arrangement.Center, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                if (st.kind == Places.Kind.API_ONLY) Icon(Icons.Outlined.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
-                StatusPill(tr(st.kind.label), st.kind.tone())
-                if (st.step != null) TextButton(onClick = {
-                    c.settings.update { it.copy(localSetupStep = st.step.ordinal + 1) }
-                    onNavigate("local-setup")
-                }) { Text(tr("Laden")) }
+                val mid = Modifier.align(Alignment.CenterVertically)
+                if (st.kind == Places.Kind.API_ONLY) Icon(Icons.Outlined.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = mid.size(14.dp))
+                Box(mid) { StatusPill(tr(st.kind.label), st.kind.tone()) }
+                // Compact, on the line of the status (a normal TextButton is 40 dp high and pushed the reason down).
+                if (st.step != null) TextButton(
+                    onClick = {
+                        c.settings.update { it.copy(localSetupStep = st.step.ordinal + 1) }
+                        onNavigate("local-setup")
+                    },
+                    modifier = mid.height(28.dp),
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+                ) { Text(tr("Laden"), style = MaterialTheme.typography.labelLarge) }
             }
             Text(st.reason, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (why.isNotBlank() && area != Area.WEB) Text(why, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
