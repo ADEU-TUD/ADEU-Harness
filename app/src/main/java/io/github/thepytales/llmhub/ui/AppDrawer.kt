@@ -160,6 +160,15 @@ fun AppDrawer(
             io.github.thepytales.llmhub.data.ChatFilter.search(allConversations, query, filter).map { (conv, snippet) -> SearchHit(conv, snippet) }
         }
     }
+    // Suche nach Bedeutung (AP-107): chats about the same thing in other words, with the model on this device.
+    val similar by produceState(emptyList<SearchHit>(), query, filter, hits) {
+        if (query.trim().length < 3) { value = emptyList(); return@produceState }
+        kotlinx.coroutines.delay(500)
+        value = withContext(Dispatchers.IO) {
+            runCatching { io.github.thepytales.llmhub.data.ChatFilter.similar(allConversations, query, filter, hits.map { it.conv.id }.toSet()) }.getOrDefault(emptyList())
+                .map { (conv, snippet) -> SearchHit(conv, snippet) }
+        }
+    }
 
     ModalDrawerSheet(
         drawerContainerColor = MaterialTheme.colorScheme.background,
@@ -225,11 +234,19 @@ fun AppDrawer(
             if (searching) ChatFilterRow(filter, folders, allConversations) { filter = it }
             LazyColumn(Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 16.dp)) {
                 if (searching) {
-                    if ((query.isNotBlank() || filter.active) && hits.isEmpty()) {
+                    if ((query.isNotBlank() || filter.active) && hits.isEmpty() && similar.isEmpty()) {
                         item { Hint(tr("Keine Chats gefunden.")) }
                     }
                     if (query.isBlank() && !filter.active) item { Hint(tr("Suchwort eingeben oder oben filtern – nach Zeitraum, Projekt, Modell, Anhängen oder erstellten Dateien.")) }
-                    items(hits, key = { "s_" + it.conv.id }) { hit ->
+                    val shown = hits + if (similar.isNotEmpty()) listOf(SearchHit(Conversation(id = "__aehnlich__", title = "", model = ""), null)) + similar else emptyList()
+                    items(shown, key = { "s_" + it.conv.id }) { hit ->
+                        if (hit.conv.id == "__aehnlich__") {
+                            Text(
+                                tr("Ähnlich nach Bedeutung (auf diesem Gerät)"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(start = 20.dp, top = 12.dp, bottom = 4.dp),
+                            )
+                            return@items
+                        }
                         Column(
                             Modifier
                                 .fillMaxWidth()

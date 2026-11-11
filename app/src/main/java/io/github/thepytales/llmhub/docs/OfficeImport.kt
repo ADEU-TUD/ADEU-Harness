@@ -17,7 +17,7 @@ object OfficeImport {
 
     private val TEXT = setOf("md", "markdown", "txt", "text", "html", "htm", "rtf", "tex", "csv", "tsv")
 
-    fun canOpen(name: String): Boolean = name.substringAfterLast('.', "").lowercase() in TEXT + setOf("docx", "pptx", "xlsx", "xlsm")
+    fun canOpen(name: String): Boolean = name.substringAfterLast('.', "").lowercase() in TEXT + setOf("docx", "pptx", "xlsx", "xlsm", "odt", "ods", "odp")
 
     /** Reads [bytes] of the file [name]; null if the format is not supported. */
     fun read(name: String, bytes: ByteArray): Imported? {
@@ -34,7 +34,12 @@ object OfficeImport {
                 Imported(DocKind.SLIDES, base, listOf("Folien" to pptx(bytes, media)), media)
             }
             "xlsx", "xlsm" -> Imported(DocKind.SHEET, base, xlsx(bytes).ifEmpty { listOf("Tabelle 1" to SheetEngine.blank()) })
-            "csv", "tsv" -> Imported(DocKind.SHEET, base, listOf("Tabelle 1" to csv(bytes.toString(Charsets.UTF_8).removePrefix("﻿"), if (ext == "tsv") '\t' else null)))
+            // OpenDocument as a source (AP-90).
+            "odt" -> OdfImport.odt(bytes).let { md -> Imported(DocKind.DOC, DocBlocks.titleOf(md) ?: base, listOf("Tab 1" to md)) }
+            "ods" -> Imported(DocKind.SHEET, base, OdfImport.ods(bytes).ifEmpty { listOf("Tabelle 1" to SheetEngine.blank()) })
+            "odp" -> Imported(DocKind.SLIDES, base, listOf("Folien" to OdfImport.odp(bytes)))
+            // CSV-Lotse (AP-93): encoding, separator, numbers and dates are recognised.
+            "csv", "tsv" -> Imported(DocKind.SHEET, base, listOf("Tabelle 1" to CsvPilot.read(bytes, name)))
             in TEXT -> {
                 val text = bytes.toString(Charsets.UTF_8).removePrefix("﻿")
                 val md = if (ext == "html" || ext == "htm") htmlToText(text) else text

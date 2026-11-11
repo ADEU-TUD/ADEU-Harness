@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 11.11.2026 (AP-112 und AP-116 in der App, Messung am Gerät offen; AP-117 erledigt; AP-118 Server-Terminal in der App, am eigenen Server zu prüfen) · 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen; neu: AP-116 lokale Modelle auf dem Handy zu langsam, nicht abbrechbar, Gerät heiß) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 11.11.2026 (Sitzung Dateiwerkzeuge: AP-90 Rest, AP-91, AP-93, AP-97 bis AP-100, AP-107 Rest, neu AP-119 und AP-120 in der App, Prüfung am Gerät offen) · 11.11.2026 (AP-112 und AP-116 in der App, Messung am Gerät offen; AP-117 erledigt; AP-118 Server-Terminal in der App, am eigenen Server zu prüfen) · 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen; neu: AP-116 lokale Modelle auf dem Handy zu langsam, nicht abbrechbar, Gerät heiß) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -71,9 +71,9 @@ Fairlight).
 | ~~Lora lernt nach~~ ☑ | AP-72 Lora lernt aus Korrekturen · AP-73 Rückfrage mit zwei Knöpfen (erledigt, siehe *Erledigt*) |
 | ~~Lora im Alltag~~ ☑ | AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen (erledigt 10.11.2026, siehe *Erledigt*) |
 | **Danach** | ~~AP-86 Lokale Modelle auf dem Mac laden~~ ☑ (10.11.2026, 1.0.67) |
-| **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung ◐ · AP-106 Modellkatalog in feinen Stufen, nach Zweck ◐ · AP-107 Suche nach Bedeutung auf dem Gerät ◐ · AP-108 Lange Texte lokal ◐ · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal ◐ · AP-111 Sprachausgabe lokal ☑ · AP-112 Offline-Schiene in der Oberfläche ◐ · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 ☑ · **AP-116 Lokale Modelle: Tempo, Abbruch, Hitze ◐** (Fehler aus 1.0.67, vor AP-109) · ~~AP-117 Eigene Modelle aktualisieren, auf GitHub~~ ☑ (11.11.2026) |
-| **Neu (11.11.2026)** | **AP-118 Server-Terminal mit Lora ◐** (SSH wie PuTTY, Lora schlägt Schritte vor, Ausführung nur nach Zustimmung; nur Desktop) |
-| **Später** | AP-87 Datei-Erste-Hilfe · AP-88 Zeitreise für Dateien · AP-89 Vorlage aus eigener Datei · AP-90 Formatwandler mit Verlustanzeige ◐ · AP-91 Schriften-Notfall · AP-92 Formatierung aufräumen · AP-93 CSV-Lotse · AP-94 Formular aus Scan · AP-95 PDF-Tabellen nach Excel ◐ · AP-96 Diagramm zu Daten · AP-97 Druck-Lotse · AP-98 Passwortschutz für Dateien · AP-99 Archiv-Werkzeug · AP-100 Fotos vom Handy aufbereiten · AP-101 Bild-Werkstatt · AP-102 Umzug auf einen neuen PC |
+| **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung ◐ · AP-106 Modellkatalog in feinen Stufen, nach Zweck ◐ · AP-107 Suche nach Bedeutung auf dem Gerät ◐ (Rest in der App) · AP-108 Lange Texte lokal ◐ · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal ◐ · AP-111 Sprachausgabe lokal ☑ · AP-112 Offline-Schiene in der Oberfläche ◐ · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 ☑ · **AP-116 Lokale Modelle: Tempo, Abbruch, Hitze ◐** (Fehler aus 1.0.67, vor AP-109) · ~~AP-117 Eigene Modelle aktualisieren, auf GitHub~~ ☑ (11.11.2026) |
+| **Neu (11.11.2026)** | **AP-118 Server-Terminal mit Lora ◐** (SSH wie PuTTY, Lora schlägt Schritte vor, Ausführung nur nach Zustimmung; nur Desktop) · ~~AP-119 Anzeige, wohin die Daten gehen~~ ☑ (Wunsch des Kollegen) · **AP-120 Lora einrichten Schritt für Schritt ◐** (Wunsch Hauptnutzer) |
+| **Später** | AP-87 Datei-Erste-Hilfe · AP-88 Zeitreise für Dateien · AP-89 Vorlage aus eigener Datei · AP-90 Formatwandler mit Verlustanzeige ◐ · AP-91 Schriften-Notfall ◐ · AP-92 Formatierung aufräumen · AP-93 CSV-Lotse ◐ · AP-94 Formular aus Scan · AP-95 PDF-Tabellen nach Excel ◐ · AP-96 Diagramm zu Daten · AP-97 Druck-Lotse ◐ · AP-98 Passwortschutz für Dateien ◐ · AP-99 Archiv-Werkzeug ◐ · AP-100 Fotos vom Handy aufbereiten ◐ · AP-101 Bild-Werkstatt · AP-102 Umzug auf einen neuen PC |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
 Lora-Aktionen über dieselbe Schnittstelle) · AP-39 vor AP-40 · AP-43 vor AP-44 vor AP-45, AP-46, AP-47 · AP-43 vor AP-48
@@ -558,8 +558,12 @@ Abschnitt auf einem Office-PC.
   Absätze: 91,1 % gegen 90,0 % bzw. 100 %. Ziel „mindestens so gut wie mit Server-Einbettungen“ also gegenüber dem
   bisherigen Weg erreicht, gegenüber dem Server mit neuer Mischung knapp nicht. Zeit 32–40 ms je Abschnitt (zwei Kerne,
   Cloud-Rechner).
-- **Rest**: *Frag diesen Ordner*, Chatsuche, Wissenspakete und große Anhänge (AP-85) nutzen das Modell noch nicht (heute
-  Wortsuche bzw. Server); optionaler Reranker auf dem Gerät; Zeit auf einem echten Office-PC und auf Android messen;
+- ☑ *Stand 11.11.2026*: *Frag diesen Ordner*, Chatsuche („Ähnlich nach Bedeutung“), Wissenspakete (passende Begriffe ohne
+  das Wort) und große Anhänge (AP-85, passende Stellen) nutzen das Modell auf dem Gerät (`data/SemanticSearch.kt`: gleiche
+  Mischung 0,8 : 0,2, Vektoren je Text im Cache, Ordner werden beim Öffnen einmal aufbereitet); ohne Modell Wortsuche wie
+  bisher. Test `SemanticRestTest` (mit nachgebautem Modell).
+- **Rest**: Schwellen der Chatsuche (Abstand zum Mittel, ≥ 0,78) und der Wissenspakete (≥ 0,84) am echten Modell
+  prüfen; optionaler Reranker auf dem Gerät; Zeit auf einem echten Office-PC und auf Android messen;
   Korpus vergrößern (40 Abschnitte sind wenig); Spiegel der Dateien auf dem eigenen Hugging-Face-Konto (AP-106).
 
 ### AP-108 ◐ Lange Texte lokal · M (Runde 3)
@@ -1050,6 +1054,38 @@ Schritt mit Zustimmung läuft und protokolliert wird, Geheimnisse weder im Proto
   (5) Mit Modell auf dem PC: „Deploy wie immer“ – sind die Vorschläge brauchbar? Ohne Modell: Hinweis und *Was an den
   Server ging* ansehen. (6) PuTTY-Schlüssel (`.ppk`, Version 2 und 3) aus der bisherigen PuTTY-Einrichtung.
 
+### AP-119 ☑ Anzeige, wohin die Daten gehen · S (neu, Wunsch des Kollegen 11.11.2026)
+**Ziel**: Neben jedem Modell bzw. Server steht, wohin die Daten gehen: **„lokal“** (grün, bleibt auf diesem Gerät),
+**„TU-Server“** (gelb, Uni-Server ScaDS.AI der TU Dresden) oder **„Cloud“** (rot, externer Anbieter wie Gemini oder ein
+eigener Server außerhalb der TU). Reine Oberfläche – die Angaben je Anbieter gibt es in der App schon (`Privacy.isLocal`,
+`Privacy.isExternal`, Anbieter unter *Einstellungen › API-Zugang*). Gilt für Modellauswahl, Modellübersicht, API-Zugang,
+Modelle auf diesem Gerät und MCP-Server; Farbe nie allein (immer mit Wort, auch für Farbenblinde).
+**Fertig, wenn**: an jeder Stelle, an der ein Modell oder Server gewählt wird, die Kennzeichnung steht und stimmt.
+☑ *Stand 11.11.2026*: `data/DataPlace.kt` (Modell: lokal / Anbieter nach Adresse / Uni-Server; Adresse: localhost lokal,
+tu-dresden.de und scads.ai TU-Server, sonst Cloud), `ui/DataPlaceUi.kt` (Punkt + Wort, Farben hell/dunkel, Satz für
+Screenreader). In Modellauswahl, Modellübersicht, Modell-Knopf des Eingabefelds, API-Zugang (Uni-Server, weitere
+Anbieter), Modelle auf diesem Gerät, MCP-Server. Test `SetupLookTest.whereTheDataGoes`.
+
+### AP-120 ◐ Lora einrichten Schritt für Schritt · M (neu, Wunsch Hauptnutzer 11.11.2026)
+**Ziel**: Beim ersten Start (als Fenster) und jederzeit über *Frag Lora* („Lora einrichten“) eine freundliche Einrichtung,
+die Schritt für Schritt durch alle wichtigen Einstellungen führt – wie *Alles lokal einrichten* (AP-112), nur für alles:
+Rolle (AP-80), wo Lora arbeitet (Uni-Server empfohlen; eigener Anbieter; alles auf diesem Gerät), Zugang (Schlüssel),
+Datenschutz (Pseudonymisierung), Werkzeuge, Aussehen, Lora-Ordner, Übersicht. **Zielgruppengerecht**: die meisten
+Nutzer:innen sind technisch eher unerfahren – kurze Sätze, eine Entscheidung je Schritt, Empfehlung vorgewählt, alles
+später änderbar; Expertenfunktionen (MCP-Server, Server-Terminal) stehen eingeklappt unter *Für Fortgeschrittene*. Die
+lokale Einrichtung ist integriert, aber **klar als Sonderfall** beschrieben: nur sinnvoll für sehr sensible Daten oder
+wenn Lora ohne Server arbeiten soll – langsamer, braucht einen starken Rechner und mehrere GB Speicher.
+**Fertig, wenn**: ein frischer Start ohne Vorwissen in wenigen Minuten zu einer arbeitsfähigen App führt und jeder Schritt
+übersprungen und später fortgesetzt werden kann.
+◐ *Stand 11.11.2026*: `ui/SetupWizard.kt` – acht Schritte (Willkommen, Wofür, Wo Lora arbeitet, Zugang, Datenschutz,
+Werkzeuge, Aussehen, Fertig mit *Ändern*), breit mit Schrittliste links, schmal mit Fortschrittsbalken; jede Wahl sofort
+gespeichert, *Später* merkt den Schritt (`setupStep`). Ersetzt den Dialog vom ersten Start (Rollen, Werkzeuge, Lora-Ort,
+Helfermodelle leben als Schritte weiter, `IntroModelChoice`). „Alles auf diesem Gerät“ als Sonderfall mit
+RAM-Einschätzung, danach Route `local-setup`; eigener Anbieter (Gemini) und Expertenfunktionen eingeklappt. Erreichbar
+über Lora („Lora einrichten“, Landkarte `area.setup`), Strg+K, Willkommenskarte, *Einstellungen › Lora*. Test
+`SetupLookTest` (Bild je Schritt, Fensterbreite und Handy). **Offen – mit Nutzer:innen**: einmal mit jemandem ohne
+Vorwissen durchgehen (Hauptnutzer schaut zu); Texte nach Rückmeldung nachschärfen.
+
 
 ---
 
@@ -1105,17 +1141,28 @@ Textfelder, nicht eingebettete Schriften, vereinfachtes Layout) mit besserer Wah
 daneben, nummeriert. Nebenbei behoben: Der PowerPoint-Leser verlor die Aufzählung einer ersten Folie ohne Untertitel.
 Test `FormatConvertTest`: jede angebotene Richtung mit Testdateien (mit Kommentaren, Änderungsspuren, Makros, Animationen,
 Übergängen, Formeln und zwei Blättern) wandelt um; die Karte nennt genau, was drin ist.
-**Rest**: Bilder untereinander (PNG/JPG/WebP); OpenDocument (ODT/ODS/ODP) als **Quelle** (heute nur Ziel); Word → PDF ist
+**Stand 11.11.2026**: ☑ Bilder untereinander (JPG/PNG/WebP, HEIC/AVIF/TIFF/GIF als Quelle; aufgerichtet, ohne Metadaten;
+Verlustkarte für Transparenz, Animation, Qualität, Metadaten) und ☑ OpenDocument als **Quelle** (`docs/OdfImport.kt`: ODT →
+Word/PDF/RTF/Markdown/Text/HTML, ODS → Excel mit Formeln/CSV/PDF, ODP → PowerPoint/PDF; Verlustkarte für Kommentare,
+Änderungsspuren, Makros, Formeln, Blätter, Animationen). Test `FileToolsTest`.
+**Rest**: WebP schreiben am PC braucht ffmpeg (Windows in der App, macOS/Linux das System); Word → PDF ist
 mit Microsoft Office genau, sonst über den Leser der App vereinfacht; Lora Befehle kennt `files.convert` erst nach dem
 nächsten Training (AP-114, bis dahin geht der Wunsch an das Sprachmodell).
 
-### AP-91 ☐ Schriften-Notfall · S–M (neu)
+### AP-91 ◐ Schriften-Notfall · S–M (neu)
 **Ziel**: Beim Öffnen von Word-, PowerPoint- und PDF-Dateien erkennen, welche Schriften fehlen; Lora schlägt einen
 passenden Ersatz vor (metrisch gleich, z. B. Carlito für Calibri, sonst ähnlich), zeigt die Auswirkung (Seitenzahl,
 Umbrüche) und kann Schriften beim Speichern einbetten, damit die Datei auf anderen Rechnern gleich aussieht. Die
 Schriften des TU-Designs werden erkannt.
 **Fertig, wenn**: eine Datei mit fehlender Schrift den Hinweis zeigt, der Ersatz das Layout hält und die gespeicherte
 Datei mit eingebetteter Schrift auf einem Rechner ohne diese Schrift gleich aussieht.
+◐ *Stand 11.11.2026*: `docs/FontRescue.kt` – Schriften aus Word (Läufe, Formatvorlagen, Design-Schriften), PowerPoint
+(Folien, Layouts, Master, Design) und PDF (PDFBox, eingebettet ja/nein); *installiert / eingebettet / fehlt*, TU-Schriften
+erkannt; Ersatz metrisch gleich (Carlito, Caladea, Liberation …) oder ähnlich, Auswirkung aus Breitenfaktoren (am PC
+gemessen, sonst Tabelle) mit Seitenschätzung; *Ersatz übernehmen* (Kopie) und *Einbetten* in Word (verschleiert nach
+ECMA-376 17.8.1, OS/2-Lizenzbits beachtet, nur TrueType). *⋮ › Schriften prüfen …*, Lora `files.fonts_check`. Test
+`PrintAndFontsTest`. **Offen – am Gerät**: eingebettete Schrift in Word auf einem Rechner ohne die Schrift öffnen; ein
+Hinweis schon beim Öffnen im Editor fehlt noch; PowerPoint-Einbetten fehlt.
 
 ### AP-92 ☐ Formatierung aufräumen · M (neu)
 **Ziel**: Word-Dateien voller direkter Formatierung (fett und 14 pt statt „Überschrift 1“, Leerzeilen statt Abstand,
@@ -1125,13 +1172,20 @@ AP-79). Vorschau und Rückgängig.
 **Fertig, wenn**: eine typisch „verbastelte“ Abschlussarbeit danach eine richtige Gliederung hat, ohne dass sich das
 Aussehen ungewollt ändert.
 
-### AP-93 ☐ CSV-Lotse · S (neu)
+### AP-93 ◐ CSV-Lotse · S (neu)
 **Ziel**: Beim Öffnen einer CSV- oder Textdatei erkennt die Tabelle Kodierung (UTF-8, Windows-1252, kaputte Umlaute wie
 „Ã¤“), Trennzeichen, Dezimalzeichen, Tausenderpunkte und Datumsformate selbst und zeigt eine kleine Vorschau mit den
 erkannten Einstellungen zum Anpassen. Beim Speichern als CSV wählbar: Excel-tauglich (Semikolon, mit BOM) oder
 Standard (Komma, UTF-8). Gilt auch für Exporte aus OPAL, LimeSurvey und Selma.
 **Fertig, wenn**: typische Problemdateien (Excel-Export, Umfrage-Export, falsch kodierte Datei) ohne Handarbeit richtig
 in Spalten, Zahlen und Daten ankommen.
+◐ *Stand 11.11.2026*: `docs/CsvPilot.kt` erkennt Kodierung (BOM, UTF-16 ohne BOM, UTF-8, Windows-1252, doppelt kodierte
+Umlaute), Trennzeichen (gleichmäßigste Aufteilung, Titelzeilen darüber), Dezimal-/Tausenderzeichen und Datumsformat;
+Zahlen werden eindeutig („1234,5“), Daten „TT.MM.JJJJ“, ganze Zahlen ohne Trenner bleiben (führende Nullen). Vorschau zum
+Anpassen beim Öffnen (Dateien, Lora-Ordner, *⋮ › Als Tabelle öffnen*, Lora `files.csv_open`); jedes Öffnen über
+`OfficeImport` nutzt die Erkennung. Export: *CSV für Excel* und *CSV Standard*. Test `CsvPilotTest` (Excel-Export,
+LimeSurvey, kaputte Umlaute, UTF-16, Titelzeilen, englische Zahlen/US-Datum). **Offen**: echte Exporte aus OPAL und Selma
+am Gerät prüfen.
 
 ### AP-94 ☐ Formular aus Scan · M (neu)
 **Ziel**: Ein gescanntes oder fotografiertes Papierformular (Scanner AP-62) wird zu einem ausfüllbaren PDF: Linien,
@@ -1171,41 +1225,66 @@ liefern.
 
 **Drucken**
 
-### AP-97 ☐ Druck-Lotse · S–M (neu, D)
+### AP-97 ◐ Druck-Lotse · S–M (neu, D)
 **Ziel**: Druckfertig machen aus Dokument, Folien, Gestalten und PDF: Broschüre mit Rückenheftung (Seiten ausschießen,
 auf ein Vielfaches von 4 auffüllen), doppelseitig mit richtigen Rändern, mehrere Seiten pro Blatt, Handouts aus Folien,
 Beschnittzugabe und Schnittmarken für die Druckerei. Prüft die Vorgaben vor dem Export (Auflösung der Bilder, Farbraum,
 eingebettete Schriften – AP-91) und nennt Probleme.
 **Fertig, wenn**: eine A5-Broschüre auf A4 gedruckt und gefaltet in der richtigen Reihenfolge liegt und ein Poster mit
 Beschnitt die Prüfung einer Druckerei besteht.
+◐ *Stand 11.11.2026*: `docs/PrintModel.kt` (Ausschießen `Imposition`), `PrintPilot` am PC mit PDFBox: Prüfung (Auflösung
+je Bild am Ort der Zeichnung, RGB, Schriften, Beschnitt, Seitenzahl), Broschüre (A4 quer, Falt-Reihenfolge, aufgefüllt),
+2/4/6/9 pro Blatt, Handzettel (3 Folien mit Linien), doppelseitig mit Bundsteg, Beschnitt 3 mm mit Schnittmarken
+(Trim-/BleedBox; ohne eigenen Beschnitt leicht vergrößert, mit Hinweis). Word/Folien werden vorher PDF. *⋮ ›
+Druck-Lotse …*, Lora `files.print`; Android: nicht angeboten. Test `PrintAndFontsTest`. **Offen – am Gerät**: Broschüre
+drucken und falten; Poster durch die Prüfung einer Druckerei.
 
 **Schutz und Archive**
 
-### AP-98 ☐ Passwortschutz für Dateien · S–M (neu)
+### AP-98 ◐ Passwortschutz für Dateien · S–M (neu)
 **Ziel**: Für Word-, Excel-, PowerPoint-, PDF- und ZIP-Dateien ein Passwort setzen, ändern oder (mit bekanntem Passwort)
 entfernen – aus *Dateien*, beim Speichern und beim Versand (Outlook). Moderne Verschlüsselung (Office: Agile Encryption,
 PDF: AES-256, ZIP: AES); Hinweis, das Passwort auf anderem Weg weiterzugeben. Passwortgeschützte Dateien lassen sich nach
 Eingabe in allen Werkzeugen öffnen. Kein Knacken fremder Passwörter.
 **Fertig, wenn**: geschützte Dateien in Word, Excel, PowerPoint, Acrobat und 7-Zip/Windows mit dem Passwort aufgehen und
 ohne nicht.
+◐ *Stand 11.11.2026*: `files/OfficeCrypto.kt` (Agile Encryption AES-256/SHA-512, 100 000 Runden, HMAC; Lesen auch
+Standard Encryption von Office 2007) mit eigenem OLE-Schreiber `CfbWriter` (Mini-Stream, DIFAT für große Dateien,
+DataSpaces); PDF über `PdfStage3` (AES-256, nur PC); ZIP über zip4j (AES-256). `files/FileProtect.kt`: setzen, ändern,
+entfernen, neue Datei daneben oder Original ersetzen; geschützte Office-Dateien öffnen nach Passwort als Kopie im Editor.
+*⋮ › Passwort …*, Lora `files.password` (öffnet nur das Fenster). Gegenprobe: msoffcrypto-tool (Passwort und HMAC) und
+LibreOffice öffnen die verschlüsselte Datei mit Passwort, ohne nicht. Test `FileToolsTest`. **Offen – am Gerät**: Word,
+Excel, PowerPoint, Acrobat, 7-Zip; Passwort beim Speichern und beim Versand über Outlook fehlt noch.
 
-### AP-99 ☐ Archiv-Werkzeug · S–M (neu)
+### AP-99 ◐ Archiv-Werkzeug · S–M (neu)
 **Ziel**: ZIP-Dateien (dazu 7z, TAR/GZ zum Lesen) in *Dateien* wie Ordner öffnen, durchsuchen, einzelne Dateien in der
 Schnellansicht (AP-66) oder im passenden Werkzeug öffnen, ohne alles zu entpacken. Packen mit Wahl der Stärke, Passwort
 (AP-98) und **Aufteilen in Teile** (z. B. 20 MB für Mails); Lora kann „Frag diesen Ordner“ (AP-58) auch auf ein Archiv
 anwenden.
 **Fertig, wenn**: ein großes Archiv mit Unterordnern durchsucht und geöffnet werden kann und ein großer Ordner in Teile
 gepackt und unter Windows/7-Zip wieder zusammengesetzt wird.
+◐ *Stand 11.11.2026*: `files/Archives.kt` (zip4j für ZIP mit AES und Teilen, Commons Compress + XZ für 7z, TAR, GZ, BZ2,
+XZ): Liste mit Ordnern, Suche, einzelne Datei herausholen und öffnen, alles entpacken (Schutz gegen „../“), *Frag dieses
+Archiv* (entpackt in den Cache, dann Ordner-Chat), *Als ZIP packen* mit Stärke, Passwort und Teilen (.zip/.z01 …).
+Öffnen eines Archivs in Dateien und im Lora-Ordner zeigt es wie einen Ordner; Lora `files.zip`, `files.unzip`. Test
+`FileToolsTest` (mit Teilen à 1 MB). **Offen – am Gerät**: Teile unter Windows mit 7-Zip zusammensetzen; ein großes
+Archiv (> 1 GB) durchsuchen; 7z mit Passwort.
 
 **Bilder**
 
-### AP-100 ☐ Fotos vom Handy aufbereiten · S–M (neu)
+### AP-100 ◐ Fotos vom Handy aufbereiten · S–M (neu)
 **Ziel**: Fotos (auch vom iPhone) in einem Schritt aufbereiten: HEIC/HEIF → JPG, nach EXIF richtig drehen, nach
 Aufnahmedatum benennen („2026-11-10_14-32_Exkursion.jpg“), Ortsdaten und andere Metadaten entfernen, auf Wunsch
 verkleinern. Als Stapel in *Dateien* und per Lora („bereite die Exkursionsfotos auf“). Originale bleiben, bis man sie
 selbst löscht.
 **Fertig, wenn**: ein Ordner gemischter iPhone- und Android-Fotos richtig gedreht, benannt, als JPG und ohne Ortsdaten
 herauskommt.
+◐ *Stand 11.11.2026*: `files/Exif.kt` (EXIF aus JPEG, HEIC/HEIF mit irot/imir, PNG, WebP), `files/PhotoPrep.kt`,
+`files/PhotoCodec.kt` (PC: ImageIO, HEIC/AVIF/WebP über ffmpeg bzw. `sips`; Android: BitmapFactory): JPG, aufgerichtet,
+„JJJJ-MM-TT_HH-MM_Zusatz.jpg“, ohne Metadaten, verkleinern, Ordner „aufbereitet“, Dateizeit = Aufnahmezeit. *⋮ › Fotos
+aufbereiten …* an Fotos und Ordnern, Lora `files.photos_prepare`. Test `FileToolsTest` (EXIF, HEIC-Container, Drehen,
+Namen, keine Ortsdaten). **Offen – am Gerät**: echte iPhone-HEIC (mit Kachelraster) am PC (ffmpeg der App) und auf
+Android; ob ffmpeg die Drehung schon anwendet (die App liest mit `-noautorotate`).
 
 ### AP-101 ☐ Bild-Werkstatt · M (neu)
 **Ziel**: Einfache Bildbearbeitung ohne Fremdprogramm: **Hintergrund entfernen** (Modell auf dem Gerät, nachladbar),

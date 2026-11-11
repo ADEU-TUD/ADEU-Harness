@@ -26,7 +26,10 @@ enum class DocFormat(val ext: String, val mime: String, val label: String, val c
     QTI("zip", "application/zip", trLater("OPAL-/ONYX-Test (QTI 2.1)"), chatExport = false),
     /** Tables of the Markdown as Excel workbook (docs/MoreFormats). */
     XLSX("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", trLater("Excel (.xlsx)")),
-    CSV("csv", "text/csv", trLater("CSV (Tabellen)")),
+    /** CSV-Lotse (AP-93): Excel-tauglich (semicolon, decimal comma, BOM) – the one Excel in German opens in columns. */
+    CSV("csv", "text/csv", trLater("CSV für Excel (Semikolon)")),
+    /** Standard CSV (comma, decimal point, UTF-8 without BOM) for other programs, R, Python, LimeSurvey. */
+    CSV_STANDARD("csv", "text/csv", trLater("CSV Standard (Komma, UTF-8)")),
     MOODLE("xml", "application/xml", trLater("Moodle-Test (Moodle-XML)"), chatExport = false),
     GIFT("txt", "text/plain", trLater("Moodle-Test (GIFT)"), chatExport = false),
     ANKI("txt", "text/plain", trLater("Karteikarten für Anki"), chatExport = false),
@@ -142,6 +145,7 @@ object DocumentWriter {
             DocFormat.TXT -> withContext(Dispatchers.IO) { file.writeText(toText(title, ChartBlocks.asTables(markdown))) }
             DocFormat.XLSX -> withContext(Dispatchers.IO) { XlsxWriter.write(file, title, markdown) }
             DocFormat.CSV -> withContext(Dispatchers.IO) { file.writeText(XlsxWriter.csv(title, markdown)) }
+            DocFormat.CSV_STANDARD -> withContext(Dispatchers.IO) { file.writeText(XlsxWriter.csv(title, markdown, CsvPilot.Flavour.STANDARD)) }
             DocFormat.MOODLE -> withContext(Dispatchers.IO) { file.writeText(QuizFormats.moodleXml(title, markdown)) }
             DocFormat.GIFT -> withContext(Dispatchers.IO) { file.writeText(QuizFormats.gift(title, markdown)) }
             DocFormat.ANKI -> withContext(Dispatchers.IO) { file.writeText(AnkiWriter.write(title, markdown)) }

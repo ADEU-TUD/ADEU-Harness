@@ -188,6 +188,8 @@ data class AppSettings(
     val places: String = "",
     /** Einrichtung „Alles lokal“ (AP-112): the step to continue at (1 …), 0 = not started or finished. */
     val localSetupStep: Int = 0,
+    /** Lora einrichten Schritt für Schritt (AP-120): the step to continue at (1 …), 0 = not started or finished. */
+    val setupStep: Int = 0,
     /** Rückfall (AP-112): when the question „Uni-Server nicht mehr erreichbar“ was last answered with „Später“; -1 = never again. */
     val uniFallbackAsked: Long = 0,
     /** Befehlsmodell (AP-71): Lora and Strg+K understand commands on the device once it is downloaded. */
@@ -416,6 +418,7 @@ class SettingsStore(context: Context) {
             .putString("loraPlace", next.loraPlace)
             .putString("places", next.places)
             .putInt("localSetupStep", next.localSetupStep)
+            .putInt("setupStep", next.setupStep)
             .putLong("uniFallbackAsked", next.uniFallbackAsked)
             .putBoolean("commandModel", next.commandModel)
             .putBoolean("commandModelAsk", next.commandModelAsk)
@@ -536,6 +539,7 @@ class SettingsStore(context: Context) {
             loraPlace = prefs.getString("loraPlace", d.loraPlace) ?: d.loraPlace,
             places = prefs.getString("places", d.places) ?: d.places,
             localSetupStep = prefs.getInt("localSetupStep", d.localSetupStep),
+            setupStep = prefs.getInt("setupStep", d.setupStep),
             uniFallbackAsked = prefs.getLong("uniFallbackAsked", d.uniFallbackAsked),
             commandModel = prefs.getBoolean("commandModel", d.commandModel),
             commandModelAsk = prefs.getBoolean("commandModelAsk", d.commandModelAsk),

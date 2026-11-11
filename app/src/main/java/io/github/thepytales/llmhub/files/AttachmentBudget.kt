@@ -189,9 +189,12 @@ object AttachmentBudget {
         val df = HashMap<String, Int>()
         val tf = cs.map { c -> words(c.text).groupingBy { it }.eachCount().also { m -> m.keys.forEach { df[it] = (df[it] ?: 0) + 1 } } }
         val n = cs.size.toDouble()
-        val score = cs.indices.map { i ->
+        val words = cs.indices.map { i ->
             q.sumOf { w -> val f = tf[i][w] ?: 0; if (f == 0) 0.0 else (1 + kotlin.math.ln(f.toDouble())) * kotlin.math.ln(1 + n / (df[w] ?: 1)) }
         }
+        // Suche nach Bedeutung (AP-107): with the model on this device, passages that answer in other words count too.
+        val cos = io.github.thepytales.llmhub.data.SemanticSearch.similarity(question, cs.map { it.text }, limit = 600)
+        val score = if (cos != null) io.github.thepytales.llmhub.data.SemanticSearch.mix(words, cos) else words
         val chosen = sortedSetOf(0)
         var used = cs[0].text.length
         for (i in cs.indices.sortedByDescending { score[it] }) {

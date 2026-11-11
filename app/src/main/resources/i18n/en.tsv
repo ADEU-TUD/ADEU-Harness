@@ -6814,3 +6814,287 @@ z. B. Deploy wie immer, Zertifikat läuft ab	e.g. deploy as usual, certificate i
 übersprungen	skipped
 Der Schritt „{0}“ ist fehlgeschlagen (Exit {1}). Was ist die Ursache, und was ist der nächste Schritt?	The step “{0}” failed (exit {1}). What is the cause, and what is the next step?
 Das Terminal ließ sich nicht öffnen: {0}	The terminal could not be opened: {0}
+Willkommen	Welcome
+Wofür	Purpose
+Aussehen	Appearance
+Lora ist eingerichtet. Alles lässt sich unter Einstellungen ändern.	Lora is set up. Everything can be changed under Settings.
+Lora einrichten	Set up Lora
+Schritt {0} von {1}	Step {0} of {1}
+Los geht’s	Let’s go
+Fertig – weiter zu den Modellen	Done – on to the models
+Ich richte die App jetzt mit dir ein – in wenigen Minuten, Schritt für Schritt.	Let’s set up the app together – in a few minutes, step by step.
+Eine Frage je Schritt – meine Empfehlung ist schon ausgewählt.	One question per step – my recommendation is already selected.
+Du kannst jeden Schritt überspringen und alles später unter Einstellungen ändern.	You can skip any step and change everything later under Settings.
+„Später“ unterbricht – du machst dann an derselben Stelle weiter (sag mir einfach „Lora einrichten“).	“Later” pauses – you continue at the same step (just tell me “set up Lora”).
+Mehrere sind möglich. Danach schlage ich passende Werkzeuge und Vorlagen vor.	You can pick several. I will then suggest fitting tools and templates.
+Hier entscheidest du, wohin deine Texte gehen, wenn ich oder ein Chat antworte.	Here you decide where your texts go when I or a chat answer.
+Uni-Server der TU Dresden (empfohlen)	TU Dresden university server (recommended)
+Schnell und stark. Deine Daten bleiben an der TU Dresden (ScaDS.AI). Du brauchst dafür einen kostenlosen Schlüssel – ich zeige dir im nächsten Schritt, wie.	Fast and capable. Your data stays at TU Dresden (ScaDS.AI). You need a free key for it – I will show you how in the next step.
+Nur sinnvoll für sehr sensible Daten oder wenn Lora ganz ohne Server arbeiten soll. Langsamer und schlichter als der Uni-Server, braucht einen starken Rechner und mehrere GB Speicher für die Modelle.	Only worthwhile for very sensitive data or if Lora should work entirely without a server. Slower and simpler than the university server, needs a powerful computer and several GB of storage for the models.
+Ich prüfe dieses Gerät, sobald du die Modelle lädst.	I will check this device as soon as you load the models.
+Dieses Gerät hat {0} GB Arbeitsspeicher – das reicht nur für kleine Modelle. Für die meisten Aufgaben ist der Uni-Server deutlich besser.	This device has {0} GB of memory – enough only for small models. For most tasks the university server is much better.
+Dieses Gerät hat {0} GB Arbeitsspeicher – kleine und mittlere Modelle gehen, Antworten dauern länger.	This device has {0} GB of memory – small and medium models work, answers take longer.
+Dieses Gerät hat {0} GB Arbeitsspeicher – gut geeignet.	This device has {0} GB of memory – well suited.
+Nach dem letzten Schritt führe ich dich durch das Laden der Modelle.	After the last step I will guide you through loading the models.
+Für Fortgeschrittene: eigener Anbieter	For advanced users: own provider
+Eigener Anbieter (z. B. Google Gemini)	Own provider (e.g. Google Gemini)
+Mit deinem eigenen Schlüssel. Deine Texte gehen dann an diesen Anbieter außerhalb der TU – nicht für personenbezogene oder vertrauliche Daten.	With your own key. Your texts then go to this provider outside TU Dresden – not for personal or confidential data.
+✓ Das klappt – {0} Modelle verfügbar.	✓ That works – {0} models available.
+✗ Das hat noch nicht geklappt: {0}	✗ That did not work yet: {0}
+Schlüssel für Google Gemini	Key for Google Gemini
+Den Schlüssel erzeugst du kostenlos in Google AI Studio und fügst ihn hier ein.	Create the key for free in Google AI Studio and paste it here.
+Deine Texte gehen an Google.	Your texts go to Google.
+Google AI Studio öffnen	Open Google AI Studio
+Gemini-Schlüssel	Gemini key
+Andere OpenAI-kompatible Anbieter trägst du unter Einstellungen › API-Zugang ein.	Other OpenAI-compatible providers are added under Settings › API access.
+Dein Schlüssel für den Uni-Server	Your key for the university server
+Einmal einrichten, dann merkt sich die App den Schlüssel verschlüsselt auf diesem Gerät.	Set it up once, then the app keeps the key encrypted on this device.
+Im Self-Service-Portal der TU Dresden anmelden und unter „ScaDS.AI LLM“ einen Schlüssel erzeugen. Er beginnt mit „sk-“.	Sign in to the TU Dresden self-service portal and create a key under “ScaDS.AI LLM”. It starts with “sk-”.
+Self-Service-Portal öffnen	Open self-service portal
+Den Schlüssel kopieren und hier einfügen:	Copy the key and paste it here:
+Prüfen, ob alles klappt:	Check that everything works:
+Noch keinen Schlüssel? Kein Problem – „Weiter“ und später unter Einstellungen › API-Zugang eintragen.	No key yet? No problem – press “Next” and add it later under Settings › API access.
+Bevor etwas an einen Server geht, kann ich Namen, Adressen und andere persönliche Angaben durch Platzhalter ersetzen. In der Antwort setze ich sie wieder ein.	Before anything goes to a server, I can replace names, addresses and other personal details with placeholders. I put them back into the answer.
+Namen vor dem Senden ersetzen (empfohlen)	Replace names before sending (recommended)
+Aus „Frau Müller aus Pirna“ wird für den Server „Person 1 aus Ort 1“. Du siehst immer die echten Namen.	“Ms Müller from Pirna” becomes “Person 1 from Place 1” for the server. You always see the real names.
+Namen noch zuverlässiger finden (Modell, {0} MB)	Find names even more reliably (model, {0} MB)
+Ein kleines Erkennungsmodell auf diesem Gerät findet auch ungewöhnliche Namen, Schulen und Orte.	A small recognition model on this device also finds unusual names, schools and places.
+Für besonders sensible Forschung gibt es den Tresor (Werkzeuge) und Projekte mit der Stufe „Nur TU Dresden“ oder „Nur auf diesem Gerät“.	For especially sensitive research there is the vault (tools) and projects with the level “TU Dresden only” or “This device only”.
+Welche Werkzeuge möchtest du sehen?	Which tools would you like to see?
+Chat, Dokumente, Dateien und Vorlagen sind immer da. Diese Werkzeuge kommen dazu – angehakt sind die, die zu deinen Aufgaben passen.	Chat, documents, files and templates are always there. These tools come on top – the ones that fit your tasks are ticked.
+Für Fortgeschrittene	For advanced users
+Webserver über SSH pflegen, Lora schlägt Schritte vor – nur wer selbst Server betreut.	Maintain web servers over SSH, Lora suggests steps – only if you run servers yourself.
+MCP-Server und weitere Anbindungen (Nextcloud, GitHub, Zotero) richtest du unter Einstellungen › Anbindungen ein.	MCP servers and other connections (Nextcloud, GitHub, Zotero) are set up under Settings › Connections.
+Anbindungen öffnen	Open connections
+Wie soll die App aussehen?	How should the app look?
+Hell oder dunkel, Schriftgröße und wo ich erscheine.	Light or dark, text size and where I appear.
+Farben	Colours
+Ich laufe, tanze und fliege dann nicht, sondern lese und schreibe nur.	I then do not walk, dance or fly, I only read and write.
+Fast geschafft!	Almost done!
+Das ist eingerichtet. Ein Tipp auf „Ändern“ springt zum Schritt.	This is set up. Tap “Change” to jump to a step.
+keine gewählt	none chosen
+keine zusätzlichen	no additional ones
+Uni-Server der TU Dresden	TU Dresden university server
+Eigener Anbieter	Own provider
+nicht nötig	not needed
+eingetragen	entered
+noch nicht eingetragen – später unter Einstellungen › API-Zugang	not entered yet – later under Settings › API access
+Namen ersetzen	Replace names
+an	on
+Befehle sofort verstehen (Modell, {0} MB)	Understand commands instantly (model, {0} MB)
+Damit erkenne ich einfache Wünsche wie „PDF zusammenfügen“ sofort und ohne Server.	With it I recognise simple wishes like “merge PDFs” instantly and without a server.
+Nach „Fertig“ lädt die Einrichtung „Alles lokal“ die passenden Modelle für dieses Gerät – mit Fortschritt, jederzeit unterbrechbar.	After “Done” the “All local” setup loads the fitting models for this device – with progress, can be paused at any time.
+Tipp: Frag mich jederzeit, z. B. „Wie schreibe ich einen Antrag?“ oder „Mach das Design dunkel“ – ich finde die passende Stelle.	Tip: ask me anytime, e.g. “How do I write a proposal?” or “Make the design dark” – I will find the right place.
+Lora Schritt für Schritt einrichten	Set up Lora step by step
+Ähnlich nach Bedeutung (auf diesem Gerät)	Similar in meaning (on this device)
+Als ZIP packen …	Pack as ZIP …
+Fotos aufbereiten …	Prepare photos …
+Als Tabelle öffnen (CSV-Lotse) …	Open as table (CSV guide) …
+Archiv öffnen …	Open archive …
+Passwort …	Password …
+Schriften prüfen …	Check fonts …
+Druck-Lotse …	Print guide …
+„{0}“ als Tabelle öffnen	Open “{0}” as a table
+Das habe ich erkannt – bei Bedarf anpassen:	This is what I detected – adjust if needed:
+Kodierung	Encoding
+Umlaute reparieren	Repair umlauts
+Trennzeichen	Separator
+Zahlen	Numbers
+Zeilen über der Tabelle überspringen: {0}	Skip lines above the table: {0}
+{0} Zeilen. Das Original bleibt unverändert; speichern als Excel oder CSV (für Excel oder Standard) über „Exportieren“.	{0} rows. The original stays unchanged; save as Excel or CSV (for Excel or standard) via “Export”.
+Foto aufbereiten	Prepare photo
+{0} Fotos aufbereiten	Prepare {0} photos
+In einem Schritt: als JPG, richtig gedreht, nach Aufnahmezeit benannt, ohne Ortsdaten und andere Metadaten.	In one step: as JPG, turned the right way, named by the time taken, without location and other metadata.
+Zusatz im Namen (z. B. Exkursion)	Addition to the name (e.g. field trip)
+3000 px (Druck)	3000 px (print)
+2048 px (Folien, Web)	2048 px (slides, web)
+1280 px (Mail)	1280 px (mail)
+Die Originale bleiben; die Fotos kommen in den Ordner „aufbereitet“ daneben.	The originals stay; the photos go into the folder “aufbereitet” next to them.
+{0} Fotos aufbereitet – im Ordner „{1}“.	{0} photos prepared – in the folder “{1}”.
+{0} aufbereitet, {1} nicht: {2}	{0} prepared, {1} not: {2}
+Aufbereiten	Prepare
+Passwort des Archivs	Password of the archive
+Die Namen sind lesbar; zum Öffnen der Dateien braucht es das Passwort.	The names are readable; opening the files needs the password.
+Im Archiv suchen	Search the archive
+{0} Dateien	{0} files
+Frag dieses Archiv	Ask this archive
+{0} Dateien entpackt nach „{1}“.	{0} files extracted to “{1}”.
+Alles entpacken	Extract all
+Als ZIP packen	Pack as ZIP
+Wird zu „{0}“ im selben Ordner.	Becomes “{0}” in the same folder.
+Stärke	Strength
+In Teile aufteilen (für Mails)	Split into parts (for mail)
+Nicht teilen	Do not split
+Es entstehen „.zip“, „.z01“, „.z02“ … – alle Teile zusammen verschicken. Öffnen mit 7-Zip, WinRAR oder Lora; der Windows-Explorer kann geteilte ZIPs nicht öffnen.	This creates “.zip”, “.z01”, “.z02” … – send all parts together. Open with 7-Zip, WinRAR or Lora; Windows Explorer cannot open split ZIPs.
+Mit Passwort (AES-256)	With password (AES-256)
+Passwort wiederholen	Repeat password
+Das Passwort auf anderem Weg weitergeben (Telefon, Messenger) – nicht in derselben Mail. Der Explorer von Windows öffnet AES-ZIPs nicht, 7-Zip und Lora schon.	Share the password another way (phone, messenger) – not in the same mail. Windows Explorer does not open AES ZIPs, 7-Zip and Lora do.
+„{0}“ in {1} Teilen gepackt.	“{0}” packed in {1} parts.
+„{0}“ gepackt ({1}).	“{0}” packed ({1}).
+Packen	Pack
+Passwort für „{0}“	Password for “{0}”
+Die Datei ist mit einem Passwort geschützt.	The file is protected with a password.
+Die Datei hat noch kein Passwort.	The file has no password yet.
+Passwort entfernen	Remove password
+Passwort ändern	Change password
+Bisheriges Passwort	Current password
+Neues Passwort	New password
+Moderne Verschlüsselung (AES-256) – Word, Excel, PowerPoint, Acrobat und 7-Zip öffnen die Datei mit dem Passwort. Das Passwort auf anderem Weg weitergeben, nicht in derselben Mail. Vergessene Passwörter kann niemand wiederherstellen.	Modern encryption (AES-256) – Word, Excel, PowerPoint, Acrobat and 7-Zip open the file with the password. Share the password another way, not in the same mail. Nobody can recover a forgotten password.
+Original ersetzen (sonst neue Datei daneben)	Replace the original (otherwise a new file next to it)
+Gespeichert: „{0}“	Saved: “{0}”
+„{0}“ ist geschützt	“{0}” is protected
+Die Datei öffnet sich als Kopie in Lora; das Original bleibt verschlüsselt. Zum Speichern mit Passwort „Exportieren“ und danach „Passwort …“ wählen.	The file opens as a copy in Lora; the original stays encrypted. To save it with a password, choose “Export” and then “Password …”.
+Schriften in „{0}“	Fonts in “{0}”
+Keine Schriftangaben gefunden – die Datei nutzt die Standardschrift.	No fonts specified – the file uses the default font.
+Alle Schriften sind da – die Datei sieht hier so aus wie beim Verfasser.	All fonts are there – the file looks here as it did for its author.
+eingebettet	embedded
+TU-Design	TU design
+Ersatz: {0}	Replacement: {0}
+(gleiche Breiten)	(same widths)
+Kein Ersatz installiert	No replacement installed
+Die Schriften des TU-Designs (Noto Sans) gibt es kostenlos – für ein genaues Ergebnis installieren.	The fonts of the TU design (Noto Sans) are free – install them for an exact result.
+„Einbetten“ legt die installierten Schriften in die Word-Datei, damit sie auf anderen Rechnern gleich aussieht (die Datei wird größer). Schriften, deren Lizenz das verbietet, bleiben draußen.	“Embed” puts the installed fonts into the Word file so it looks the same on other computers (the file gets larger). Fonts whose licence forbids it are left out.
+Ersatz übernehmen	Apply replacement
+Nichts eingebettet: {0}	Nothing embedded: {0}
+nur Standardschriften	only standard fonts
+Eingebettet: {0} – „{1}“	Embedded: {0} – “{1}”
+Einbetten	Embed
+Druck-Lotse: „{0}“	Print guide: “{0}”
+{0} Seiten · {1} × {2} mm	{0} pages · {1} × {2} mm
+Prüfung	Check
+Keine schweren Probleme gefunden.	No serious problems found.
+Was soll entstehen?	What should be made?
+{0} pro Blatt	{0} per sheet
+Broschüre	Booklet
+Handzettel	Handout
+doppelseitig	double-sided
+Druckerei	print shop
+ohne eigenen Beschnitt etwas vergrößert, Ränder prüfen.	enlarged slightly as it had no bleed, check the edges.
+Drucken: doppelseitig, „an der kurzen Kante spiegeln“, dann in der Mitte falten und heften.	Print double-sided, “flip on short edge”, then fold in the middle and staple.
+Fotos aufbereiten	Prepare photos
+Keine Fotos gefunden – bitte Fotos oder einen Ordner auswählen.	No photos found – please select photos or a folder.
+Bereitet {0} Fotos auf …	Preparing {0} photos …
+{0} nicht lesbar.	{0} not readable.
+Was soll gepackt werden? Bitte auswählen oder die Namen nennen.	What should be packed? Please select or name the files.
+Packt {0} in „{1}“ …	Packing {0} into “{1}” …
+Ziel	Target
+Teile	Parts
+„{0}“ gepackt.	“{0}” packed.
+Archiv entpacken	Extract archive
+Welches Archiv? Bitte eines auswählen oder den Namen nennen.	Which archive? Please select one or name it.
+Öffnet „{0}“ …	Opening “{0}” …
+Das Archiv hat ein Passwort – bitte im Fenster eingeben. Passwörter gehen nie an ein Modell.	The archive has a password – please enter it in the window. Passwords never go to a model.
+Entpackt „{0}“ nach „{1}“ …	Extracting “{0}” to “{1}” …
+Passwort setzen oder entfernen	Set or remove password
+Welche Datei? Passwortschutz gibt es für Word, Excel, PowerPoint, PDF und ZIP.	Which file? Password protection is available for Word, Excel, PowerPoint, PDF and ZIP.
+Öffnet den Passwortschutz für „{0}“ …	Opening password protection for “{0}” …
+Das Fenster ist offen – das Passwort gibst du dort selbst ein; es geht nie an ein Modell.	The window is open – you enter the password there yourself; it never goes to a model.
+CSV als Tabelle öffnen	Open CSV as table
+Öffnet „{0}“ als Tabelle …	Opening “{0}” as a table …
+Die Vorschau ist offen – erkannt: {0}	The preview is open – detected: {0}
+Schriften prüfen	Check fonts
+Welche Datei? Schriften prüfe ich in Word, PowerPoint und PDF.	Which file? I check fonts in Word, PowerPoint and PDF.
+Prüft die Schriften von „{0}“ …	Checking the fonts of “{0}” …
+fehlt → {0}	missing → {0}
+da	present
+Alle Schriften sind da.	All fonts are present.
+Es fehlen: {0}.	Missing: {0}.
+Druckfertig machen	Make print-ready
+Öffnet den Druck-Lotsen für „{0}“ …	Opening the print guide for “{0}” …
+Der Druck-Lotse ist offen – er prüft die Datei und macht sie druckfertig.	The print guide is open – it checks the file and makes it print-ready.
+Bitte ein Passwort eingeben.	Please enter a password.
+Keine verschlüsselte Office-Datei.	Not an encrypted Office file.
+Diese Verschlüsselung (Version {0}.{1}) kennt Lora nicht.	Lora does not know this encryption (version {0}.{1}).
+{0} werden gedreht	{0} will be turned
+{0} mit Ortsdaten	{0} with location
+{0} HEIC	{0} HEIC
+{0} hier nicht lesbar	{0} not readable here
+„{0}“ kann auf diesem Gerät nicht gelesen werden.	“{0}” cannot be read on this device.
+Die Datei hat schon ein Passwort – zuerst „Passwort ändern“ wählen.	The file already has a password – choose “Change password” instead.
+Für „{0}“ gibt es keinen Passwortschutz.	There is no password protection for “{0}”.
+Ohne Packen (schnell, für Fotos und Videos)	No compression (fast, for photos and videos)
+Schnell	Fast
+Normal (empfohlen)	Normal (recommended)
+Stark (kleiner, langsamer)	Strong (smaller, slower)
+Das Archiv ist mit einem Passwort geschützt.	The archive is protected with a password.
+„{0}“ würde außerhalb des Zielordners landen und wird übersprungen.	“{0}” would end up outside the target folder and is skipped.
+„{0}“ ist kein Archiv, das Lora öffnen kann.	“{0}” is not an archive Lora can open.
+„{0}“ gibt es schon.	“{0}” already exists.
+In Teile packen geht für einen Ordner oder für einzelne Dateien. Bitte alles zuerst in einen Ordner legen.	Packing in parts works for one folder or for single files. Please put everything into one folder first.
+lokal	local
+Die Daten bleiben auf diesem Gerät.	The data stays on this device.
+TU-Server	TU server
+Die Daten gehen an den Uni-Server der TU Dresden (ScaDS.AI).	The data goes to the TU Dresden university server (ScaDS.AI).
+Cloud	Cloud
+Die Daten gehen an einen Anbieter außerhalb der TU Dresden.	The data goes to a provider outside TU Dresden.
+Einstellungen › Lora › Lora Schritt für Schritt einrichten	Settings › Lora › Set up Lora step by step
+Rolle, Uni-Server oder alles lokal, Schlüssel, Datenschutz, Werkzeuge und Aussehen – Schritt für Schritt.	Role, university server or all local, key, privacy, tools and appearance – step by step.
+CSV für Excel (Semikolon)	CSV for Excel (semicolon)
+CSV Standard (Komma, UTF-8)	CSV standard (comma, UTF-8)
+Broschüre (Rückenheftung)	Booklet (saddle stitch)
+Zwei Seiten je Blattseite in Falt-Reihenfolge, auf ein Vielfaches von 4 aufgefüllt – doppelseitig über die kurze Kante drucken, falten, heften.	Two pages per sheet side in folding order, padded to a multiple of 4 – print double-sided on the short edge, fold, staple.
+Mehrere Seiten pro Blatt	Several pages per sheet
+2, 4, 6 oder 9 Seiten verkleinert auf ein Blatt – spart Papier für Leseexemplare.	2, 4, 6 or 9 pages reduced onto one sheet – saves paper for reading copies.
+Handzettel aus Folien	Handout from slides
+3 Folien je Seite mit Linien für Notizen daneben.	3 slides per page with lines for notes next to them.
+Doppelseitig mit Bundsteg	Double-sided with binding margin
+Verschiebt ungerade Seiten nach rechts und gerade nach links, damit beim Lochen oder Binden nichts verloren geht.	Moves odd pages right and even pages left so nothing is lost when punching or binding.
+Beschnitt und Schnittmarken	Bleed and crop marks
+Für die Druckerei: 3 mm Beschnittzugabe rundum und Schnittmarken in den Ecken.	For the print shop: 3 mm bleed all round and crop marks in the corners.
+Kein passender Ersatz installiert – die Datei wird mit einer Standardschrift gezeigt.	No fitting replacement installed – the file is shown with a default font.
+Gleiche Zeichenbreiten – Umbrüche und Seitenzahl bleiben.	Same character widths – line breaks and page count stay.
+Ähnliche Schrift – Zeilenumbrüche und Seitenzahl können sich ändern.	Similar font – line breaks and page count may change.
+Text etwa {0} % breiter	Text about {0} % wider
+Text etwa {0} % schmaler	Text about {0} % narrower
+Fast gleiche Breite – kaum andere Umbrüche.	Almost the same width – hardly any different line breaks.
+aus {0} Seiten werden etwa {1}	{0} pages become about {1}
+In PDFs lassen sich Schriften nicht ersetzen – bitte das Original (Word, PowerPoint) nehmen.	Fonts cannot be replaced in PDFs – please use the original (Word, PowerPoint).
+keine Schriftdatei	not a font file
+OpenType mit CFF-Umrissen lässt sich in Word nicht einbetten	OpenType with CFF outlines cannot be embedded in Word
+die Lizenz der Schrift verbietet das Einbetten	the font licence forbids embedding
+die Lizenz erlaubt nur Bitmaps	the licence only allows bitmaps
+Einbetten geht für Word-Dateien.	Embedding works for Word files.
+nicht auf diesem Computer installiert	not installed on this computer
+PNG (mit Transparenz)	PNG (with transparency)
+Das Layout wird vereinfacht: Überschriften, Listen und Tabellen bleiben, Bilder, Spalten, Abstände und Farben nicht genau.	The layout is simplified: headings, lists and tables stay, pictures, columns, spacing and colours not exactly.
+Animationen gehen verloren.	Animations are lost.
+Folienübergänge gehen verloren.	Slide transitions are lost.
+Das Layout wird vereinfacht: Titel, Text, Aufzählungen und Tabellen bleiben, Bilder und die genaue Lage nicht.	The layout is simplified: titles, text, bullet points and tables stay, pictures and exact positions do not.
+Transparenz	Transparency
+JPG kennt keine Transparenz – durchsichtige Stellen werden weiß.	JPG has no transparency – transparent areas become white.
+Animation	Animation
+Nur das erste Bild der Animation bleibt.	Only the first frame of the animation stays.
+Qualität	Quality
+{0} speichert mit leichtem Qualitätsverlust (90 %).	{0} saves with a slight loss of quality (90 %).
+Aufnahmedatum, Kamera und Ortsdaten werden nicht übernommen.	Date taken, camera and location are not carried over.
+Aufnahmedatum und Kamera werden nicht übernommen.	Date taken and camera are not carried over.
+PNG behält die Transparenz.	PNG keeps the transparency.
+Excel behält alle Blätter.	Excel keeps all sheets.
+Windows (ANSI, Windows-1252)	Windows (ANSI, Windows-1252)
+Tag.Monat.Jahr (31.12.2026, 31/12/2026)	Day.Month.Year (31.12.2026, 31/12/2026)
+Monat/Tag/Jahr (12/31/2026, US)	Month/Day/Year (12/31/2026, US)
+Jahr-Monat-Tag (2026-12-31)	Year-Month-Day (2026-12-31)
+Semikolon ( ; )	Semicolon ( ; )
+Komma ( , )	Comma ( , )
+Tabulator	Tab
+Senkrechter Strich ( | )	Vertical bar ( | )
+Kodierung: {0}	Encoding: {0}
+kaputte Umlaute („Ã¤“) werden repariert	broken umlauts (“Ã¤”) are repaired
+Trennzeichen: {0}	Separator: {0}
+Zahlen: {0}	Numbers: {0}
+Datum: {0}	Date: {0}
+Eine Titelzeile über der Tabelle wird übersprungen.	One title line above the table is skipped.
+{0} Titelzeilen über der Tabelle werden übersprungen.	{0} title lines above the table are skipped.
+Excel-tauglich (Semikolon, Dezimalkomma, mit BOM)	For Excel (semicolon, decimal comma, with BOM)
+Standard (Komma, Dezimalpunkt, UTF-8)	Standard (comma, decimal point, UTF-8)
+Schriften nicht eingebettet	Fonts not embedded
+{0} – auf einem anderen Rechner oder in der Druckerei sieht der Text anders aus. Mit „Schriften prüfen“ ersetzen bzw. beim Export einbetten.	{0} – on another computer or at the print shop the text looks different. Replace with “Check fonts” or embed when exporting.
+Bilder mit zu wenig Auflösung	Pictures with too little resolution
+{0} Bild(er) unter {1} dpi, das schwächste {2} dpi auf Seite {3} – im Druck unscharf. Für den Druck 300 dpi.	{0} picture(s) below {1} dpi, the weakest {2} dpi on page {3} – blurry in print. For print 300 dpi.
+Farbraum RGB	RGB colour space
+{0} Bild(er) in RGB. Die meisten Druckereien wandeln selbst in CMYK um; bei kräftigen Farben vorher fragen.	{0} picture(s) in RGB. Most print shops convert to CMYK themselves; ask beforehand for vivid colours.
+Ohne Beschnitt	Without bleed
+Für randlosen Druck in der Druckerei „Beschnitt und Schnittmarken“ wählen; für den Bürodrucker nicht nötig.	For borderless printing at a print shop choose “Bleed and crop marks”; not needed for the office printer.
+Seitenzahl	Page count
+{0} Seiten – für eine Broschüre werden leere Seiten bis {1} ergänzt.	{0} pages – blank pages up to {1} are added for a booklet.
+Noch offen	Still open

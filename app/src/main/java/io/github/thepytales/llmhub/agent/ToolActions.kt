@@ -363,12 +363,12 @@ object ToolActions {
         // Formatwandler mit Verlustanzeige (AP-90): the preview is the loss card; the original stays.
         ToolAction(
             "files.convert", ActionArea.FILES, trLater("In anderes Format umwandeln"),
-            "Wandelt eine Datei in ein anderes Format um (z. B. Word → odt, pdf, md; Excel → ods, csv; PowerPoint → odp, pdf) und zeigt vorher, was verloren geht. Das Original bleibt.",
-            listOf(ActionParam("datei", "Name der Datei (leer: die ausgewählte)", required = false), ActionParam("format", "Ziel, z. B. odt, pdf, csv, ods, odp, md, docx, xlsx")),
+            "Wandelt eine Datei in ein anderes Format um (z. B. Word → odt, pdf, md; Excel → ods, csv; PowerPoint → odp, pdf; OpenDocument odt/ods/odp → Word, Excel, PowerPoint; Bilder inkl. HEIC → jpg, png, webp) und zeigt vorher, was verloren geht. Das Original bleibt.",
+            listOf(ActionParam("datei", "Name der Datei (leer: die ausgewählte)", required = false), ActionParam("format", "Ziel, z. B. odt, pdf, csv, ods, odp, md, docx, xlsx, pptx, jpg, png, webp")),
             risky = false,
         ) { c, a ->
             val f = files(c, a.s("datei")).singleOrNull() ?: throw ActionFailed(tr("Welche Datei? Bitte eine auswählen oder den Namen nennen."))
-            val target = a.s("format").orEmpty().lowercase().trim().removePrefix(".").let { t -> if (t == "word") "docx" else if (t == "excel") "xlsx" else t }
+            val target = a.s("format").orEmpty().lowercase().trim().removePrefix(".").let { t -> when (t) { "word" -> "docx"; "excel" -> "xlsx"; "powerpoint" -> "pptx"; "jpeg" -> "jpg"; else -> t } }
             val targets = io.github.thepytales.llmhub.docs.FormatConvert.targets(f.name)
             if (target !in targets) throw ActionFailed(if (targets.isEmpty()) tr("„{0}“ lässt sich nicht umwandeln.", f.name) else tr("„{0}“ geht in: {1}.", f.name, targets.joinToString(", ")))
             val plan = withContext(Dispatchers.IO) { io.github.thepytales.llmhub.docs.FormatConvert.analyze(f.name, f.readBytes(), target) }
@@ -378,6 +378,142 @@ object ToolActions {
                 val made = io.github.thepytales.llmhub.docs.FormatConvert.convert(c.appContext, f, f.name, target, f.parentFile?.takeIf { it.canWrite() } ?: c.drive.created)
                 c.drive.changed()
                 ActionResult(tr("„{0}“ erstellt, das Original bleibt.", made.name), listOf(made), undo = { removeMade(c, listOf(made)) })
+            }
+        },
+        // Fotos vom Handy aufbereiten (AP-100): JPG, upright, named by the time taken, without location; originals stay.
+        ToolAction(
+            "files.photos_prepare", ActionArea.FILES, trLater("Fotos aufbereiten"),
+            "Bereitet Fotos auf (auch iPhone-HEIC): als JPG, richtig gedreht, nach Aufnahmezeit benannt (z. B. 2026-11-10_14-32_Exkursion.jpg), ohne Ortsdaten und Metadaten, auf Wunsch verkleinert. Ergebnis im Ordner „aufbereitet“, Originale bleiben.",
+            listOf(
+                ActionParam("dateien", "Fotos oder Ordner, kommagetrennt (leer: die ausgewählten oder der offene Ordner)", required = false),
+                ActionParam("zusatz", "Zusatz im Namen, z. B. Exkursion", required = false),
+                ActionParam("max_pixel", "Längste Seite in Pixeln, z. B. 2048 (leer: Originalgröße)", required = false),
+            ),
+            risky = false,
+        ) { c, a ->
+            val picked = files(c, a.s("dateien")).ifEmpty { listOfNotNull(LoraFocus.folder) }
+            val photos = io.github.thepytales.llmhub.files.PhotoPrep.photos(picked)
+            if (photos.isEmpty()) throw ActionFailed(tr("Keine Fotos gefunden – bitte Fotos oder einen Ordner auswählen."))
+            val o = io.github.thepytales.llmhub.files.PhotoPrep.Options(label = a.s("zusatz").orEmpty(), maxSide = a.s("max_pixel")?.filter { it.isDigit() }?.toIntOrNull()?.coerceIn(320, 12_000))
+            val plan = withContext(Dispatchers.IO) { io.github.thepytales.llmhub.files.PhotoPrep.plan(photos, o) }
+            ActionPlan("files.photos_prepare", tr("Bereitet {0} Fotos auf …", photos.size), false, plan.take(8).map { it.source.name to it.name }) {
+                val r = io.github.thepytales.llmhub.files.PhotoPrep.prepare(photos, o)
+                c.drive.changed()
+                ActionResult(
+                    tr("{0} Fotos aufbereitet – im Ordner „{1}“.", r.made.size, r.folder.name) + if (r.failed.isNotEmpty()) " " + tr("{0} nicht lesbar.", r.failed.size) else "",
+                    r.made, undo = { removeMade(c, r.made) }, open = r.folder,
+                )
+            }
+        },
+        // Archiv-Werkzeug (AP-99): pack and unpack; a password is only typed into the dialog, never given to a model.
+        ToolAction(
+            "files.zip", ActionArea.FILES, trLater("Als ZIP packen"),
+            "Packt Dateien oder Ordner in ein ZIP, auf Wunsch in Teilen (z. B. 20 MB für Mails). Für ein Passwort den Dialog „Passwort …“ öffnen lassen.",
+            listOf(
+                ActionParam("dateien", "Dateien oder Ordner, kommagetrennt (leer: die ausgewählten)", required = false),
+                ActionParam("teile_mb", "Größe der Teile in MB (leer: nicht teilen)", required = false),
+                ActionParam("staerke", "schnell, normal, stark oder ohne", required = false),
+            ),
+            risky = false,
+        ) { c, a ->
+            val fs = files(c, a.s("dateien")).ifEmpty { listOfNotNull(LoraFocus.folder) }
+            if (fs.isEmpty()) throw ActionFailed(tr("Was soll gepackt werden? Bitte auswählen oder die Namen nennen."))
+            val out = io.github.thepytales.llmhub.files.Archives.outFile(fs)
+            val part = a.s("teile_mb")?.filter { it.isDigit() }?.toIntOrNull()?.takeIf { it > 0 }
+            val strength = when (a.s("staerke")?.lowercase()?.trim()) {
+                "schnell" -> io.github.thepytales.llmhub.files.Archives.Strength.FAST
+                "stark", "maximal" -> io.github.thepytales.llmhub.files.Archives.Strength.MAX
+                "ohne", "speichern" -> io.github.thepytales.llmhub.files.Archives.Strength.STORE
+                else -> io.github.thepytales.llmhub.files.Archives.Strength.NORMAL
+            }
+            ActionPlan("files.zip", tr("Packt {0} in „{1}“ …", list(fs), out.name), false, listOf(tr("Ziel") to out.name) + listOfNotNull(part?.let { tr("Teile") to "$it MB" })) {
+                val made = withContext(Dispatchers.IO) { io.github.thepytales.llmhub.files.Archives.pack(fs, out, strength, null, part) }
+                c.drive.changed()
+                ActionResult(if (made.size > 1) tr("„{0}“ in {1} Teilen gepackt.", out.name, made.size) else tr("„{0}“ gepackt.", out.name), made, undo = { removeMade(c, made) })
+            }
+        },
+        ToolAction(
+            "files.unzip", ActionArea.FILES, trLater("Archiv entpacken"),
+            "Entpackt ein Archiv (ZIP, 7z, TAR, TAR.GZ) in einen Ordner daneben. Für Archive mit Passwort den Dialog öffnen.",
+            listOf(ActionParam("datei", "Name des Archivs (leer: das ausgewählte)", required = false)),
+            risky = false,
+        ) { c, a ->
+            val f = files(c, a.s("datei")).singleOrNull()?.takeIf { io.github.thepytales.llmhub.files.Archives.isArchive(it.name) }
+                ?: throw ActionFailed(tr("Welches Archiv? Bitte eines auswählen oder den Namen nennen."))
+            if (io.github.thepytales.llmhub.files.Archives.needsPassword(f)) {
+                return@ToolAction ActionPlan("files.unzip", tr("Öffnet „{0}“ …", f.name), false) {
+                    io.github.thepytales.llmhub.ui.FileTools.open(io.github.thepytales.llmhub.ui.FileTools.Kind.ARCHIVE, f)
+                    ActionResult(tr("Das Archiv hat ein Passwort – bitte im Fenster eingeben. Passwörter gehen nie an ein Modell."))
+                }
+            }
+            val base = f.name.removeSuffix(".gz").removeSuffix(".tar").substringBeforeLast('.')
+            var dest = File(f.parentFile, base)
+            var n = 2
+            while (dest.exists()) dest = File(f.parentFile, "$base ($n)").also { n++ }
+            ActionPlan("files.unzip", tr("Entpackt „{0}“ nach „{1}“ …", f.name, dest.name), false) {
+                val made = withContext(Dispatchers.IO) { io.github.thepytales.llmhub.files.Archives.extract(f, dest) }
+                c.drive.changed()
+                ActionResult(tr("{0} Dateien entpackt nach „{1}“.", made.size, dest.name), made, undo = {
+                    withContext(Dispatchers.IO) { dest.deleteRecursively() }
+                    c.drive.changed()
+                    tr("Wieder entfernt.")
+                }, open = dest)
+            }
+        },
+        // Passwortschutz (AP-98): Lora opens the window; the password is typed there and never reaches a model.
+        ToolAction(
+            "files.password", ActionArea.FILES, trLater("Passwort setzen oder entfernen"),
+            "Öffnet den Dialog, um für Word, Excel, PowerPoint, PDF oder ZIP ein Passwort zu setzen, zu ändern oder zu entfernen (AES-256). Das Passwort gibt die Nutzerin bzw. der Nutzer dort selbst ein.",
+            listOf(ActionParam("datei", "Name der Datei (leer: die ausgewählte)", required = false)),
+            risky = false,
+        ) { c, a ->
+            val f = files(c, a.s("datei")).singleOrNull()?.takeIf { io.github.thepytales.llmhub.files.FileProtect.supported(it.name) }
+                ?: throw ActionFailed(tr("Welche Datei? Passwortschutz gibt es für Word, Excel, PowerPoint, PDF und ZIP."))
+            ActionPlan("files.password", tr("Öffnet den Passwortschutz für „{0}“ …", f.name), false) {
+                io.github.thepytales.llmhub.ui.FileTools.open(io.github.thepytales.llmhub.ui.FileTools.Kind.PASSWORD, f)
+                ActionResult(tr("Das Fenster ist offen – das Passwort gibst du dort selbst ein; es geht nie an ein Modell."))
+            }
+        },
+        // CSV-Lotse (AP-93).
+        ToolAction(
+            "files.csv_open", ActionArea.FILES, trLater("CSV als Tabelle öffnen"),
+            "Öffnet eine CSV- oder Textdatei mit dem CSV-Lotsen: Kodierung, Trennzeichen, Zahlen und Datum werden erkannt und lassen sich vor dem Öffnen anpassen.",
+            listOf(ActionParam("datei", "Name der Datei (leer: die ausgewählte)", required = false)),
+            risky = false,
+        ) { c, a ->
+            val f = files(c, a.s("datei")).singleOrNull() ?: throw ActionFailed(tr("Welche Datei? Bitte eine auswählen oder den Namen nennen."))
+            val d = withContext(Dispatchers.IO) { io.github.thepytales.llmhub.docs.CsvPilot.detect(f.readBytes(), f.name) }
+            ActionPlan("files.csv_open", tr("Öffnet „{0}“ als Tabelle …", f.name), false, d.notes.map { it.substringBefore(':') to it.substringAfter(": ", "") }) {
+                io.github.thepytales.llmhub.ui.FileTools.open(io.github.thepytales.llmhub.ui.FileTools.Kind.CSV, f)
+                ActionResult(tr("Die Vorschau ist offen – erkannt: {0}", d.notes.joinToString("; ")))
+            }
+        },
+        // Schriften-Notfall (AP-91).
+        ToolAction(
+            "files.fonts_check", ActionArea.FILES, trLater("Schriften prüfen"),
+            "Prüft, welche Schriften eine Word-, PowerPoint- oder PDF-Datei nutzt und welche hier fehlen, mit Ersatz und Auswirkung auf Umbrüche und Seiten; öffnet den Dialog zum Ersetzen oder Einbetten.",
+            listOf(ActionParam("datei", "Name der Datei (leer: die ausgewählte)", required = false)),
+            risky = false,
+        ) { c, a ->
+            val f = files(c, a.s("datei")).singleOrNull()?.takeIf { io.github.thepytales.llmhub.docs.FontRescue.supported(it.name) }
+                ?: throw ActionFailed(tr("Welche Datei? Schriften prüfe ich in Word, PowerPoint und PDF."))
+            val r = withContext(Dispatchers.IO) { io.github.thepytales.llmhub.docs.FontRescue.check(f) }
+            ActionPlan("files.fonts_check", tr("Prüft die Schriften von „{0}“ …", f.name), false, r.fonts.map { it.name to if (it.missing) (it.replacement?.let { rp -> tr("fehlt → {0}", rp) } ?: tr("fehlt")) + " · " + it.effect else tr("da") }) {
+                io.github.thepytales.llmhub.ui.FileTools.open(io.github.thepytales.llmhub.ui.FileTools.Kind.FONTS, f)
+                ActionResult(if (r.missing.isEmpty()) tr("Alle Schriften sind da.") else tr("Es fehlen: {0}.", r.missing.joinToString { it.name }))
+            }
+        },
+        // Druck-Lotse (AP-97, PC).
+        ToolAction(
+            "files.print", ActionArea.FILES, trLater("Druckfertig machen"),
+            "Druck-Lotse: prüft ein PDF, Word oder Folien vor dem Druck (Auflösung, Farbraum, Schriften) und macht daraus eine Broschüre, mehrere Seiten pro Blatt, Handzettel, doppelseitig mit Bundsteg oder Beschnitt mit Schnittmarken.",
+            listOf(ActionParam("datei", "Name der Datei (leer: die ausgewählte)", required = false)),
+            risky = false, android = false,
+        ) { c, a ->
+            val f = files(c, a.s("datei")).singleOrNull() ?: throw ActionFailed(tr("Welche Datei? Bitte eine auswählen oder den Namen nennen."))
+            ActionPlan("files.print", tr("Öffnet den Druck-Lotsen für „{0}“ …", f.name), false) {
+                io.github.thepytales.llmhub.ui.FileTools.open(io.github.thepytales.llmhub.ui.FileTools.Kind.PRINT, f)
+                ActionResult(tr("Der Druck-Lotse ist offen – er prüft die Datei und macht sie druckfertig."))
             }
         },
         ToolAction(

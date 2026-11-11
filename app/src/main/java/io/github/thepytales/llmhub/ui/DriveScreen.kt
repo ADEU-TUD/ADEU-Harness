@@ -362,6 +362,8 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
         when {
             it.dir -> openFolder(it.file)
             it.doc != null -> onOpenDoc(it.doc.id)
+            // CSV-Lotse (AP-93), Archiv-Werkzeug (AP-99), protected Office files (AP-98).
+            FileTools.interceptOpen(it.file) -> Unit
             it.kind == FileKind.PDF && c.settings.current.toolOn(io.github.thepytales.llmhub.data.AppTool.PDF.id) -> {
                 PdfHandoff.open(it.file.absolutePath, page ?: 1, it.name)
                 onNavigate("pdf")
@@ -444,6 +446,8 @@ fun DriveScreen(c: AppContainer, onBack: () -> Unit, onOpenDoc: (String) -> Unit
             ChatHandoff.open.value = ""
         }
     }
+    // Dateiwerkzeuge (AP-91, AP-93, AP-97–AP-100); „Frag dieses Archiv“ goes through the folder chat.
+    FileToolDialogs(c, onOpenDoc = onOpenDoc, onChanged = { drive.changed() }, onAsk = ::askFolder)
     asking?.let { (name, done, total) ->
         AlertDialog(
             onDismissRequest = {},
@@ -1094,6 +1098,8 @@ private fun ItemMenu(c: AppContainer, item: DriveItem, actions: DriveActions, op
         )
         DropdownMenuItem(text = { Text(tr("Schlagwörter …")) }, onClick = { act { actions.tags(item) } })
         DropdownMenuItem(text = { Text(if (actions.selected(item)) tr("Auswahl aufheben") else tr("Auswählen")) }, onClick = { act { actions.select(item) } })
+        // Dateiwerkzeuge (AP-91, AP-93, AP-97–AP-100).
+        FileToolMenuItems(item.file, onDismiss)
         item.doc?.takeIf { it.versions.size > 1 }?.let { d -> DropdownMenuItem(text = { Text(tr("Versionen vergleichen")) }, leadingIcon = { Icon(Icons.Outlined.History, null) }, onClick = { act { actions.versions(d) } }) }
         if (LORA_FOLDER_OPENS) DropdownMenuItem(text = { Text(tr("Im Explorer zeigen")) }, onClick = { act { actions.reveal(item) } })
         HorizontalDivider()

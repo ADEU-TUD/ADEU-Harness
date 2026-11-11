@@ -134,7 +134,23 @@ object Vocabulary {
             }
     }
 
-    fun context(c: AppContainer, text: String): String? = runCatching { context(text, all(c)) }.getOrNull()
+    fun context(c: AppContainer, text: String): String? = runCatching {
+        val terms = all(c)
+        context(text, terms) ?: meaning(text, terms)?.let { context(it.joinToString("\n") { t -> t.term }, terms, 3) }
+    }.getOrNull()
+
+    /**
+     * Suche nach Bedeutung (AP-107): entries of the Wissenspakete whose meaning fits [text] although their word is not in
+     * it („Wer zahlt meine Dienstreise?“ → Reisekostenstelle); at most three, only clearly fitting ones; null without the
+     * model on this device.
+     */
+    fun meaning(text: String, terms: List<Pair<Term, String?>>): List<Term>? {
+        if (text.length < 12 || !SemanticSearch.active) return null
+        val packs = terms.filter { it.second != null && it.first.explanation.isNotBlank() }.map { it.first }.take(500)
+        if (packs.isEmpty()) return null
+        val cos = SemanticSearch.similarity(text.take(1_000), packs.map { "${it.term}: ${it.explanation}" }, limit = 200) ?: return null
+        return packs.indices.filter { (cos[it] ?: 0.0) > 0.84 }.sortedByDescending { cos[it] }.take(3).map { packs[it] }.ifEmpty { null }
+    }
 
     /** For word searches (AP-78): the other one-word spellings of a word, lower case („mhb“ → „modulhandbuch“). */
     fun forms(terms: List<Pair<Term, String?>>): (String) -> List<String> {

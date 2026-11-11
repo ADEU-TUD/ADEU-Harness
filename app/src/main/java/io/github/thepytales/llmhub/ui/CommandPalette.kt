@@ -66,6 +66,8 @@ val APP_COMMANDS: List<Command> get() = listOf(
     Command(trLater("Modelle"), "models", trLater("Bereiche"), "modell liste"),
     Command(trLater("Verbrauch"), "usage", trLater("Bereiche"), "kosten token bewertungen statistik"),
     Command(trLater("Einstellungen"), "settings", trLater("Einstellungen"), "optionen"),
+    // AP-120: the whole setup step by step (first start, again at any time).
+    Command(trLater("Lora einrichten"), "setup", trLater("Einstellungen"), "einrichtung einrichten assistent erster start schritt für schritt neu einrichten schlüssel werkzeuge aussehen"),
     // AP-112: the setup step by step is its own screen, not a settings page.
     Command(trLater("Alles lokal einrichten"), "local-setup", trLater("Einstellungen"), "offline einrichten assistent modelle laden ohne schlüssel alles lokal"),
 ) + io.github.thepytales.llmhub.agent.ChatModes.visible().map { m ->

@@ -390,9 +390,10 @@ object XlsxWriter {
     }
 
     /** All tables as CSV (semicolon, as German Excel expects), separated by an empty line. */
-    fun csv(title: String, markdown: String): String = "\uFEFF" + sheets(title, markdown).joinToString("\r\n\r\n") { s ->
-        s.rows.joinToString("\r\n") { r -> r.joinToString(";") { v -> if (v.any { it == ';' || it == '"' || it == '\n' }) "\"" + v.replace("\"", "\"\"") + "\"" else v } }
-    }
+    /** The sheets of [markdown] as CSV in the [flavour] of the CSV-Lotse (AP-93); several sheets one after the other. */
+    fun csv(title: String, markdown: String, flavour: CsvPilot.Flavour = CsvPilot.Flavour.EXCEL): String =
+        sheets(title, markdown).joinToString("\r\n\r\n") { s -> CsvPilot.write(s.rows, flavour).removePrefix("\uFEFF").removeSuffix("\r\n") }
+            .let { if (flavour == CsvPilot.Flavour.EXCEL) "\uFEFF" + it else it }
 }
 
 /** Quizzes (the Markdown of [QtiWriter]) for Moodle: Moodle XML and GIFT. */

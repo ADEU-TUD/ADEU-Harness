@@ -152,6 +152,8 @@ private fun ApiSection(c: AppContainer) {
         )
     }
     Section(tr("ScaDS.AI · Standard")) {
+        // Wohin die Daten gehen (AP-119).
+        DataPlaceChip(io.github.thepytales.llmhub.data.DataPlace.main(c))
         Text(
             tr("API-Key aus dem Self-Service-Portal deiner Uni (beginnt mit „sk-“). {0}", KEY_STORAGE_HINT),
             style = MaterialTheme.typography.bodySmall,

@@ -330,6 +330,7 @@ private fun LocalModelRow(c: AppContainer, m: LocalModel, fit: Fit, state: Local
             Column(Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(m.name, style = MaterialTheme.typography.titleSmall)
+                    DataPlaceChip(io.github.thepytales.llmhub.data.DataPlace.LOCAL)
                     when {
                         installed -> StatusPill(tr("installiert"), PillTone.SUCCESS)
                         fit == Fit.RECOMMENDED -> StatusPill(fit.label)
