@@ -71,7 +71,7 @@ Fairlight).
 | ~~Lora lernt nach~~ ☑ | AP-72 Lora lernt aus Korrekturen · AP-73 Rückfrage mit zwei Knöpfen (erledigt, siehe *Erledigt*) |
 | ~~Lora im Alltag~~ ☑ | AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen (erledigt 10.11.2026, siehe *Erledigt*) |
 | **Danach** | ~~AP-86 Lokale Modelle auf dem Mac laden~~ ☑ (10.11.2026, 1.0.67) |
-| **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung ◐ · AP-106 Modellkatalog in feinen Stufen, nach Zweck ◐ · AP-107 Suche nach Bedeutung auf dem Gerät ◐ · AP-108 Lange Texte lokal ◐ · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal ◐ · AP-111 Sprachausgabe lokal ☑ · AP-112 Offline-Schiene in der Oberfläche · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 ☑ · **AP-116 Lokale Modelle: Tempo, Abbruch, Hitze** (Fehler aus 1.0.67, vor AP-109) |
+| **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung ◐ · AP-106 Modellkatalog in feinen Stufen, nach Zweck ◐ · AP-107 Suche nach Bedeutung auf dem Gerät ◐ · AP-108 Lange Texte lokal ◐ · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal ◐ · AP-111 Sprachausgabe lokal ☑ · AP-112 Offline-Schiene in der Oberfläche · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 ☑ · **AP-116 Lokale Modelle: Tempo, Abbruch, Hitze** (Fehler aus 1.0.67, vor AP-109) · AP-117 Eigene Modelle aktualisieren (vor AP-113/AP-114) |
 | **Später** | AP-87 Datei-Erste-Hilfe · AP-88 Zeitreise für Dateien · AP-89 Vorlage aus eigener Datei · AP-90 Formatwandler mit Verlustanzeige ◐ · AP-91 Schriften-Notfall · AP-92 Formatierung aufräumen · AP-93 CSV-Lotse · AP-94 Formular aus Scan · AP-95 PDF-Tabellen nach Excel ◐ · AP-96 Diagramm zu Daten · AP-97 Druck-Lotse · AP-98 Passwortschutz für Dateien · AP-99 Archiv-Werkzeug · AP-100 Fotos vom Handy aufbereiten · AP-101 Bild-Werkstatt · AP-102 Umzug auf einen neuen PC |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
@@ -780,6 +780,45 @@ sofort; das Gerät wird nicht heiß.
   Schritte, Temperatur) hier eintragen.
 **Fertig, wenn**: die Beispielfrage auf dem OnePlus 15 in höchstens etwa 2 Minuten eine Antwort liefert, *Stopp* den
 Server innerhalb weniger Sekunden zur Ruhe bringt und das Gerät dabei nicht heiß wird; am Office-PC gemessen.
+
+### AP-117 ☐ Eigene Modelle aktualisieren: Fassung statt Größe, Veröffentlichung auf Hugging Face · S–M (vor AP-113/AP-114)
+**Ziel**: Ein nachtrainiertes Lora Namensschutz oder Lora Befehle erreicht alle mit der nächsten Lora-Version; die
+bisherige Fassung arbeitet bis zum Download weiter. Das Hochladen erledigt das Trainingsskript, nicht der Hauptnutzer.
+**Heute (bis 1.0.67)**: Die App erkennt „installiert“ nur an Dateiname und Größe (`PiiModelInfo.FILE/SIZE`,
+`CommandModelInfo`), die Vorgängerfassung steht fest als `OLD_FILE`. Bei einem Nachtraining mit gleichem Dateinamen gilt
+eine anders große Datei als „nicht installiert“ (bis zum Download nur die Regeln, mit „Nicht mehr fragen“ nie wieder ein
+Angebot), eine gleich große als „schon da“ (das Update kommt nie an). Die Dateien liegen gepackt auf eigenen Branches des
+Repos (`pii-modell`, `befehle-modell`) – GitHub nimmt keine Dateien über 100 MB, Lora Namensschutz liegt mit 93 MB knapp
+darunter.
+- **App**: Die installierte Fassung wird über ihren SHA-256 erkannt (einmal beim Laden prüfen bzw. in einer kleinen
+  Merkdatei neben dem Modell festhalten). Im Code eine Liste der bekannten Fassungen (SHA-256 → Schwelle, Etiketten,
+  Wortschatz); jede ältere bekannte Fassung arbeitet weiter, bis die neue geladen ist. Das Popup kommt dann als
+  Update-Angebot (eigenes „Nicht mehr fragen“ wie heute), *Einstellungen › Datenschutz* zeigt „Update verfügbar“.
+  Die Fassungen von 1.0.65 und 1.0.66 übernehmen.
+- **Veröffentlichung – jeder Claude-Chat kann es** (Entscheidung Hauptnutzer 11.11.2026: auch unterwegs vom Handy, ohne
+  PC): Ziel sind `thepytales/lora-namensschutz` und `thepytales/lora-befehle` auf Hugging Face (keine Größengrenze,
+  Modellkarte, Fassung = Commit). Ein Token für Hugging Face (Fine-grained, nur Repos von `thepytales`) liegt als
+  **Netzwerk-Geheimnis der Cloud-Umgebung „Standard“** (Host `huggingface.co`); der Proxy setzt es in jede Anfrage
+  ein, kein Chat sieht den Wert. Damit lädt jede Sitzung in dieser Umgebung nach Training **und** erreichten Zielen
+  selbst hoch (`tools/…/veroeffentlichen.py`: Datei, Modellkarte mit „von uns feinabgestimmt und verändert“,
+  `License.md`, Lizenz des Basismodells, Messbericht; prüft danach Größe und SHA-256 auf Hugging Face) und schreibt
+  `fassung.json` (Commit, Größe, SHA-256, Messwerte). Ziele verfehlt: nichts hochladen, nur der Bericht. `pc.ps1`
+  (RTX 5080) nutzt dasselbe Skript mit dem Token des PCs. Die Branches auf GitHub bleiben Ersatzquelle für bisherige
+  Fassungen. Sessions in anderen Umgebungen haben den Schlüssel nicht – Lora-Chats in „Standard“ starten.
+- **Voraussetzung**: `License.md` §2 nennt Hugging Face (`thepytales`) als offizielle Bezugsquelle neben diesem Repository.
+- **Lora Edition** (Fremdmodelle, AP-106/AP-107/AP-110/AP-111): kein Update nötig – Gewichte unverändert, an festem
+  Commit gespiegelt. Ein neueres Modell (z. B. eine neue Qwen-Fassung) ist ein **neuer** Katalogeintrag mit eigenem Repo.
+
+**Ablauf nach dem Umbau (für Hauptnutzer)**
+1. Einen Claude-Chat (Umgebung „Standard“) bitten: „Lora Befehle nachtrainieren und veröffentlichen“ – Training in der
+   Cloud (CPU) oder am PC mit der RTX 5080 (`pc.ps1`).
+2. Ziele erreicht → das Skript lädt die neue Fassung auf Hugging Face und schreibt `fassung.json`.
+3. Derselbe Chat trägt die Fassung ein (PR, alte bleibt bekannt) → grüner Check → Release.
+4. Die Apps aktualisieren sich und bieten beim nächsten Start einmal das Modell-Update an; bis dahin arbeitet die
+   bisherige Fassung.
+
+**Fertig, wenn**: Tests zeigen: App mit älterer Fassung (gleich und anders groß) erkennt das Update, arbeitet bis dahin
+mit ihr und nach dem Download mit der neuen; ein Probelauf aus einer Cloud-Sitzung lädt in ein privates Test-Repo hoch.
 
 
 ---
