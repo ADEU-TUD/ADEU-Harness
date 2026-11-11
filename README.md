@@ -383,6 +383,15 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   erfundenen Dokumenten (Prüfteil, 90 Fragen): die gesuchte Stelle unter den ersten fünf bei 98,9 % (nur Wörter
   83,3 %, Server wie bis 1.0.66 94,4 %), etwa 40 ms je Abschnitt. Werkzeuge und Zahlen:
   [`tools/suche/README.md`](tools/suche/README.md); Test `LocalEmbeddingTest`.
+- **Lokale Modelle: Tempo, Abbruch und Hitze** (nach 1.0.67, AP-116): Ein Modell auf diesem Gerät arbeitet in
+  Grenzen nach Gerät – auf dem Handy höchstens drei Werkzeugschritte und dann eine Antwort mit dem, was da ist, ohne
+  Denken (Qwen: `enable_thinking=false`), höchstens vier Minuten, Mails gekürzt (Betreff, Absender, Anfang); am PC ohne
+  Grafikkarte sechs Schritte und „Modellstandard“ ohne Denken, mit Grafikkarte oder Apple-Chip zwölf. *Stopp* legt sofort
+  auf und beendet auch die Arbeit des Modell-Servers (er lädt bei der nächsten Frage neu). Lokale Anfragen werden nie
+  von selbst wiederholt; dauert es zu lange: „Das dauert auf diesem Gerät zu lange – … Server-Modell oder kürzere
+  Frage?“. Auf Android wartet Lora, wenn das System das Gerät als warm meldet, und hält an, bevor es heiß wird; der
+  Modell-Server rechnet dort nur auf den großen Kernen (höchstens die Hälfte). Die Arbeitskarte zeigt „Liest die Anfrage
+  ein … 40 %“. Test `LocalLimitsTest`; Messung am Gerät: Arbeitsplan AP-116.
 - **Natürliche Stimme auf diesem Gerät** (seit 1.0.67, AP-111): Unter *Einstellungen › Vorlesen & Spracheingabe* gibt es
   neben der KI-Stimme des Uni-Servers und der Stimme des Systems **Natürliche Stimme auf diesem Gerät**: die deutsche
   Piper-Stimme „Thorsten“ (Aufnahmen von Thorsten Müller, frei als CC0; 64 MB, einmal laden, fester Commit auf Hugging
@@ -1771,6 +1780,9 @@ darauf schaltet die Rückfragen wieder ein. Geplante Aufgaben haben weiterhin ih
 - Jeder Werkzeugaufruf ist ein Schritt. Nach *Max. Werkzeugschritte* (Standard 30) macht der Agent automatisch weiter
   (*Einstellungen › Chat › Danach automatisch weitermachen*), bis höchstens 500 Schritte. Führt er viermal hintereinander
   dieselbe Aktion aus, hält er an, damit er sich nicht im Kreis dreht.
+- Modelle auf diesem Gerät (AP-116) haben eigene Grenzen: Handy 3, PC ohne Grafikkarte 6, mit Grafikkarte oder
+  Apple-Chip 12 Schritte, danach eine letzte Anfrage ohne Werkzeuge; kein automatisches Weitermachen; Denken auf dem
+  Handy immer aus, am PC ohne Grafikkarte bei „Modellstandard“ aus (`local/LocalLimits.kt`).
 - *Einstellungen › Chat › Denkstufe*: Modellstandard, Aus, Niedrig, Mittel, Hoch. Die App schickt dafür
   `reasoning_effort` (OpenAI-Parameter, z.B. gpt-oss) und `chat_template_kwargs` mit `enable_thinking`/`thinking`
   (Qwen, GLM, DeepSeek bei vLLM). Lehnt der Server die Parameter für ein Modell ab, antwortet es ohne sie mit seinem Standard. Ein Budget oder Kostenlimit
