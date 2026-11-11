@@ -392,7 +392,7 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   Frage?“. Auf Android wartet Lora, wenn das System das Gerät als warm meldet, und hält an, bevor es heiß wird; der
   Modell-Server rechnet dort nur auf den großen Kernen (höchstens die Hälfte). Die Arbeitskarte zeigt „Liest die Anfrage
   ein … 40 %“. Test `LocalLimitsTest`; Messung am Gerät: Arbeitsplan AP-116.
-- **Lora einrichten Schritt für Schritt** (nach 1.0.67, AP-120): Beim ersten Start erscheint statt der kurzen Fragen
+- **Lora einrichten Schritt für Schritt** (seit 1.0.69, AP-120): Beim ersten Start erscheint statt der kurzen Fragen
   ein Einrichtungsfenster mit acht Schritten – *Willkommen*, *Wofür* (Rollen, AP-80), *Wo Lora arbeitet*, *Zugang*,
   *Datenschutz*, *Werkzeuge*, *Aussehen*, *Fertig* (Übersicht mit *Ändern* je Punkt). Geschrieben für Menschen ohne
   Technikerfahrung: eine Entscheidung je Schritt, Empfehlung vorgewählt, alles überspringbar; jede Wahl wird sofort
@@ -403,49 +403,49 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   *Für Fortgeschrittene* eingeklappt. Der Zugang erklärt das Self-Service-Portal in drei Schritten und prüft den
   Schlüssel. Jederzeit wieder über Lora („Lora einrichten“), Strg+K, die Willkommenskarte und *Einstellungen › Lora ›
   Lora Schritt für Schritt einrichten* (Route `setup`, `ui/SetupWizard.kt`). Test `SetupLookTest` (Bilder je Schritt).
-- **Wohin die Daten gehen** (nach 1.0.67, AP-119, Wunsch eines Kollegen): Neben jedem Modell und Server steht
+- **Wohin die Daten gehen** (seit 1.0.69, AP-119, Wunsch eines Kollegen): Neben jedem Modell und Server steht
   **„lokal“** (grün), **„TU-Server“** (gelb) oder **„Cloud“** (rot) – in der Modellauswahl, der Modellübersicht, am
   Modell-Knopf im Eingabefeld, bei *API-Zugang* (Uni-Server und weitere Anbieter; ein Server auf `localhost`, z. B.
   Ollama, gilt als lokal), bei den Modellen auf diesem Gerät und den MCP-Servern. Immer mit Wort, nie nur Farbe;
   Screenreader hören den ganzen Satz. Reine Oberfläche über den vorhandenen Angaben (`data/DataPlace.kt`).
-- **CSV-Lotse** (nach 1.0.67, AP-93): Beim Öffnen einer CSV/TSV (und über *⋮ › Als Tabelle öffnen*) erkennt die App
+- **CSV-Lotse** (seit 1.0.69, AP-93): Beim Öffnen einer CSV/TSV (und über *⋮ › Als Tabelle öffnen*) erkennt die App
   Kodierung (UTF-8, Windows-1252, UTF-16, kaputte Umlaute wie „Ã¤“ werden repariert), Trennzeichen, Dezimal- und
   Tausenderzeichen, Datumsformat (auch US) und Titelzeilen über der Tabelle und zeigt eine Vorschau zum Anpassen. Zahlen
   kommen eindeutig an („1.234“ bleibt in einer deutschen Datei tausendzweihundert…, in einer englischen 1,234),
   Postleitzahlen und Matrikelnummern behalten ihre Nullen. Beim Export zwei CSV-Arten: *für Excel* (Semikolon,
   Dezimalkomma, BOM) und *Standard* (Komma, Dezimalpunkt, UTF-8). Gilt auch beim normalen Öffnen und für Exporte aus
   OPAL, LimeSurvey und Selma. Lora: `files.csv_open`. Test `CsvPilotTest`.
-- **Formatwandler, Rest** (nach 1.0.67, AP-90): Bilder untereinander (JPG, PNG, WebP; HEIC, AVIF, TIFF, GIF als Quelle) –
+- **Formatwandler, Rest** (seit 1.0.69, AP-90): Bilder untereinander (JPG, PNG, WebP; HEIC, AVIF, TIFF, GIF als Quelle) –
   richtig gedreht, ohne Metadaten, mit Hinweis auf verlorene Transparenz oder Animation; **OpenDocument als Quelle**:
   ODT → Word, PDF, RTF, Markdown, Text, HTML; ODS → Excel (mit Formeln), CSV, PDF; ODP → PowerPoint, PDF. ODT/ODS/ODP
   lassen sich auch in den Editor übernehmen.
-- **Fotos vom Handy aufbereiten** (nach 1.0.67, AP-100): *⋮ › Fotos aufbereiten* an Fotos oder einem Ordner (und Lora:
+- **Fotos vom Handy aufbereiten** (seit 1.0.69, AP-100): *⋮ › Fotos aufbereiten* an Fotos oder einem Ordner (und Lora:
   „bereite die Exkursionsfotos auf“): als JPG (auch iPhone-HEIC), nach EXIF bzw. HEIF-Drehung aufgerichtet, nach
   Aufnahmezeit benannt („2026-11-10_14-32_Exkursion.jpg“, gleiche Minute mit „_2“), ohne Ortsdaten und andere
   Metadaten, auf Wunsch verkleinert (3000/2048/1280 px). Ergebnis im Ordner „aufbereitet“, Originale bleiben. HEIC liest
   am PC ffmpeg (Windows: in der App; macOS auch `sips`), auf Android das System. Lora: `files.photos_prepare`.
-- **Archiv-Werkzeug** (nach 1.0.67, AP-99): ZIP, 7z, TAR, TAR.GZ/BZ2/XZ öffnen sich wie Ordner (durchsuchen, einzelne
+- **Archiv-Werkzeug** (seit 1.0.69, AP-99): ZIP, 7z, TAR, TAR.GZ/BZ2/XZ öffnen sich wie Ordner (durchsuchen, einzelne
   Dateien öffnen ohne alles zu entpacken, *Alles entpacken*, *Frag dieses Archiv*). *Als ZIP packen* mit Stärke,
   Passwort (AES-256) und **in Teilen** (10/20/50 MB für Mails: .zip, .z01 …, öffnen mit 7-Zip, WinRAR oder Lora).
   Pfade, die aus dem Zielordner führen würden, werden abgewiesen. zip4j und Commons Compress (Apache-2.0).
   Lora: `files.zip`, `files.unzip`.
-- **Passwortschutz für Dateien** (nach 1.0.67, AP-98): *⋮ › Passwort …* setzt, ändert oder entfernt (mit bekanntem
+- **Passwortschutz für Dateien** (seit 1.0.69, AP-98): *⋮ › Passwort …* setzt, ändert oder entfernt (mit bekanntem
   Passwort) den Schutz von Word, Excel, PowerPoint (wie Office: Agile Encryption, AES-256/SHA-512 mit Prüfsumme – mit
   LibreOffice und msoffcrypto gegengeprüft), PDF (AES-256, PC) und ZIP (AES-256); neue Datei daneben oder Original
   ersetzen. Geschützte Office-Dateien öffnen nach Eingabe des Passworts als Kopie im Editor. Lora öffnet nur das Fenster –
   Passwörter gehen nie an ein Modell. Kein Knacken fremder Passwörter.
-- **Schriften-Notfall** (nach 1.0.67, AP-91): *⋮ › Schriften prüfen …* (Word, PowerPoint, PDF) zeigt je Schrift
+- **Schriften-Notfall** (seit 1.0.69, AP-91): *⋮ › Schriften prüfen …* (Word, PowerPoint, PDF) zeigt je Schrift
   *installiert*, *eingebettet* oder *fehlt*, erkennt die TU-Schriften (Noto Sans, Open Sans, Univers), schlägt Ersatz vor
   (metrisch gleich: Carlito für Calibri, Liberation für Arial/Times/Courier …, sonst ähnlich) mit Auswirkung („Text etwa
   12 % breiter – aus 12 Seiten werden etwa 13“), übernimmt den Ersatz in eine Kopie und **bettet installierte Schriften
   in Word-Dateien ein** (wie Word: verschleiert, Lizenzbits beachtet). Lora: `files.fonts_check`.
-- **Druck-Lotse** (nach 1.0.67, AP-97, PC): *⋮ › Druck-Lotse …* für PDF, Word und Folien: Prüfung vor dem Druck
+- **Druck-Lotse** (seit 1.0.69, AP-97, PC): *⋮ › Druck-Lotse …* für PDF, Word und Folien: Prüfung vor dem Druck
   (Bildauflösung dort, wo das Bild steht, RGB-Bilder, nicht eingebettete Schriften, Beschnitt, Seitenzahl) und daraus eine
   **Broschüre mit Rückenheftung** (A5 auf A4, auf ein Vielfaches von 4 aufgefüllt, Falt-Reihenfolge), mehrere Seiten pro
   Blatt (2/4/6/9), Handzettel aus Folien (3 je Seite mit Linien), doppelseitig mit Bundsteg oder **Beschnitt und
   Schnittmarken** für die Druckerei (3 mm, TrimBox/BleedBox). Alles vektoriell. Lora: `files.print`. Test
   `PrintAndFontsTest`.
-- **Suche nach Bedeutung überall** (nach 1.0.67, AP-107 Rest): Mit dem Suchmodell auf dem Gerät finden jetzt auch
+- **Suche nach Bedeutung überall** (seit 1.0.69, AP-107 Rest): Mit dem Suchmodell auf dem Gerät finden jetzt auch
   *Frag diesen Ordner*, die **Chatsuche** („Ähnlich nach Bedeutung“ unter den Treffern), die **Wissenspakete** (passende
   Begriffe auch ohne das Wort) und **große Anhänge** (die passenden Stellen) das Gemeinte in anderen Worten – gemischt
   wie in der Wissenssammlung (0,8 Bedeutung : 0,2 Wörter), Vektoren je Text zwischengespeichert, nichts verlässt das

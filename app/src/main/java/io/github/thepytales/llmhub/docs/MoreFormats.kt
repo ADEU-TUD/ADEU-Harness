@@ -392,7 +392,7 @@ object XlsxWriter {
     /** All tables as CSV (semicolon, as German Excel expects), separated by an empty line. */
     /** The sheets of [markdown] as CSV in the [flavour] of the CSV-Lotse (AP-93); several sheets one after the other. */
     fun csv(title: String, markdown: String, flavour: CsvPilot.Flavour = CsvPilot.Flavour.EXCEL): String =
-        sheets(title, markdown).joinToString("\r\n") { s -> CsvPilot.write(s.rows, flavour).removePrefix("\uFEFF") }
+        sheets(title, markdown).joinToString("\r\n\r\n") { s -> CsvPilot.write(s.rows, flavour).removePrefix("\uFEFF").removeSuffix("\r\n") }
             .let { if (flavour == CsvPilot.Flavour.EXCEL) "\uFEFF" + it else it }
 }
 
