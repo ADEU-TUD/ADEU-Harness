@@ -134,7 +134,16 @@ class AgentRunner(private val c: AppContainer) {
         val start = host.conversation ?: return
         val voice = start.thread().lastOrNull { it.role == "user" }?.voice == true
         /** Sprachmodus: the quick voice model, unless the project's privacy level does not allow it. */
-        val startModel = settings.voiceModel.takeIf { voice && it.isNotBlank() && Privacy.blockReason(c, start, it) == null } ?: start.model
+        val picked = settings.voiceModel.takeIf { voice && it.isNotBlank() && Privacy.blockReason(c, start, it) == null } ?: start.model
+        // Wo Lora arbeitet (AP-112): where the chat works on this device, the run is a run on this device from the start –
+        // with the limits of AP-116 (few steps, thinking off, time limit), not only its single requests.
+        val area = coroutineContext[io.github.thepytales.llmhub.data.PlaceScope]?.area ?: io.github.thepytales.llmhub.data.Area.CHAT
+        val startModel = try {
+            io.github.thepytales.llmhub.data.Places.route(c, area, picked, start.thread().lastOrNull { it.role == "user" }?.images.orEmpty().isNotEmpty())
+        } catch (e: io.github.thepytales.llmhub.data.OnDeviceOnly) {
+            stopWith(host, e.message.orEmpty())
+            return
+        }
         Privacy.blockReason(c, start, startModel)?.let { reason ->
             stopWith(host, reason)
             return

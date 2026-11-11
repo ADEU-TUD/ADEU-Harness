@@ -122,6 +122,9 @@ object Updates {
         }
     }
 
+    /** Called when the update check reached its source (set by the app container, AP-112). */
+    @Volatile var onInternet: (() -> Unit)? = null
+
     /** Looks for a newer version; [manual] (Einstellungen › Updates) also shows the popup again after "Später". */
     suspend fun check(context: Context, manual: Boolean): State = withContext(Dispatchers.IO) {
         if (disabled || !UpdatePlatform.supported) return@withContext _state.value
@@ -131,6 +134,8 @@ object Updates {
         if (manual || busy !is State.Ready) _state.value = State.Checking
         val result = try {
             val info = UpdateInfo.parse(readText(context, source(context)))
+            // Rückfall (AP-112): the Internet works – a Uni-Server that does not answer meanwhile is really gone.
+            onInternet?.invoke()
             // Reloadable extensions (AP-25) come with the same version.json and are kept up to date here.
             onInfo?.let { hook -> runCatching { hook(context, info) }.onFailure { ErrorLog.record("Erweiterungen prüfen", it) } }
             when {

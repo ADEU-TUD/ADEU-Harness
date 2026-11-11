@@ -274,9 +274,12 @@ fun LoraHelperHost(c: AppContainer, go: (String) -> Unit) {
     }
     // An Chat übergeben from the Postfach (AP-68): the card to check the text first, for the button and for Lora.
     MailHandoffHost(c, go)
+    // Rückfall (AP-112): the Uni-Server is gone for good – work on this device or with another key.
+    UniFallbackDialog(c, go)
     // Who switched Lora off before is not asked again.
     val panelOpen by LoraHelper.isOpen.collectAsStateWithLifecycle()
-    if (!s.loraIntroDone && s.hasAnyApiKey && !s.hideLora && !panelOpen) LoraIntroDialog(c)
+    // AP-112: also without an API key – the first start then offers „Alles auf diesem Gerät“.
+    if (!s.loraIntroDone && !s.hideLora && !panelOpen) LoraIntroDialog(c)
 }
 
 /** The functions of the host for the panel (one host per window). */
@@ -652,15 +655,18 @@ private fun LoraPanel(c: AppContainer, compact: Boolean) {
                         recording = false
                         val file = recorder.stop()
                         if (file != null) scope.launch {
-                            val text = runCatching { c.llm.transcribe(c.settings.current.sttModel, file) }.getOrNull().orEmpty()
-                            if (text.isBlank()) Notices.info(tr("Keine Sprache erkannt.")) else send(text)
+                            // Wo Lora arbeitet (AP-112): on this device first, the Uni-Server only where Spracheingabe may use it.
+                            val result = runCatching { io.github.thepytales.llmhub.data.Places.recognize(c, file).first }
+                            val text = result.getOrNull().orEmpty()
+                            result.exceptionOrNull()?.let { e -> if (e is kotlinx.coroutines.CancellationException) throw e; Notices.error(e) }
+                                ?: if (text.isBlank()) Notices.info(tr("Keine Sprache erkannt.")) else send(text)
                         }
                     } else {
                         runCatching { recorder.start(); recording = true }
                             .onFailure { Notices.error(tr("Mikrofon nicht verfügbar – im Chat einmal die Spracheingabe freigeben.")) }
                     }
                 },
-                enabled = !busy && s.hasAnyApiKey,
+                enabled = !busy && (s.hasApiKey || c.transcription.localModel() != null),
             ) { Icon(if (recording) Icons.Outlined.Stop else Icons.Outlined.Mic, contentDescription = tr(if (recording) "Aufnahme beenden" else "Sprechen")) }
             FilledIconButton(onClick = { send(input) }, enabled = input.isNotBlank() && !busy) {
                 Icon(Icons.AutoMirrored.Outlined.Send, contentDescription = tr("Senden"), modifier = Modifier.size(20.dp))
@@ -1253,6 +1259,8 @@ private fun LoraIntroDialog(c: AppContainer) {
     }
     fun finish(save: Boolean) {
         if (save) models.apply(c)
+        // „Alles auf diesem Gerät“ (AP-112): the setup step by step takes over with what is still missing.
+        if (save && models.wantsSetup) LoraHost.go("local-setup")
         c.settings.update { cur ->
             // Skipped or answered: the models were offered here, so the separate dialog for earlier users stays away.
             var next = cur.copy(loraIntroDone = true, modelsIntroDone = true)
@@ -1275,6 +1283,7 @@ private fun LoraIntroDialog(c: AppContainer) {
                     }
                 }
                 Text(tr("Ein paar kurze Fragen, dann geht es los."), style = MaterialTheme.typography.bodyMedium)
+                if (!s.hasAnyApiKey) HintText(tr("Ohne API-Schlüssel geht es auch: Ich arbeite dann ganz auf diesem Gerät – ohne Uni-Server und ohne dass etwas hinausgeht."))
                 Text(tr("Wo soll ich erscheinen?"), style = MaterialTheme.typography.titleSmall)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     LORA_MODES.forEach { (id, label) -> FilterChip(selected = mode == id, onClick = { mode = id }, label = { Text(tr(label)) }) }

@@ -81,6 +81,9 @@ fun CommandModelPrompt(c: AppContainer) {
     )
 }
 
+/** The choice of the first start (AP-71, AP-112): the profile „Alles auf diesem Gerät“ instead of only „Nur lokal“ for Lora. */
+val INTRO_PLACES = listOf("MIXED" to trLater("Gemischt (empfohlen)"), "LOCAL" to trLater("Alles auf diesem Gerät"), "SERVER" to trLater("Nur Server"))
+
 /** The three ways Lora may work (AP-71) with their names. */
 val LORA_PLACES = listOf("MIXED" to trLater("Gemischt (empfohlen)"), "LOCAL" to trLater("Nur lokal"), "SERVER" to trLater("Nur Server"))
 
@@ -191,7 +194,8 @@ class IntroModelChoice(private val c: AppContainer) {
     val local = mutableStateListOf<String>()
     /** Wissenspakete (AP-78) to load; empty by default – who needs one ticks it (or a role suggests it, AP-80). */
     val packs = mutableStateListOf<String>()
-    var place by mutableStateOf(ModelRouter.Mode.of(c.settings.current.loraPlace).name)
+    // Without an API key „Alles auf diesem Gerät“ is the way that works (AP-112).
+    var place by mutableStateOf(if (!c.settings.current.hasAnyApiKey) "LOCAL" else ModelRouter.Mode.of(c.settings.current.loraPlace).name)
     /** Kurzmessung (AP-105): offered while this device was never measured; on by default (about 20 s, nothing leaves the device). */
     val offerBench = io.github.thepytales.llmhub.local.DeviceBench.here(c, c.localLlm.hardware.value).at == 0L
     var bench by mutableStateOf(offerBench)
@@ -216,13 +220,19 @@ class IntroModelChoice(private val c: AppContainer) {
         }
         // Who decides here is not asked again by the single popups.
         c.settings.update { it.copy(modelsIntroDone = true, loraPlace = place, localPurposes = purposes, commandModelAsk = if (offerCommand) false else it.commandModelAsk, pseudonymModelAsk = if (offerPii) false else it.pseudonymModelAsk) }
+        // „Alles auf diesem Gerät“ (AP-112): every area with a choice works here.
+        if (place == "LOCAL") io.github.thepytales.llmhub.data.Places.apply(c, io.github.thepytales.llmhub.data.Places.Profile.ALL_LOCAL)
     }
+
+    /** After „Fertig“ the setup step by step goes on with what is still missing (AP-112). */
+    val wantsSetup: Boolean get() = place == "LOCAL"
 }
 
 /**
  * Erster Start: „Welche Modelle sollen auf dieses Gerät?“ – one line per purpose with a short explanation and the size,
  * the language models that fit this hardware, and where Lora works. Everything can be changed later in the settings.
  */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 fun IntroModels(c: AppContainer, choice: IntroModelChoice) {
     val hw by c.localLlm.hardware.collectAsState()
@@ -232,6 +242,10 @@ fun IntroModels(c: AppContainer, choice: IntroModelChoice) {
     // Modellkatalog nach Zweck (AP-106): the allrounder and a specialist for each chosen purpose, sized for this device.
     val suggested: List<LocalModel> = remember(hw, purposes, stored, local.installed) {
         hw?.let { h -> LocalCatalog.recommended(h, purposes) { io.github.thepytales.llmhub.local.DeviceBench.forecast(c, it, h) } }.orEmpty().filter { it.id !in local.installed }
+    }
+    // Without a key the allrounder is ticked: without it nothing answers here (AP-112).
+    LaunchedEffect(suggested) {
+        if (!c.settings.current.hasAnyApiKey && choice.local.isEmpty() && local.installed.isEmpty()) suggested.firstOrNull()?.let { choice.local += it.id }
     }
     Text(tr("Welche Modelle sollen auf dieses Gerät?"), style = MaterialTheme.typography.titleSmall)
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -272,16 +286,20 @@ fun IntroModels(c: AppContainer, choice: IntroModelChoice) {
         }
     }
     Text(tr("Wo soll ich arbeiten?"), style = MaterialTheme.typography.titleSmall)
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        LORA_PLACES.forEach { (id, label) -> FilterChip(selected = choice.place == id, onClick = { choice.place = id }, label = { Text(tr(label)) }) }
+    val hasKey = c.settings.current.hasAnyApiKey
+    androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        INTRO_PLACES.forEach { (id, label) ->
+            FilterChip(selected = choice.place == id, onClick = { choice.place = id }, enabled = hasKey || id == "LOCAL", label = { Text(tr(label)) })
+        }
     }
     HintText(
         when (ModelRouter.Mode.of(choice.place)) {
             ModelRouter.Mode.MIXED -> tr("Befehle und kurze Aufgaben auf diesem Gerät, alles Anspruchsvolle über den Uni-Server (Chat: DeepSeek V4.1 Flash, Lora: GLM-5.3 Flash).")
-            ModelRouter.Mode.LOCAL -> tr("Nichts geht an einen Server – dafür schlichtere, langsamere Antworten, kurze Texte, keine Websuche. Braucht ein Sprachmodell auf diesem Gerät.")
+            ModelRouter.Mode.LOCAL -> tr("Alles auf diesem Gerät: Lora, Chats, Postfach, Suche, Sprache und Bilder verstehen laufen hier, ohne API-Schlüssel. Internet nur für Web, Literatur, Nextcloud und Updates; Bilder erzeugen geht nur über API. Die Antworten sind schlichter und langsamer als mit dem Server. Nach „Fertig“ führt die Einrichtung Schritt für Schritt durch die Downloads.")
             ModelRouter.Mode.SERVER -> tr("Sprachmodelle nur über den Uni-Server – am genauesten, braucht immer Internet.")
         },
     )
+    if (!hasKey) HintText(tr("Noch kein API-Schlüssel: Lora arbeitet ganz auf diesem Gerät. Einen Schlüssel für den Uni-Server oder einen anderen Anbieter kannst du jederzeit unter Einstellungen › API-Zugang eintragen."))
 }
 
 @Composable
@@ -308,7 +326,7 @@ private var modelsIntroLater by mutableStateOf(false)
 fun ModelsIntroDialog(c: AppContainer) {
     val s by c.settings.settings.collectAsState()
     // New users with a key get the question in Lora's first-start dialog (LoraIntroDialog), which sets the flag.
-    val firstStartAsks = !s.loraIntroDone && s.hasAnyApiKey && !s.hideLora
+    val firstStartAsks = !s.loraIntroDone && !s.hideLora
     if (s.modelsIntroDone || modelsIntroLater || firstStartAsks) return
     val choice = remember { IntroModelChoice(c) }
     if (!choice.anything) {

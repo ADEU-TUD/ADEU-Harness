@@ -146,7 +146,7 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
     val layout = remember { object { var wide = true } }
 
     LaunchedEffect(Unit) {
-        if (c.settings.current.hasAnyApiKey) c.models.refresh()
+        if (c.settings.current.hasAnyApiKey && !io.github.thepytales.llmhub.data.Places.allLocal(c)) c.models.refresh()
     }
 
     val requested by openChat.collectAsStateWithLifecycle()
@@ -405,6 +405,7 @@ private fun Screen(c: AppContainer, entry: Entry, nav: Navigator, onOpenDrawer: 
         "tasks" -> TasksScreen(c, onBack = back, onEdit = { id -> nav.navigate("task/$id") }, onOpenChat = { id -> nav.openChat(chatRoute(id)) })
         "task" -> TaskEditScreen(c, args["id"] ?: "new", onBack = back)
         "usage" -> UsageScreen(c, onBack = back)
+        "local-setup" -> LocalSetupScreen(c, onBack = back, onNavigate = { nav.navigate(it) })
         "local-models" -> LocalModelsScreen(c, onBack = back, onTry = { model -> nav.openChat(chatRoute(model = model)) })
         "transcripts" -> TranscriptsScreen(c, onBack = back, onOpen = { id -> nav.navigate("transcript/$id") }, onNavigate = { nav.navigate(it) })
         "transcript" -> TranscriptScreen(c, args["id"] ?: "", onBack = back, onOpenChat = { nav.openChat(chatRoute()) })

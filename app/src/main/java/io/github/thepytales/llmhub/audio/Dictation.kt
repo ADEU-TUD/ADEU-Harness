@@ -119,8 +119,8 @@ object Dictation {
 
     /** Recognizes [file]: on the device first; the Uni server only if no model is loaded and [allowServer]. */
     suspend fun recognize(c: AppContainer, file: File, allowServer: Boolean = Privacy.level(c, null as String?).allowsUniServer): Pair<String, Boolean> {
-        c.transcription.recognizeShort(file)?.let { return it to true }
-        if (!allowServer) throw IllegalStateException(tr("Für das Diktat auf dem Gerät unter Einstellungen › Transkription ein Erkennungsmodell laden."))
-        return c.llm.transcribe(c.settings.current.sttModel, file) to false
+        // Wo Lora arbeitet (AP-112): Spracheingabe und Diktat decide whether the Uni-Server may help.
+        if (!allowServer && c.transcription.localModel() == null) throw IllegalStateException(tr("Für das Diktat auf dem Gerät unter Einstellungen › Transkription ein Erkennungsmodell laden."))
+        return io.github.thepytales.llmhub.data.Places.recognize(c, file, deviceOnly = !allowServer)
     }
 }

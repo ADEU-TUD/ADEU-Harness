@@ -116,6 +116,9 @@ object AppMap {
             "lora ausblenden ausschalten verstecken weg maskottchen figur einblenden"),
         option("lora.place", "lora", trLater("Wo Lora arbeitet"), trLater("Lora › Wo Lora arbeitet"), trLater("Gemischt, nur lokal oder nur über den Server; Lora Befehle."),
             "gemischt mischmodus lokal server offline gerät befehlsmodell befehle wo arbeitet lora"),
+        // AP-112: per area on this device, mixed or over an API; the quick choice „Alles lokal“.
+        option("places.profile", "places", trLater("Alles lokal, Gemischt oder alles über API"), trLater("Wo Lora arbeitet"), trLater("Je Bereich Lokal, Gemischt oder API, mit Einrichtung Schritt für Schritt."),
+            "alles lokal offline ohne internet ohne server ohne schlüssel ohne api profil alles auf diesem gerät uni-server weg"),
         option("lora.calm", "lora", trLater("Ruhigere Bewegungen"), trLater("Lora › Ruhigere Bewegungen"), trLater("Lora bewegt sich weniger."), "animation ruhig weniger bewegung reduziert"),
         option("privacy.pseudonymize", "privacy", trLater("Pseudonymisierung"), trLater("Datenschutz › Pseudonymisierung"), trLater("Namen und persönliche Angaben vor dem Senden ersetzen."),
             "pseudonymisierung pseudonym anonym anonymisieren namen ersetzen platzhalter"),

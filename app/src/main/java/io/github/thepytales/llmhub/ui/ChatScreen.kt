@@ -639,7 +639,8 @@ fun ChatScreen(
     ) { pad ->
         if (items.isEmpty() && !running) {
             EmptyChat(
-                hasApiKey = settings.hasAnyApiKey,
+                // AP-112: with a language model on this device the chat works without a key.
+                hasApiKey = settings.hasAnyApiKey || c.localLlm.generalModels().isNotEmpty(),
                 userName = settings.userName,
                 model = modelInfo,
                 onModel = { showModelPicker = true },

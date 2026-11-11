@@ -181,6 +181,15 @@ data class AppSettings(
     val semanticLocal: Boolean = true,
     /** Where Lora works (AP-71): MIXED (per request), LOCAL (only on this device) or SERVER (language models only on the server). */
     val loraPlace: String = "MIXED",
+    /**
+     * Wo Lora arbeitet (AP-112): the place of the areas that have no setting of their own, „CHAT=LOCAL;VISION=MIXED“
+     * (see data/Places); Lora, Vorlesen, Transkription and Suche keep their settings and are only stricter here.
+     */
+    val places: String = "",
+    /** Einrichtung „Alles lokal“ (AP-112): the step to continue at (1 …), 0 = not started or finished. */
+    val localSetupStep: Int = 0,
+    /** Rückfall (AP-112): when the question „Uni-Server nicht mehr erreichbar“ was last answered with „Später“; -1 = never again. */
+    val uniFallbackAsked: Long = 0,
     /** Befehlsmodell (AP-71): Lora and Strg+K understand commands on the device once it is downloaded. */
     val commandModel: Boolean = true,
     /** Offer the download of the command model in a popup (off after „Nicht mehr fragen“). */
@@ -405,6 +414,9 @@ class SettingsStore(context: Context) {
             .putString("privacyOpen", next.privacyOpen)
             .putBoolean("semanticLocal", next.semanticLocal)
             .putString("loraPlace", next.loraPlace)
+            .putString("places", next.places)
+            .putInt("localSetupStep", next.localSetupStep)
+            .putLong("uniFallbackAsked", next.uniFallbackAsked)
             .putBoolean("commandModel", next.commandModel)
             .putBoolean("commandModelAsk", next.commandModelAsk)
             .putBoolean("commandModelUpdateAsk", next.commandModelUpdateAsk)
@@ -522,6 +534,9 @@ class SettingsStore(context: Context) {
             privacyOpen = prefs.getString("privacyOpen", d.privacyOpen) ?: d.privacyOpen,
             semanticLocal = prefs.getBoolean("semanticLocal", d.semanticLocal),
             loraPlace = prefs.getString("loraPlace", d.loraPlace) ?: d.loraPlace,
+            places = prefs.getString("places", d.places) ?: d.places,
+            localSetupStep = prefs.getInt("localSetupStep", d.localSetupStep),
+            uniFallbackAsked = prefs.getLong("uniFallbackAsked", d.uniFallbackAsked),
             commandModel = prefs.getBoolean("commandModel", d.commandModel),
             commandModelAsk = prefs.getBoolean("commandModelAsk", d.commandModelAsk),
             commandModelUpdateAsk = prefs.getBoolean("commandModelUpdateAsk", d.commandModelUpdateAsk),

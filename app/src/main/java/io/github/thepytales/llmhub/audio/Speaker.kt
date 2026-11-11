@@ -72,7 +72,7 @@ class Speaker(
             try {
                 when {
                     useLocal(deviceOnly) -> speakParts(text, ::localAudio)
-                    deviceOnly || settings.current.ttsEngine != "SERVER" -> speakDevice(id, text)
+                    deviceOnly || (settings.current.ttsEngine != "SERVER" || !settings.current.hasApiKey) -> speakDevice(id, text)
                     else -> speakServer(text)
                 }
             } catch (e: CancellationException) {
@@ -115,7 +115,7 @@ class Speaker(
                         if (first) onFirstSound()
                         first = false
                     }
-                    if (!useLocal(deviceOnly) && (deviceOnly || settings.current.ttsEngine != "SERVER")) {
+                    if (!useLocal(deviceOnly) && (deviceOnly || (settings.current.ttsEngine != "SERVER" || !settings.current.hasApiKey))) {
                         for (part in parts) {
                             started()
                             speakDevice(id, part)
@@ -163,7 +163,7 @@ class Speaker(
      * loaded – it sounds more natural than the system voice.
      */
     private fun useLocal(deviceOnly: Boolean): Boolean =
-        LocalVoiceInfo.route(settings.current.ttsEngine, deviceOnly, local?.installed() == true) == "LOCAL"
+        LocalVoiceInfo.route(settings.current.ttsEngine, deviceOnly || !settings.current.hasApiKey, local?.installed() == true) == "LOCAL"
 
     private suspend fun localAudio(part: String): ByteArray =
         kotlinx.coroutines.withContext(Dispatchers.IO) { local!!.synth(part, settings.current.speechRate) }

@@ -177,6 +177,8 @@ fun ImagesScreen(c: AppContainer, onBack: () -> Unit, onOpenChat: () -> Unit = {
                 verticalArrangement = Arrangement.spacedBy(22.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+                // AP-112: „nur über API“ is said calmly, not hidden.
+                item(key = "place") { PlaceNote(c, io.github.thepytales.llmhub.data.Area.IMAGES, Modifier.padding(bottom = 4.dp)) }
                 if (turns.isEmpty() && pending == null) item { Welcome { vm.prompt = it } }
                 items(turns, key = { it.id }) { t ->
                     TurnView(vm, t, images, onOpen = { open = it.id }, onEdit = { img -> vm.editTarget = img; vm.regions = emptyList(); editing = img })

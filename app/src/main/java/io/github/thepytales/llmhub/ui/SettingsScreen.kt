@@ -107,6 +107,7 @@ fun SettingsScreen(c: AppContainer, section: String?, onBack: () -> Unit, onNavi
             when (section) {
                 "api" -> ApiSection(c)
                 "lora" -> LoraSettings(c)
+                "places" -> PlacesSettings(c, onNavigate)
                 "github" -> GitHubSection(c)
                 "chat" -> ChatSection(c)
                 "tools" -> ToolsSection(c)
@@ -387,6 +388,7 @@ private fun VoiceSection(c: AppContainer) {
         if (s.ttsEngine == "DEVICE" && voices == null) voices = c.speaker.deviceVoices()
     }
     Section(tr("Vorlesen")) {
+        PlaceNote(c, io.github.thepytales.llmhub.data.Area.SPEECH)
         Text(
             tr("Wähle, wie Antworten vorgelesen werden. Beide Wege sind datenschutzfreundlich: Die KI-Stimme läuft auf dem ") +
                 tr("Uni-Server, der die Antwort ohnehin geschrieben hat – es gehen keine Daten an Dritte. Die {0} ", DEVICE_VOICE) +

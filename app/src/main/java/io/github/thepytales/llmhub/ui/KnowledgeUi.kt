@@ -98,6 +98,7 @@ fun KnowledgeList(c: AppContainer, collection: String) {
 @Composable
 fun KnowledgeSection(c: AppContainer) {
     SettingsCard(tr("Wissenssammlung")) {
+        PlaceNote(c, io.github.thepytales.llmhub.data.Area.SEARCH)
         SettingsHint(
             tr("Eigene Dokumente, die das Modell in jedem Chat durchsuchen kann – z.B. Modulhandbuch, Prüfungsordnung, " +
                 "Leitfäden oder Literatur (PDF, Word, Text …). Es liest nicht alles auf einmal, sondern sucht die passenden Stellen " +

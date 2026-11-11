@@ -77,6 +77,8 @@ val SETTINGS_INDEX = listOf(
     Command(trLater("GitHub"), "settings/github", trLater("Einstellungen"), "repository token code"),
     Command(trLater("Chat & Werkzeuge"), "settings/chat", trLater("Einstellungen"), "standardmodell werkzeuge freigaben websuche denken"),
     Command(trLater("Werkzeuge"), "settings/tools", trLater("Einstellungen"), "werkzeuge einschalten ausschalten pdf tresor seitenleiste mehr reihenfolge"),
+    Command(trLater("Wo Lora arbeitet"), "settings/places", trLater("Einstellungen"), "lokal offline ohne internet ohne server ohne api schlüssel gerät alles lokal gemischt profil einrichtung"),
+    Command(trLater("Alles lokal einrichten"), "local-setup", trLater("Einstellungen"), "offline einrichten assistent modelle laden ohne schlüssel"),
     Command(trLater("Lora"), "settings/lora", trLater("Einstellungen"), "lora maskottchen ausblenden navigator helfer animation hinweise"),
     Command(trLater("Datenschutz"), "settings/privacy", trLater("Einstellungen"), "pseudonymisierung namen eigene begriffe"),
     Command(trLater("Gedächtnis"), "settings/memory", trLater("Einstellungen"), "erinnerungen merken"),

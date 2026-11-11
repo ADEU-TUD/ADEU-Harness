@@ -236,7 +236,19 @@ class AppContainer(context: Context) {
     /** Befehlsmodell (AP-71): Lora and Strg+K understand commands on the device. */
     val commandModel = io.github.thepytales.llmhub.data.CommandModel(this)
 
+    /** Rückfall, wenn der Uni-Server wegfällt (AP-112). */
+    val uniWatch = io.github.thepytales.llmhub.data.UniWatch(File(files, "uni_watch.json"))
+
     init {
+        // Wo Lora arbeitet (AP-112): requests of an area that must stay on this device go to the model here.
+        llm.placeRoute = { area, model, images -> io.github.thepytales.llmhub.data.Places.route(this, area, model, images) }
+        llm.placeCheck = { area ->
+            if (!io.github.thepytales.llmhub.data.Places.serverAllowed(this, area)) {
+                throw io.github.thepytales.llmhub.data.OnDeviceOnly(io.github.thepytales.llmhub.data.Places.missingNote(this, area))
+            }
+        }
+        llm.uniWatch = uniWatch
+        io.github.thepytales.llmhub.update.Updates.onInternet = { uniWatch.internet() }
         privacy.model = { text -> piiModel.find(text) }
         privacy.onUse = { piiModel.offerIfNeeded() }
         // Gründliche Erkennung (AP-03): the smallest installed local model lists names the rules missed.
