@@ -72,6 +72,7 @@ Fairlight).
 | ~~Lora im Alltag~~ ☑ | AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen (erledigt 10.11.2026, siehe *Erledigt*) |
 | **Danach** | ~~AP-86 Lokale Modelle auf dem Mac laden~~ ☑ (10.11.2026, 1.0.67) |
 | **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung ◐ · AP-106 Modellkatalog in feinen Stufen, nach Zweck ◐ · AP-107 Suche nach Bedeutung auf dem Gerät ◐ · AP-108 Lange Texte lokal ◐ · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal ◐ · AP-111 Sprachausgabe lokal ☑ · AP-112 Offline-Schiene in der Oberfläche ◐ · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 ☑ · **AP-116 Lokale Modelle: Tempo, Abbruch, Hitze ◐** (Fehler aus 1.0.67, vor AP-109) · ~~AP-117 Eigene Modelle aktualisieren, auf GitHub~~ ☑ (11.11.2026) |
+| **Neu (11.11.2026)** | **AP-118 Server-Terminal mit Lora ◐** (SSH wie PuTTY, Lora schlägt Schritte vor, Ausführung nur nach Zustimmung; nur Desktop) |
 | **Später** | AP-87 Datei-Erste-Hilfe · AP-88 Zeitreise für Dateien · AP-89 Vorlage aus eigener Datei · AP-90 Formatwandler mit Verlustanzeige ◐ · AP-91 Schriften-Notfall · AP-92 Formatierung aufräumen · AP-93 CSV-Lotse · AP-94 Formular aus Scan · AP-95 PDF-Tabellen nach Excel ◐ · AP-96 Diagramm zu Daten · AP-97 Druck-Lotse · AP-98 Passwortschutz für Dateien · AP-99 Archiv-Werkzeug · AP-100 Fotos vom Handy aufbereiten · AP-101 Bild-Werkstatt · AP-102 Umzug auf einen neuen PC |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
@@ -945,6 +946,68 @@ mit ihr und nach dem Download mit der neuen; ein Probelauf aus einer Cloud-Sitzu
   gepusht, im Commit und über `raw.githubusercontent.com` geprüft und mit dem Code der App geladen; „Ziele verfehlt“
   schreibt nichts. Den Test-Branch konnte die Cloud-Sitzung nicht löschen (der Git-Proxy bricht das Löschen ab) – **von
   Hand löschen** (GitHub › Branches › `test-fassung-probe` › Papierkorb), falls er noch da ist.
+
+
+### AP-118 ◐ Terminal für Serverkonfiguration (mit Lora) · L (neu, Wunsch 11.11.2026, D)
+**Ziel**: Webserver (z. B. die Symfony-Anwendung des Lehrstuhls auf Apache) aus Lora heraus pflegen – ein SSH-Terminal
+wie PuTTY, dazu Lora, die Schritte vorschlägt, erklärt und erst nach Zustimmung ausführt. Kein Wechsel zu PuTTY,
+keine Befehle aus dem Gedächtnis.
+**Umfang**
+- **Werkzeug „Server-Terminal“** unter *Einstellungen › Werkzeuge* (anfangs aus), eingeschaltet unter *Mehr* in der
+  Seitenleiste; Lora schlägt es vor, wenn eine Bitte passt („ssh“, „Server“, „composer install“ …). Nur Desktop
+  (Windows, macOS, Linux); Android vorerst nicht (siehe Entscheidungen).
+- **Verbindung wie PuTTY**: Host, Port (Standard 22), eigener Benutzer, Anmeldung mit Schlüssel (OpenSSH/PuTTY-PPK,
+  mit oder ohne Passphrase) oder Passwort; **gespeicherte Sitzungen** (Name, Host, Port, Benutzer, Schlüsseldatei,
+  Arbeitsordner der Anwendung, z. B. `/var/www/app`). Ein echtes Terminal (Farben, `vim`, `top`, `less`, Größe passt sich
+  dem Fenster an) neben Loras Spalte.
+- **known_hosts mit Fingerabdruck**: Beim ersten Verbinden zeigt die App den SHA-256-Fingerabdruck des Server-Schlüssels
+  und fragt; bestätigte Schlüssel stehen in einer eigenen `known_hosts` im Datenordner (OpenSSH-Format). Ein **geänderter**
+  Schlüssel blockt die Verbindung mit deutlicher Warnung (möglicher Angriff) – Weiter nur nach ausdrücklichem
+  Ersetzen.
+- **Geheimnisse**: Passwort und Passphrase werden nur auf Wunsch gespeichert, dann mit dem Schlüssel des Geräts
+  verschlüsselt (Windows DPAPI, macOS Keychain, Linux Secret Service – wie API-Schlüssel). Geheimnisse gehen **nie an ein
+  Modell** und nie ins Protokoll; die Sitzungsdatei enthält keine.
+- **Lora schlägt Schritte vor**: aus der Bitte („Deploy wie immer“, „Zertifikat läuft ab“) macht Lora eine Liste von
+  Schritten – je Schritt der Befehl, was er tut, **Sicherheitsaspekte** (z. B. „läuft als root“, „ändert Rechte“,
+  „startet Apache neu – Seite kurz weg“) und eine Einstufung *liest nur* · *ändert* · *riskant*. **Ausführung nur nach
+  Zustimmung je Schritt** (*Ausführen* · *Überspringen* · *Bearbeiten* · *Abbrechen*); kein „alles auf einmal“ für riskante
+  Schritte. Schlägt ein Schritt fehl, fragt *Lora fragen* mit seiner Ausgabe nach dem nächsten Schritt.
+- **Abläufe** (fest hinterlegt, mit Platzhaltern für Ordner und Benutzer, anpassbar): *Symfony aktualisieren* – `git
+  pull` → `composer install --no-dev --optimize-autoloader` → `php bin/console asset-map:compile` → Standard-ACL für
+  `www-data` auf `public/assets/` und `vendor/` (`setfacl -R -m u:www-data:rwX` und `-d -m`) → Cache als `www-data`
+  leeren (`sudo -u www-data php bin/console cache:clear`). Dazu *Apache prüfen und neu laden* (`apachectl configtest`
+  → `systemctl reload apache2`), *Zertifikat prüfen/erneuern* (`certbot certificates` → `certbot renew --dry-run` →
+  `certbot renew`), *Symfony-Status* (Umgebung, Logs, `about`).
+- **Protokoll** je Sitzung: Zeit, Schritt, Befehl, Zustimmung, Exit-Code, gekürzte Ausgabe – lokal im Datenordner,
+  ohne Geheimnisse; *Protokoll kopieren*.
+- **Datenschutz**: bevorzugt das **Modell auf diesem Gerät** (AP-112, wie Lora selbst: *Wo Lora arbeitet › Lora*). Geht etwas an einen
+  Server (Uni-Server/API), dann nur **pseudonymisiert und ohne Geheimnisse**: Hostnamen, IP-Adressen, Benutzer, Pfade
+  unter `/home`, E-Mail-Adressen, Token und Schlüssel werden vorher ersetzt (`<host-1>`, `<ip-1>`, `<geheim>`) und in
+  Loras Vorschlag wieder eingesetzt. Ein **sichtbarer Hinweis** über Loras Spalte sagt, wohin die Ausgabe geht.
+
+**Entscheidungen (11.11.2026)**
+- **SSH**: Apache MINA SSHD 2.20.1 (`sshd-core`, `sshd-common`, Apache-2.0, Maven Central). Reines Java, kann
+  ed25519/ECDSA/RSA, OpenSSH- und PuTTY-Schlüssel (`sshd-putty`) und bringt einen SSH-Server mit, den die Tests
+  einbetten. JSch und SSHJ kamen nicht in Frage (JSch ohne aktuelle Algorithmen bzw. nur als Fork, SSHJ ohne Server).
+- **Terminal-Darstellung**: JediTerm 3.76 (JetBrains, Grundlage des Terminals in IntelliJ; `jediterm-core`,
+  `jediterm-ui`) als Swing-Komponente im Compose-Fenster. **Lizenz**: JediTerm steht wahlweise unter Apache-2.0 oder
+  LGPL-3.0; wir nutzen es **unter Apache-2.0** – LGPL-3.0 verlangte, dass Nutzende die Bibliothek austauschen und das
+  Werk neu verknüpfen dürfen, was zu `License.md` (keine Änderungen ohne Genehmigung) schlecht passt; Apache-2.0 verlangt
+  nur Lizenztext und Hinweise, die mit der App ausgeliefert werden. JediTerm liegt nicht auf Maven Central, sondern im
+  JetBrains-Repository `packages.jetbrains.team/maven/p/ij/intellij-dependencies` (in `desktop/settings.gradle.kts`
+  eingetragen, nur für `org.jetbrains.jediterm`). JediTerm 3.76 ist mit Kotlin 2.4 gebaut; Lora nutzt Kotlin 2.0.21 –
+  daher wird die Kotlin-Standardbibliothek von JediTerm nicht übernommen, und ein Test prüft, dass JediTerm nur
+  Funktionen der Standardbibliothek von Lora aufruft.
+- **Android**: nicht in diesem Paket – die Terminal-Darstellung ist Swing (nur Desktop), und Serverpflege am Handy ist
+  kein Alltag. MINA SSHD liefe auch auf Android; ein späteres Paket kann die Abläufe (ohne volles Terminal) nachziehen.
+- **Keine Zugangsdaten im Repo**: keine IP-Adressen, Hostnamen, Benutzer oder Schlüssel des Lehrstuhls in Code, Tests
+  oder Doku; Beispiele nutzen `example.org` und `deploy`.
+- **Lora führt nie selbst aus**: jeder Befehl braucht einen Klick; im Terminal selbst tippt man frei wie in PuTTY.
+
+**Fertig, wenn**: eine gespeicherte Sitzung sich mit Schlüssel und mit Passwort anmeldet, ein neuer Server-Schlüssel
+erst nach Bestätigung angenommen und ein geänderter blockiert wird, der Ablauf *Symfony aktualisieren* Schritt für
+Schritt mit Zustimmung läuft und protokolliert wird, Geheimnisse weder im Protokoll noch in einer Modellanfrage stehen
+– geprüft mit einem eingebetteten SSH-Server in den Tests – und der Hauptnutzer es an seinem Server ausprobiert hat.
 
 
 ---
