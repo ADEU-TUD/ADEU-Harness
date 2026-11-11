@@ -676,7 +676,7 @@ gemessen); eine zweite, weibliche Stimme („kerstin“, CC0) zur Wahl; Spiegel 
 - Übersicht unter *Einstellungen › Wo Lora arbeitet*: je Funktion der Ort mit Grund.
 **Fertig, wenn**: auf einem Gaming-PC und einem Mac mit 32 GB alle Bereiche außer „nur über API“ ohne Schlüssel nutzbar
 sind und ein Office-PC ehrlich sieht, was fehlt.
-◐ *Stand 11.11.2026 (für 1.0.68)*: In der App fertig; die Abstimmung des Entwurfs vorab entfiel (Wunsch Hauptnutzer:
+◐ *Stand 11.11.2026 (für 1.0.68)*: In der App fertig, englische Texte ergänzt, volle Testsuite grün; die Abstimmung des Entwurfs vorab entfiel (Wunsch Hauptnutzer:
 im Stil der App bauen, Änderungswünsche danach). Am Gerät zu messen, siehe unten.
 - **Bereiche und Orte** (`data/Places.kt`): 13 Bereiche (`Area`) mit erlaubten Orten (`Place`: Lokal, Gemischt, API) und
   Grund für das, was nicht geht. Lora, Vorlesen, Transkription und Suche behalten ihre Einstellungen (`loraPlace`,
