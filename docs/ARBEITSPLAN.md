@@ -1027,7 +1027,10 @@ Schritt mit Zustimmung läuft und protokolliert wird, Geheimnisse weder im Proto
 - **Build** (⚠ wichtig bei späteren Problemen, auch in `CLAUDE.md` und README › *Selbst bauen*): JediTerm 3.76 ist mit
   Kotlin 2.4 gebaut; die App bleibt bei 2.0.21. Darum setzt `desktop/build.gradle.kts` den Compiler-Schalter
   **`-Xskip-metadata-version-check`** (gilt für alle Bibliotheken – Laufzeitfehler aus `kotlin.*` deuten darauf hin),
-  und die Standardbibliothek von JediTerm wird nicht übernommen. Bei Kotlin ≥ 2.3 beides entfernen. Ein Test liest den Bytecode von JediTerm und prüft, dass jede
+  und die Standardbibliothek von JediTerm wird nicht übernommen. Bei Kotlin ≥ 2.3 beides entfernen.
+  Die gepackte App braucht für MINA SSHD die Java-Module `java.rmi` und `java.security.jgss` (`modules(…)` in
+  `desktop/build.gradle.kts`); ohne sie scheiterte im ersten Lauf für 1.0.68 jede SSH-Verbindung
+  (`NoClassDefFoundError: java/rmi/ServerException`) – gefunden vom Selbsttest unter Windows, macOS und Linux. Ein Test liest den Bytecode von JediTerm und prüft, dass jede
   aufgerufene Funktion von `kotlin.*` in der Standardbibliothek der App steht. Lizenzhinweise in
   `desktop/src/main/resources/lizenzen/`, `License.md` Abschnitt 3 ergänzt.
 - **Tests** `ServerTerminalTest` (8) mit eingebettetem MINA-SSH-Server: neuer Schlüssel erst nach Bestätigung, geänderter

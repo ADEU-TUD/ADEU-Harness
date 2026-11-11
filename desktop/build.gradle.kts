@@ -194,8 +194,11 @@ compose.desktop {
             // java.sql: used by some libraries; jdk.crypto.ec / jdk.charsets: TLS and windows-1252 text files;
             // jdk.crypto.mscapi: certificates of Windows (company proxies); jdk.localedata: German dates;
             // jdk.management: installed memory for the hardware check without JNA.
+            // java.rmi, java.security.jgss: Apache MINA SSHD of the Server-Terminal (AP-118; without java.rmi every SSH
+            // connection fails with NoClassDefFoundError java/rmi/ServerException – found by the self-test of 1.0.68).
+            // Check new libraries with: jdeps --ignore-missing-deps --print-module-deps <jar>
             modules("java.instrument", "java.management", "jdk.management", "java.naming", "java.net.http", "java.sql", "jdk.unsupported",
-                "jdk.crypto.ec", "jdk.charsets", "jdk.accessibility", "jdk.localedata")
+                "jdk.crypto.ec", "jdk.charsets", "jdk.accessibility", "jdk.localedata", "java.rmi", "java.security.jgss")
             if (System.getProperty("os.name").startsWith("Windows")) modules("jdk.crypto.mscapi")
             windows {
                 iconFile.set(project.file("icons/app.ico"))
