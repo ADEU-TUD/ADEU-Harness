@@ -14,8 +14,8 @@ Commit (eingerichtet 11.11.2026). Die App lädt zuerst vom Spiegel und nur, wenn
 | Spracherkennung | Whisper Large v3 Turbo, Whisper Small, Whisper Base, Parakeet TDT 0.6B v3, WeSpeaker, Silero VAD, pyannote |
 | Videoeditor-Paket | YuNet, RNNoise |
 
-Noch **nicht** gespiegelt: Piper Thorsten (Herkunft aus „lessac“ klären), Lora Namensschutz und Lora Befehle (AP-117,
-erst wenn `License.md` Hugging Face als Bezugsquelle nennt).
+Nicht gespiegelt: Piper Thorsten (Herkunft aus „lessac“ klären). **Eigene Modelle** (Lora Namensschutz, Lora Befehle)
+bleiben auf GitHub (Entscheidung 11.11.2026, AP-117).
 
 **Neues Modell spiegeln**: in `spiegel.py` unter `DATEN` eintragen (Quelle an festem Commit, Größe, SHA-256, Lizenz),
 `python tools/huggingface/spiegel.py --nur <repo>` (privat) prüfen, dann `--oeffentlich`; die ausgegebene Zeile in
