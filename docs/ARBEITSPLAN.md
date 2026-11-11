@@ -528,6 +528,11 @@ ersten Start sie mit Größe, Tempo und Zweck anbietet.
   `docs/MODELLKATALOG.md` begründen, dann einmal der Prüfteil; jede Empfehlung auf einem Gerät der Stufe messen. Bisher ist
   die Wahl vorläufig (Lizenz, Größe, Ruf, Vorhersage). Der Mail-Sortierer (`MailSorter`, andere Sitzung) wählt sein Modell
   noch nach Größe und könnte einen Code-Spezialisten nehmen – dort `generalModels()` nutzen.
+- **Eigener Spiegel ☑ (11.11.2026, für 1.0.68)**: alle Modelle der Lora Edition (14 Sprachmodell-Repos mit Bildteil,
+  e5-small, Spracherkennung, YuNet, RNNoise – 24 Repos, 47 Dateien, ≈ 151 GB) byte-gleich mit Lizenz und Modellkarte unter
+  huggingface.co/thepytales, an festem Commit; jede Datei von außen auf Größe und SHA-256 geprüft. Die App lädt zuerst vom
+  Spiegel, dann vom Original (`ModelMirror`, `Models.java`), Builds nehmen ihn als zweite Quelle. Werkzeug:
+  `tools/huggingface/spiegel.py`. Nicht gespiegelt: Piper Thorsten (Herkunft aus „lessac“ klären), eigene Modelle (AP-117).
 
 ### AP-107 ◐ Suche nach Bedeutung auf dem Gerät (Einbettungen) · S–M (Runde 3)
 **Ziel**: Wissenssammlung, *Frag diesen Ordner*, Chatsuche, Wissenspakete und große Anhänge (AP-85) ohne Server: ein

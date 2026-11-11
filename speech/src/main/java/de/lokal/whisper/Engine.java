@@ -408,7 +408,7 @@ public final class Engine {
                 File dst = new File(dir, spec.name);
                 if (dst.isFile() && dst.length() == spec.size) { doneBefore[0] += spec.size; continue; }
                 File part = new File(dir, spec.name + ".part");
-                httpDownload(m.url(spec), part, got -> {
+                Bytes progress = got -> {
                     Boolean c;
                     synchronized (Engine.this) { c = cancelDownload.get(m.id); }
                     if (c != null && c) throw new InterruptedException("abgebrochen");
@@ -419,7 +419,22 @@ public final class Engine {
                         synchronized (Engine.this) { downloads.put(m.id, f); }
                         emitSimple("download", "id", m.id, "progress", f, "done", doneBefore[0] + got, "total", total);
                     }
-                });
+                };
+                // Zuerst unser Spiegel, dann das Original – dieselbe Datei, ein Abbruch läuft bei der anderen Quelle weiter.
+                Exception failed = null;
+                for (String url : m.urls(spec)) {
+                    try {
+                        httpDownload(url, part, progress);
+                        failed = null;
+                        break;
+                    } catch (InterruptedException e) {
+                        throw e;
+                    } catch (Exception e) {
+                        failed = e;
+                        Util.err("download " + url, e);
+                    }
+                }
+                if (failed != null) throw failed;
                 emitSimple("download", "id", m.id, "progress", Math.min(0.995, (doneBefore[0] + part.length()) / (double) total), "verifying", true);
                 try {
                     verify(part, spec);

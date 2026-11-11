@@ -17,6 +17,8 @@ import java.security.MessageDigest
 
 val sherpaVersion = "1.13.8"
 val sherpa = "https://github.com/k2-fsa/sherpa-onnx/releases/download"
+/** Our mirror of the models on Hugging Face (Lora Edition). */
+val mirror = "https://huggingface.co/thepytales"
 
 /** url(s), sha256 */
 val artifacts = mapOf(
@@ -29,9 +31,10 @@ val artifacts = mapOf(
     // AP-31: macOS on Apple Silicon (sherpa-onnx publishes no universal JNI build).
     "macos" to (listOf("$sherpa/v$sherpaVersion/sherpa-onnx-v$sherpaVersion-osx-arm64-jni.tar.bz2") to
         "2505fd9bd46a28615ab3a14833caae8479c80993658402d57a949d7403c931ad"),
-    "silero" to (listOf("$sherpa/asr-models/silero_vad.onnx") to
+    // Second source: our mirror on Hugging Face (same file, same SHA-256).
+    "silero" to (listOf("$sherpa/asr-models/silero_vad.onnx", "$mirror/silero-vad-lora-edition/resolve/2966835c19f95164445e044a5977397382ed3bb7/silero_vad.onnx") to
         "9e2449e1087496d8d4caba907f23e0bd3f78d91fa552479bb9c23ac09cbb1fd6"),
-    "pyannote" to (listOf("$sherpa/speaker-segmentation-models/sherpa-onnx-pyannote-segmentation-3-0.tar.bz2") to
+    "pyannote" to (listOf("$sherpa/speaker-segmentation-models/sherpa-onnx-pyannote-segmentation-3-0.tar.bz2", "$mirror/pyannote-segmentation-3.0-lora-edition/resolve/84d2436dec8a3870c08536c4a64f53b33aec2ef2/sherpa-onnx-pyannote-segmentation-3-0.tar.bz2") to
         "24615ee884c897d9d2ba09bb4d30da6bb1b15e685065962db5b02e76e4996488"),
     // ffmpeg for Windows: decoding of all audio/video formats, compressing recordings.
     "ffmpeg" to (listOf("https://github.com/GyanD/codexffmpeg/releases/download/9.0.2/ffmpeg-9.0.2-essentials_build.zip") to

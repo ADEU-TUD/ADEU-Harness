@@ -442,6 +442,10 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   mindestens 8 Wörter/s schreibt (Vorhersage aus AP-105) – Spezialisten werden nur bei Bedarf geladen, Programmier-Wünsche
   gehen lokal an den Code-Spezialisten. Übersicht aller Stufen: [`docs/MODELLKATALOG.md`](docs/MODELLKATALOG.md);
   Messkorpus zur Wahl: [`tools/modellwahl/`](tools/modellwahl/README.md). Tests `LocalCatalogStepsTest`.
+- **Eigener Spiegel auf Hugging Face** (seit 1.0.68): Alle Modelle der Lora Edition – Sprachmodelle mit Bildteil, Suche,
+  Spracherkennung, YuNet, RNNoise – liegen byte-gleich mit Lizenz und Modellkarte unter
+  [huggingface.co/thepytales](https://huggingface.co/thepytales). Die App lädt zuerst von dort und, falls das scheitert,
+  vom Original; Größe und SHA-256 werden wie bisher geprüft. Spiegeln neuer Modelle: [`tools/huggingface/`](tools/huggingface/README.md).
 - **Lange Texte lokal** (seit 1.0.67, AP-108): Lokale Modelle nutzen so viel Kontext, wie der Speicher dieses Geräts
   hergibt (KV-Cache in 8 Bit; z. B. 128 k statt 8 k Token für Qwen 3.5 4B auf einem PC mit 32 GB). Bei großen Anhängen
   fragt die App auch bei lokalen Modellen und sagt **vorher, wie lange** jeder Weg hier dauert: *Ganz lesen auf diesem

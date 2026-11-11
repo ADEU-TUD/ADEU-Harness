@@ -22,6 +22,9 @@ RNN_URL="https://raw.githubusercontent.com/GregorR/rnnoise-models/master/somnole
 RNN_SHA="70bb6685eb0c2a1d18e2918dca3fbfbd39317010b1802eb1b6ea73a92f3fdec0"
 YUNET_URL="https://media.githubusercontent.com/media/opencv/opencv_zoo/main/models/face_detection_yunet/face_detection_yunet_2023mar.onnx"
 YUNET_SHA="8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4"
+# Second source: our mirror on Hugging Face (same file, same SHA-256).
+RNN_MIRROR="https://huggingface.co/thepytales/rnnoise-somnolent-hogwash-lora-edition/resolve/225fc2cab5f40fb68287da9fd3427d510d6c4cf6/sh.rnnn"
+YUNET_MIRROR="https://huggingface.co/thepytales/yunet-face-detection-lora-edition/resolve/8e72fea55b742c60f6342d999b076902daa400cc/face_detection_yunet_2023mar.onnx"
 YUNET_LICENSE_URL="https://raw.githubusercontent.com/opencv/opencv_zoo/main/models/face_detection_yunet/LICENSE"
 YUNET_LICENSE_SHA="c83b8120c50ccbd4c4f96edf53141bdd566ebb8f8e9227e415326aa1b1aba958"
 
@@ -29,18 +32,26 @@ root="$(cd "$(dirname "$0")/../.." && pwd)"
 cache="${EXT_CACHE:-$root/build/speech-downloads}"
 mkdir -p "$cache" "$dist"
 
-fetch() { # url sha target
-  local url="$1" sha="$2" target="$3"
+fetch() { # sha target url [ersatz-url …]
+  local sha="$1" target="$2" url
+  shift 2
   if [ -f "$target" ] && [ "$(sha256sum "$target" | cut -d' ' -f1)" = "$sha" ]; then return 0; fi
-  curl -fsSL --retry 4 --retry-delay 5 -o "$target.part" "$url"
-  [ "$(sha256sum "$target.part" | cut -d' ' -f1)" = "$sha" ] || { echo "Prüfsumme falsch: $url" >&2; rm -f "$target.part"; return 1; }
-  mv "$target.part" "$target"
+  for url in "$@"; do
+    if curl -fsSL --retry 4 --retry-delay 5 -o "$target.part" "$url" &&
+      [ "$(sha256sum "$target.part" | cut -d' ' -f1)" = "$sha" ]; then
+      mv "$target.part" "$target"
+      return 0
+    fi
+    echo "Nicht geladen oder Prüfsumme falsch: $url" >&2
+    rm -f "$target.part"
+  done
+  return 1
 }
 
-fetch "$FFMPEG_URL" "$FFMPEG_SHA" "$cache/ffmpeg-9.0.2-essentials_build.zip"
-fetch "$RNN_URL" "$RNN_SHA" "$cache/rnnoise-sh.rnnn"
-fetch "$YUNET_URL" "$YUNET_SHA" "$cache/face_detection_yunet_2023mar.onnx"
-fetch "$YUNET_LICENSE_URL" "$YUNET_LICENSE_SHA" "$cache/yunet-LICENSE"
+fetch "$FFMPEG_SHA" "$cache/ffmpeg-9.0.2-essentials_build.zip" "$FFMPEG_URL"
+fetch "$RNN_SHA" "$cache/rnnoise-sh.rnnn" "$RNN_URL" "$RNN_MIRROR"
+fetch "$YUNET_SHA" "$cache/face_detection_yunet_2023mar.onnx" "$YUNET_URL" "$YUNET_MIRROR"
+fetch "$YUNET_LICENSE_SHA" "$cache/yunet-LICENSE" "$YUNET_LICENSE_URL"
 
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
