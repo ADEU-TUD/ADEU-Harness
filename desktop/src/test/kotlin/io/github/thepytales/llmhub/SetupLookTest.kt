@@ -55,7 +55,7 @@ class SetupLookTest {
     }
 
     @AfterTest
-    fun cleanUp() = base.deleteRecursively()
+    fun cleanUp() { base.deleteRecursively() }
 
     private fun ui(block: SkikoComposeUiTest.() -> Unit) =
         runSkikoComposeUiTest(Size(1000 * 2f, 800 * 2f), Density(2f)) {
@@ -95,6 +95,7 @@ class SetupLookTest {
         // The recommendation first, „alles lokal“ clearly as the special case, the own provider folded away.
         assertTrue(has("Uni-Server der TU Dresden (empfohlen)") && has("TU-Server") && has("lokal"))
         assertTrue(has("Nur sinnvoll für sehr sensible Daten"))
+        assertTrue(!has("Arbeitsspeicher"), "Uni-Server vorgewählt, keine Geräteeinschätzung")
         assertTrue(has("Für Fortgeschrittene: eigener Anbieter") && !has("Eigener Anbieter (z. B. Google Gemini)"))
         step(SetupPage.ACCESS)
         assertTrue(has("Self-Service-Portal öffnen") && has("Schlüssel prüfen"))
@@ -110,13 +111,17 @@ class SetupLookTest {
 
     @Test
     fun narrowLikeAPhone() = ui {
+        c.settings.update { it.copy(apiKey = "sk-test", loraPlace = "MIXED") }
         step(SetupPage.PLACE, 400.dp, 760.dp, "android")
         assertTrue(has("Schritt 3 von 8"))
     }
 
     @Test
     fun theWayFollowsTheSettings() {
-        c.settings.update { it.copy(apiKey = "", providers = emptyList(), loraPlace = "LOCAL") }
+        // First start without a key: the recommendation, not „alles lokal“.
+        c.settings.update { it.copy(apiKey = "", providers = emptyList(), loraPlace = "LOCAL", loraIntroDone = false) }
+        assertEquals(SetupWay.TU, currentWay(c))
+        c.settings.update { it.copy(loraIntroDone = true) }
         assertEquals(SetupWay.LOCAL, currentWay(c))
         c.settings.update { it.copy(providers = listOf(ApiProvider(kind = ProviderKind.GEMINI.name, apiKey = "x"))) }
         assertEquals(SetupWay.OWN, currentWay(c))

@@ -30,6 +30,7 @@ import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Flag
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Security
@@ -95,12 +96,13 @@ enum class SetupPage(val title: String, val icon: ImageVector) {
 /** How Lora reaches language models – the big decision of the setup. */
 enum class SetupWay { TU, OWN, LOCAL }
 
-/** The way the settings describe now: everything local, a key of another provider only, or the Uni server. */
+/** The way the settings describe now: a key of another provider only, everything local (chosen earlier), or the Uni server. */
 fun currentWay(c: AppContainer): SetupWay {
     val s = c.settings.current
     return when {
-        s.loraPlace == "LOCAL" && !s.hasApiKey -> SetupWay.LOCAL
         !s.hasApiKey && s.providers.any { it.usable } -> SetupWay.OWN
+        // At the first start the recommendation (Uni server) is chosen; „alles lokal“ only when it was chosen before.
+        s.loraIntroDone && s.loraPlace == "LOCAL" && !s.hasApiKey -> SetupWay.LOCAL
         else -> SetupWay.TU
     }
 }
@@ -512,7 +514,7 @@ private fun DonePage(c: AppContainer, way: SetupWay, models: IntroModelChoice, o
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Summary(tr("Wofür"), roles) { onChange(SetupPage.ROLES) }
         Summary(tr("Wo Lora arbeitet"), place, chip = { DataPlaceChip(dataPlace) }) { onChange(SetupPage.PLACE) }
-        if (way != SetupWay.LOCAL) Summary(tr("Schlüssel"), key) { onChange(SetupPage.ACCESS) }
+        if (way != SetupWay.LOCAL) Summary(tr("Schlüssel"), key, ok = s.hasAnyApiKey) { onChange(SetupPage.ACCESS) }
         Summary(tr("Namen ersetzen"), if (s.pseudonymize) tr("an") else tr("aus")) { onChange(SetupPage.PRIVACY) }
         Summary(tr("Werkzeuge"), tools) { onChange(SetupPage.TOOLS) }
         Summary(tr("Aussehen"), tr(ThemeMode.entries.firstOrNull { it.name == s.themeMode }?.label ?: "System") + " · " + tr(LORA_MODES.firstOrNull { it.first == s.loraMode }?.second ?: "")) { onChange(SetupPage.LOOK) }
@@ -527,9 +529,10 @@ private fun DonePage(c: AppContainer, way: SetupWay, models: IntroModelChoice, o
 }
 
 @Composable
-private fun Summary(label: String, value: String, chip: (@Composable () -> Unit)? = null, onChange: () -> Unit) {
+private fun Summary(label: String, value: String, chip: (@Composable () -> Unit)? = null, ok: Boolean = true, onChange: () -> Unit) {
     Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-        Icon(Icons.Outlined.CheckCircle, null, Modifier.size(20.dp), tint = LocalChatLook.current.success)
+        if (ok) Icon(Icons.Outlined.CheckCircle, null, Modifier.size(20.dp), tint = LocalChatLook.current.success)
+        else Icon(Icons.Outlined.Info, tr("Noch offen"), Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.width(10.dp))
         Column(Modifier.weight(1f)) {
             Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
