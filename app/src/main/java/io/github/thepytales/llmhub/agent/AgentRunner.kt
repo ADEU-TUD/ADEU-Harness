@@ -29,7 +29,11 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.asContextElement
+import io.github.thepytales.llmhub.local.LocalLimits
+import io.github.thepytales.llmhub.local.OnDeviceStop
 import kotlin.coroutines.coroutineContext
 import java.io.IOException
 import java.text.DateFormat
@@ -44,6 +48,8 @@ interface AgentHost {
     fun notice(message: String)
     /** Whether a write action may run: chats apply the approval mode or ask, background hosts decide on their own. */
     suspend fun confirm(call: ToolCall, risk: Risk): Boolean
+    /** How much of the request a model on this device has read (0..1, AP-116); null when it writes or is done. */
+    fun progress(share: Double?) {}
 }
 
 /** Tool groups for a run; without it the chat's and app's settings apply. */
@@ -106,6 +112,10 @@ class AgentRunner(private val c: AppContainer) {
     /**
      * [maxSteps] tool rounds make one block; with [autoContinue] the agent starts the next block on its own
      * (up to [HARD_STEP_LIMIT]) instead of waiting for "weiter". It stops when it repeats the same tool calls.
+     *
+     * A model on this device (AP-116) gets the limits of [LocalLimits]: few steps and then one more request without tools
+     * that answers with what is there, no automatic continuation, and a time limit for the whole answer with a clear
+     * hint instead of minutes without a result.
      */
     suspend fun run(
         host: AgentHost,
@@ -158,6 +168,9 @@ class AgentRunner(private val c: AppContainer) {
         var steps = 0
         var totalSteps = 0
         val recentRounds = ArrayDeque<String>()
+        val runStarted = System.currentTimeMillis()
+        /** AP-116: the steps of a model on this device are used up – one last request without tools. */
+        var finalAnswer = false
         /** Model of this run; changes once to a fallback model when the chosen one is unreachable. */
         var model = startModel
         var fallbackUsed = false
@@ -165,7 +178,17 @@ class AgentRunner(private val c: AppContainer) {
         while (true) {
             if (!summarized) summarized = compactIfNeeded(host, model, providers)
             val conv = host.conversation ?: return
-            val apiMessages = buildApiMessages(conv, ctx, providers, model)
+            val onDevice = Privacy.isLocal(model)
+            val limits = if (onDevice) c.llm.limitsFor(model) else null
+            val remaining = limits?.let { runStarted + it.answerMs - System.currentTimeMillis() }
+            if (remaining != null && remaining <= 0) {
+                stopWith(host, LocalLimits.tooSlow(mailbox))
+                return
+            }
+            val apiMessages = buildApiMessages(conv, ctx, providers, model).let { msgs ->
+                if (finalAnswer) msgs + ChatMessage(role = "user", content = LocalLimits.LAST_STEP_NOTE) else msgs
+            }
+            val offered = providers.takeIf { !finalAnswer }.orEmpty()
             val events = mutableListOf<String>()
             privacyEvent?.let { events += it }
             privacyEvent = null
@@ -175,16 +198,19 @@ class AgentRunner(private val c: AppContainer) {
             host.update { it.appendToThread(placeholder) }
             val started = System.currentTimeMillis()
             val result = try {
+                try {
+                    withTimeout(remaining ?: Long.MAX_VALUE) {
                 c.llm.streamChat(
                     model = model,
                     messages = apiMessages,
                     thinking = if (voice) ThinkingLevel.OFF else null,
-                    tools = providers.flatMap { it.defs }.toSchema().takeIf { providers.isNotEmpty() },
+                    tools = offered.flatMap { it.defs }.toSchema().takeIf { offered.isNotEmpty() },
                     onRetry = { reason, wait ->
                         events += tr("{0} – {1} s gewartet", reason, wait)
                         host.notice(tr("{0} – neuer Versuch in {1} s.", reason, wait))
                     },
                 ) { upd ->
+                    host.progress(upd.progress)
                     host.update { cv ->
                         cv.updateMessage(placeholder.id) {
                             it.copy(content = upd.content, reasoning = upd.reasoning.ifEmpty { null }, toolCalls = upd.toolCalls)
@@ -196,6 +222,13 @@ class AgentRunner(private val c: AppContainer) {
                         if (content.isNotEmpty() && !DocumentWriter.isHtml(content)) DocsLive.update(start.id, DocsLive.Draft(title, content))
                     }
                 }.also { DocsLive.update(start.id, null) }
+                    }
+                } catch (e: TimeoutCancellationException) {
+                    // The time for this answer on this device is over (the client already stopped the server's work).
+                    throw OnDeviceStop(LocalLimits.tooSlow(mailbox))
+                } finally {
+                    host.progress(null)
+                }
             } catch (e: CancellationException) {
                 DocsLive.update(start.id, null)
                 throw e
@@ -229,7 +262,7 @@ class AgentRunner(private val c: AppContainer) {
                 }
                 // Server-side trouble: the status page tells whether the model itself is disrupted.
                 val serverSide = e is ApiException && e.code >= 500 || e is java.net.SocketTimeoutException
-                val message = NetErrors.describe(e) + (if (serverSide) c.llm.status.explain(model)?.let { "\n\n$it" }.orEmpty() else "")
+                val message = if (e is OnDeviceStop) e.message.orEmpty() else NetErrors.describe(e) + (if (serverSide) c.llm.status.explain(model)?.let { "\n\n$it" }.orEmpty() else "")
                 host.update { cv ->
                     if (partial == null || partial.content.isBlank()) {
                         cv.updateMessage(placeholder.id) { it.copy(content = message, reasoning = null, toolCalls = emptyList(), error = true) }
@@ -248,10 +281,17 @@ class AgentRunner(private val c: AppContainer) {
                         tokensOut = result.usage?.completion ?: ((result.content.length + result.reasoning.length + result.toolCalls.sumOf { tc -> tc.arguments.length }) / 4L),
                         events = (if (fallbackUsed && model != startModel) listOf("Ausweichmodell: ${ModelCatalog.info(model).displayName}") else emptyList()) + events,
                         truncated = result.finishReason == "length" && result.toolCalls.isEmpty(),
+                        toolCalls = if (finalAnswer) emptyList() else it.toolCalls,
                     )
                 }
             }
             host.persist()
+            if (finalAnswer) {
+                if (splitThinking(result.content).second.isBlank()) {
+                    stopWith(host, tr("Lora hat in {0} Werkzeugschritten keine Antwort gefunden. Eine engere Frage stellen oder „weiter“ schreiben.", totalSteps))
+                }
+                return
+            }
             if (result.toolCalls.isEmpty() || providers.isEmpty()) return
 
             runTools(host, result.toolCalls, providers, ctx)
@@ -271,6 +311,12 @@ class AgentRunner(private val c: AppContainer) {
             if (recentRounds.size == REPEAT_LIMIT && recentRounds.distinct().size == 1) {
                 stopWith(host, "Der Agent hat ${REPEAT_LIMIT}-mal hintereinander dieselbe Aktion ausgeführt und wurde angehalten. Schreibe \"weiter\" oder beschreibe, wie es weitergehen soll.")
                 return
+            }
+            // AP-116: a model on this device stops after a few steps and answers with what it has.
+            if (limits != null && steps >= minOf(maxSteps, limits.maxSteps)) {
+                finalAnswer = true
+                host.notice(tr("{0} Werkzeugschritte – Lora antwortet jetzt mit dem, was sie hat.", totalSteps))
+                continue
             }
             if (steps >= maxSteps) {
                 if (autoContinue && totalSteps < HARD_STEP_LIMIT) {

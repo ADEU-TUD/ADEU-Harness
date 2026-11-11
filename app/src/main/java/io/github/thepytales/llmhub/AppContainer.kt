@@ -220,7 +220,13 @@ class AppContainer(context: Context) {
     /** Speech to text on the device or the Uni server (formerly the Whisper app); starts on first use. */
     val transcription = Transcription(this, SpeechHost.root(this), SpeechHost.cache(this))
     /** Language models on this device (llama.cpp); the LLM client starts them on demand. */
-    val localLlm = LocalLlm(this).also { local -> llm.localProvider = { model -> local.provider(model) } }
+    val localLlm = LocalLlm(this).also { local ->
+        llm.localProvider = { model -> local.provider(model) }
+        // AP-116: Stopp ends the server's work, limits and heat after the device.
+        llm.localAbort = { local.abort() }
+        llm.localLimits = { model -> local.limits(model) }
+        llm.localHeat = { local.heat() }
+    }
 
     /** Recognition model of the pseudonymization (AP-67): download, loading, hits for [privacy]. */
     val piiModel = io.github.thepytales.llmhub.data.PiiModel(this)

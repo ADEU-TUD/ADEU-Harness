@@ -386,6 +386,10 @@ internal object LlamaHost {
     @Suppress("UNUSED_PARAMETER")
     fun environment(c: AppContainer, env: MutableMap<String, String>) {}
 
+    /** Hitzeschutz (AP-116) is for phones; a PC cools itself and throttles without getting hot in the hand. */
+    @Suppress("UNUSED_PARAMETER")
+    fun heat(c: AppContainer): Heat = Heat.OK
+
     private fun pidFile(root: File) = File(root, "server.pid")
 
     fun rememberPid(root: File, p: Process) { runCatching { pidFile(root).writeText(p.pid().toString()) } }

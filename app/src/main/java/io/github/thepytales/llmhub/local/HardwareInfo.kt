@@ -72,6 +72,15 @@ object HardwareInfo {
         return Memory(type, speed, bits, modules.size, totalMb / 1024.0)
     }
 
+    /**
+     * The big cores of a phone (AP-116) from the highest clock of each core (cpufreq/cpuinfo_max_freq in kHz): those
+     * at 75 % of the fastest or more. 0 when nothing could be read.
+     */
+    fun bigCores(maxFreqs: List<Long>): Int {
+        val top = maxFreqs.filter { it > 0 }.maxOrNull() ?: return 0
+        return maxFreqs.count { it >= top * 0.75 }
+    }
+
     /** Instruction sets from /proc/cpuinfo (Linux, Android): x86 "flags", ARM "Features". */
     fun cpuFeatures(cpuinfo: String): Set<String> {
         val words = cpuinfo.lineSequence()

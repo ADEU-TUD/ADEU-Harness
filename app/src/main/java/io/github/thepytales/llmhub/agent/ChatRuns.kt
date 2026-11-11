@@ -35,6 +35,8 @@ class ChatRun(initial: Conversation) {
     val chatId = initial.id
     val conversation = MutableStateFlow(initial)
     val pending = MutableStateFlow<PendingAction?>(null)
+    /** Share of the request a model on this device has read (AP-116), null otherwise. */
+    val progress = MutableStateFlow<Double?>(null)
     internal lateinit var job: Job
 
     suspend fun join() = job.join()
@@ -113,6 +115,10 @@ class ChatRuns(private val context: Context, private val c: AppContainer) {
             override fun persist() = save(run)
             override fun notice(message: String) {
                 _notices.tryEmit(run.chatId to message)
+            }
+
+            override fun progress(share: Double?) {
+                run.progress.value = share
             }
 
             override suspend fun confirm(call: ToolCall, risk: Risk): Boolean {

@@ -105,6 +105,7 @@ fun ChatScreen(
     val running by vm.running.collectAsStateWithLifecycle()
     val building by vm.building.collectAsStateWithLifecycle()
     val pending by vm.pending.collectAsStateWithLifecycle()
+    val readProgress by vm.readProgress.collectAsStateWithLifecycle()
     val transcribing by vm.transcribing.collectAsStateWithLifecycle()
     val deleted by vm.deleted.collectAsStateWithLifecycle()
     val modelsState by c.models.state.collectAsStateWithLifecycle()
@@ -788,6 +789,8 @@ fun ChatScreen(
                         val step = when {
                             pendingCall != null -> io.github.thepytales.llmhub.agent.LoraSense.stepLine(pendingCall.name, pendingCall.arguments, tr(toolLabel(pendingCall.name)))
                             thinking -> tr("Denkt nach …")
+                            // AP-116: on this device reading the request takes long – show how far it is.
+                            readProgress != null -> tr("Liest die Anfrage ein … {0} %", ((readProgress ?: 0.0) * 100).toInt())
                             last?.role == "assistant" && splitThinking(last.content).second.isNotBlank() -> tr("Schreibt die Antwort …")
                             (steps[runningHead ?: "new"]?.second ?: 0) > 0 -> tr("Wertet die Ergebnisse aus …")
                             else -> null

@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen; neu: AP-116 lokale Modelle auf dem Handy zu langsam, nicht abbrechbar, Gerät heiß) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 11.11.2026 (AP-116 in der App, Messung am Gerät offen) · 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen; neu: AP-116 lokale Modelle auf dem Handy zu langsam, nicht abbrechbar, Gerät heiß) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -71,7 +71,7 @@ Fairlight).
 | ~~Lora lernt nach~~ ☑ | AP-72 Lora lernt aus Korrekturen · AP-73 Rückfrage mit zwei Knöpfen (erledigt, siehe *Erledigt*) |
 | ~~Lora im Alltag~~ ☑ | AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen (erledigt 10.11.2026, siehe *Erledigt*) |
 | **Danach** | ~~AP-86 Lokale Modelle auf dem Mac laden~~ ☑ (10.11.2026, 1.0.67) |
-| **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung ◐ · AP-106 Modellkatalog in feinen Stufen, nach Zweck ◐ · AP-107 Suche nach Bedeutung auf dem Gerät ◐ · AP-108 Lange Texte lokal ◐ · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal ◐ · AP-111 Sprachausgabe lokal ☑ · AP-112 Offline-Schiene in der Oberfläche · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 ☑ · **AP-116 Lokale Modelle: Tempo, Abbruch, Hitze** (Fehler aus 1.0.67, vor AP-109) · AP-117 Eigene Modelle aktualisieren, auf GitHub (vor AP-113/AP-114) |
+| **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung ◐ · AP-106 Modellkatalog in feinen Stufen, nach Zweck ◐ · AP-107 Suche nach Bedeutung auf dem Gerät ◐ · AP-108 Lange Texte lokal ◐ · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal ◐ · AP-111 Sprachausgabe lokal ☑ · AP-112 Offline-Schiene in der Oberfläche · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 ☑ · **AP-116 Lokale Modelle: Tempo, Abbruch, Hitze ◐** (Fehler aus 1.0.67, vor AP-109) · AP-117 Eigene Modelle aktualisieren, auf GitHub (vor AP-113/AP-114) |
 | **Später** | AP-87 Datei-Erste-Hilfe · AP-88 Zeitreise für Dateien · AP-89 Vorlage aus eigener Datei · AP-90 Formatwandler mit Verlustanzeige ◐ · AP-91 Schriften-Notfall · AP-92 Formatierung aufräumen · AP-93 CSV-Lotse · AP-94 Formular aus Scan · AP-95 PDF-Tabellen nach Excel ◐ · AP-96 Diagramm zu Daten · AP-97 Druck-Lotse · AP-98 Passwortschutz für Dateien · AP-99 Archiv-Werkzeug · AP-100 Fotos vom Handy aufbereiten · AP-101 Bild-Werkstatt · AP-102 Umzug auf einen neuen PC |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
@@ -754,7 +754,7 @@ gefundene private Angaben zu fallen.
   *Neue Version veröffentlichen*, Schritt 6. Geprüft mit actionlint; **ein echter Lauf steht aus** (erst mit dem nächsten
   Release bzw. von Hand für 1.0.66 möglich).
 
-### AP-116 ☐ Lokale Modelle: Tempo, Abbruch und Hitze · M (Runde 3, Fehler aus 1.0.67, A + W)
+### AP-116 ◐ Lokale Modelle: Tempo, Abbruch und Hitze · M (Runde 3, Fehler aus 1.0.67, A + W)
 **Befund (11.11.2026, Hauptnutzer, OnePlus 15, 1.0.67)**: Postfach-Chat mit Qwen 3.5 4B – Lora Edition, Frage „Was ist
 seit gestern im Posteingang wichtig?“. Lora arbeitete 10 Minuten (9 Werkzeugschritte, „Wertet die Ergebnisse aus …“)
 ohne Ergebnis, das Handy wurde sehr heiß, *Stopp* wirkte nicht, nur Ausschalten half. Bis zur Behebung: Postfach-Chat auf
@@ -786,6 +786,43 @@ sofort; das Gerät wird nicht heiß.
   Schritte, Temperatur) hier eintragen.
 **Fertig, wenn**: die Beispielfrage auf dem OnePlus 15 in höchstens etwa 2 Minuten eine Antwort liefert, *Stopp* den
 Server innerhalb weniger Sekunden zur Ruhe bringt und das Gerät dabei nicht heiß wird; am Office-PC gemessen.
+◐ *Stand 11.11.2026 (für 1.0.68, kein Release)*: In der App fertig, die Messung am Gerät steht aus.
+- **Grenzen je Geräteklasse** (`local/LocalLimits.kt`, aus `LocalLlm.limits`): *Handy* – höchstens 3 Werkzeugschritte,
+  Denken immer aus (Qwen: `enable_thinking=false`, auch bei „Hoch“ in den Einstellungen), 4 Minuten je Antwort, Mails:
+  15 in der Liste (höchstens 30), Anfang 100 Zeichen, gelesene Mail 1 200 Zeichen (ganz: 6 000). *PC ohne Grafikkarte* –
+  6 Schritte, „Modellstandard“ wird „Aus“ (eine ausdrückliche Wahl bleibt), 8 Minuten, 25 Mails, 2 000 Zeichen. *PC mit
+  Grafikkarte oder Apple-Chip* – 12 Schritte, Denken wie eingestellt, 15 Minuten, 40 Mails, 2 500 Zeichen (wie bisher).
+  Die Klasse folgt dem Modell (läuft es auf der Grafikkarte?) und, wo bekannt, dem gemessenen bzw. vorhergesagten
+  Einlesetempo aus *Gerät messen* (AP-105): ≥ 300 Token/s gilt als schnell, < 120 Token/s als Prozessor.
+- **Wenige Schritte, dann eine Antwort**: Sind die Schritte aufgebraucht, geht eine letzte Anfrage **ohne** Werkzeuge
+  mit dem Hinweis „antworte jetzt mit dem, was du herausgefunden hast“ (`AgentRunner`, `LocalLimits.LAST_STEP_NOTE`);
+  kein automatisches Weitermachen bei Modellen auf dem Gerät.
+- **Stopp wirkt sofort**: Der HTTP-Aufruf wird jetzt schon beim Abbrechen aufgelegt (`invokeOnCompletion(onCancelling)`
+  – bisher erst, wenn der blockierte Lesevorgang zurückkam, also nach Minuten; das galt auch für Server-Modelle).
+  Bei einem Modell auf dem Gerät beendet `LocalLlm.abort` zusätzlich den llama-server-Prozess; die nächste Anfrage lädt
+  das Modell neu (einige Sekunden). Ein zweiter Auftrag, der dabei mit abbrach, versucht es einmal mit frischem Server.
+- **Keine automatische Wiederholung** bei Modellen auf dem Gerät (`LlmClient.streamLocal`): weder bei 5xx noch bei
+  abgebrochener Verbindung; ein Zeitlimit heißt „zu langsam“: *„Das dauert auf diesem Gerät zu lange – Lora hat
+  angehalten. Ein Server-Modell wählen oder eine kürzere Frage stellen?“* (im Postfach statt Server-Modell: „nur
+  ungelesene Mails von heute“ oder am PC fragen).
+- **Hitzeschutz (Android)**: `PowerManager.currentThermalStatus` und `getThermalHeadroom(10)` (`LlamaHost.heat`,
+  Regel `Heat.of`): ab „mäßig“ bzw. Reserve ≥ 0,85 keine neue Anfrage – Pause mit Hinweis, alle 15 s prüfen, höchstens
+  2 Minuten; ab „stark“ bzw. Reserve ≥ 1,0 hält die laufende Anfrage sofort an (Server beendet) mit Hinweis.
+- **Weniger Threads auf dem Handy**: nur die großen Kerne (höchster Takt ≥ 75 % des schnellsten, aus `cpufreq`), höchstens
+  die Hälfte aller Kerne, 2 bis 4 (OnePlus 15: 4 statt 6). PC unverändert (halbe Kerne, 2 bis 8).
+- **Fortschritt des Einlesens**: llama-server meldet mit `return_progress` den gelesenen Anteil der Anfrage; die
+  Arbeitskarte zeigt „Liest die Anfrage ein … 40 %“ statt nur „Wertet die Ergebnisse aus …“.
+- Test `LocalLimitsTest` (11, mit einem nachgebauten llama-server auf 127.0.0.1): Klassen und Grenzen, Denken aus,
+  Threads, Hitze-Regel, Fortschritt, Mail-Kürzung; drei Schritte und dann eine Antwort ohne Werkzeuge, Stopp beendet die
+  Arbeit des Servers (und legt sofort auf), 503 und abgebrochene Verbindung ohne zweiten Versuch, Zeitlimit mit Hinweis,
+  heißes Gerät hält an, warmes macht erst Pause.
+- **Offen – am Gerät zu messen (Hauptnutzer)**: (1) OnePlus 15, Postfach-Chat mit Qwen 3.5 4B, „Was ist seit gestern
+  im Posteingang wichtig?“ – Zeit bis zur Antwort (Ziel ≤ 2 min), Zahl der Schritte, ob die Antwort brauchbar ist, und
+  ob das Handy warm wird; dabei einmal *Stopp* drücken (Server muss in wenigen Sekunden ruhen – im Akku-Verbrauch bzw.
+  „Lora“ nicht mehr unter den aktiven Apps). (2) Ob die Hitze-Schwellen (mäßig/0,85 und stark/1,0) früh genug greifen
+  und die Pause reicht. (3) Ob 4 Threads auf dem OnePlus 15 schneller oder langsamer sind als 6 (Wörter/s in *Messen*).
+  (4) Dieselbe Frage am Office-PC ohne Grafikkarte (Schritte 6, 8 Minuten) und, wenn vorhanden, am Gaming-PC.
+  Messwerte hier eintragen; danach die Zahlen in `LocalLimits` anpassen.
 
 ### AP-117 ☐ Eigene Modelle aktualisieren: Fassung statt Größe, Veröffentlichung auf GitHub · S–M (vor AP-113/AP-114)
 **Ziel**: Ein nachtrainiertes Lora Namensschutz oder Lora Befehle erreicht alle mit der nächsten Lora-Version; die

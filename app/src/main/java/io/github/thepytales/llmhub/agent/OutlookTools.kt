@@ -59,7 +59,7 @@ class OutlookTools(private val c: AppContainer) : ToolProvider {
                 Param("since_hours", "Nur Mails der letzten N Stunden", required = false, type = "integer"),
                 Param("unread_only", "Nur ungelesene", required = false, type = "boolean"),
                 Param("query", "Nur Mails, deren Absender, Betreff oder Text alle diese Wörter enthalten", required = false),
-                Param("limit", "Höchstzahl (Standard 40, höchstens 200)", required = false, type = "integer"),
+                Param("limit", "Höchstzahl (Standard je nach Gerät 15 bis 40)", required = false, type = "integer"),
             ),
         ),
         ToolDef(
@@ -206,7 +206,10 @@ class OutlookTools(private val c: AppContainer) : ToolProvider {
         }
     }
 
-    private fun line(m: MailHeader): String = buildString {
+    /** AP-116: how much of the mailbox the model of this run reads at once (a phone less than a PC with a graphics card). */
+    private fun limits(ctx: RepoContext) = c.llm.limitsFor(ctx.model ?: "")
+
+    private fun line(m: MailHeader, previewChars: Int = PREVIEW_CHARS): String = buildString {
         append("- [").append(short("M", m.id)).append("] ")
         append(if (m.received > 0) Outlook.show(m.received) else "ohne Datum").append(" · ")
         append(m.from.ifBlank { "unbekannt" })
@@ -217,7 +220,7 @@ class OutlookTools(private val c: AppContainer) : ToolProvider {
             m.kind.takeIf { it != "Mail" }, "${m.attachments} Anhang".takeIf { m.attachments == 1 }, "${m.attachments} Anhänge".takeIf { m.attachments > 1 },
             m.categories.takeIf { it.isNotBlank() }?.let { "Kategorie: $it" },
         ).takeIf { it.isNotEmpty() }?.let { append(" · ").append(it.joinToString(" · ")) }
-        if (m.preview.isNotBlank()) append("\n  ").append(m.preview.take(PREVIEW_CHARS))
+        if (m.preview.isNotBlank()) append("\n  ").append(m.preview.take(previewChars).trim())
     }
 
     override suspend fun run(name: String, args: JsonObject, ctx: RepoContext): ToolOutput = withContext(Dispatchers.IO) {
@@ -249,14 +252,15 @@ class OutlookTools(private val c: AppContainer) : ToolProvider {
             val target = folderArg?.let { folder(b, it) }
             val hours = args.int("since_hours")?.coerceIn(1, 24 * 90)
             val since = hours?.let { System.currentTimeMillis() - it * 3_600_000L }
-            val limit = (args.int("limit") ?: 40).coerceIn(1, 200)
+            val lim = limits(ctx)
+            val limit = (args.int("limit") ?: lim.mailList).coerceIn(1, lim.mailListMax)
             val query = args.s("query")?.trim().orEmpty()
             val fetched = b.mails(target?.id, since, args.flag("unread_only") == true, if (query.isEmpty()) limit else 500)
             val mails = Outlook.search(fetched, query).take(limit)
             val where = target?.path?.trim('\\')?.substringAfterLast('\\') ?: "Posteingang"
             val head = "$where: ${mails.size} Mails" + (hours?.let { " der letzten $it Stunden" } ?: "") +
                 (mails.count { it.unread }.takeIf { it > 0 }?.let { " ($it ungelesen)" } ?: "") + (if (query.isNotEmpty()) " mit „$query“" else "")
-            ToolOutput(if (mails.isEmpty()) "$head." else "$head:\n" + mails.joinToString("\n") { line(it) }.take(MAX_TOOL_RESULT))
+            ToolOutput(if (mails.isEmpty()) "$head." else "$head:\n" + mails.joinToString("\n") { line(it, lim.previewChars) }.take(MAX_TOOL_RESULT))
         }
         READ_MAIL -> {
             val id = full(args.req("id")) ?: throw IllegalArgumentException("Unbekanntes Kürzel – erst $LIST_MAILS aufrufen.")
@@ -270,7 +274,8 @@ class OutlookTools(private val c: AppContainer) : ToolProvider {
                     if (m.cc.isNotBlank()) append("Cc: ").append(m.cc).append('\n')
                     append("Zeit: ").append(if (h.received > 0) Outlook.show(h.received) else "–").append(" · Ordner: ").append(h.folder.trim('\\')).append('\n')
                     if (m.attachmentNames.isNotEmpty()) append("Anhänge: ").append(m.attachmentNames.joinToString(", ")).append('\n')
-                    append('\n').append(MailAccess.shorten(m.body, full = args.flag("full") == true))
+                    val lim = limits(ctx)
+                    append('\n').append(MailAccess.shorten(m.body, full = args.flag("full") == true, shortChars = lim.mailChars, fullChars = lim.fullMailChars))
                 },
             )
         }
