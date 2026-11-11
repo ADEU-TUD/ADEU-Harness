@@ -754,8 +754,9 @@ seit gestern im Posteingang wichtig?“. Lora arbeitete 10 Minuten (9 Werkzeugsc
 ohne Ergebnis, das Handy wurde sehr heiß, *Stopp* wirkte nicht, nur Ausschalten half. Bis zur Behebung: Postfach-Chat auf
 dem Handy nicht nutzen; hängt es, *Einstellungen › Apps › Lora › Beenden erzwingen* (beendet auch den Modell-Server).
 **Vermutete Ursachen** (aus dem Code, am Gerät noch nicht gemessen – Protokoll über *Problem melden* anfordern):
-1. **Denken an**: Ohne ausdrückliche Stufe schickt `LlmClient` `enable_thinking: true` – auch an Modelle auf dem Gerät;
-   Qwen schreibt dann vor jeder Antwort lange Gedanken, auf der Handy-CPU Minuten.
+1. **Denken an**: Voreingestellt ist „Modellstandard“ (`thinkingLevel = AUTO`); dann schickt `LlmClient` keinen
+   Schalter, und Qwen 3.5 denkt von sich aus – auch auf dem Gerät. Vor jeder Antwort entstehen lange Gedanken, auf der
+   Handy-CPU Minuten.
 2. **Schrittzahl wie beim Server**: `AgentRunner` erlaubt `maxAgentSteps` (30) und `autoContinue`; jeder Schritt liest
    den ganzen Verlauf samt Mailinhalten neu ein (Prompt-Verarbeitung ist auf der CPU der Engpass, AP-108).
 3. **Stopp beendet nur die Anfrage**: `ChatRuns.stop` bricht den HTTP-Aufruf ab; llama-server rechnet den laufenden
