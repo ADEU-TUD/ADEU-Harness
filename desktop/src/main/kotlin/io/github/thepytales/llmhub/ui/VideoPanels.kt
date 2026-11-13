@@ -90,18 +90,18 @@ internal fun MediaPool(h: History, drag: PoolDrag, open: String?, onOpen: (PoolI
             IconButton(onClick = { newBin = true }, modifier = Modifier.size(32.dp)) { Icon(Icons.Outlined.CreateNewFolder, contentDescription = tr("Neuer Ordner"), modifier = Modifier.size(18.dp)) }
             IconButton(onClick = onImport, modifier = Modifier.size(32.dp)) { Icon(Icons.Outlined.Add, contentDescription = tr("Dateien in den Medienpool"), modifier = Modifier.size(18.dp)) }
         }
-        OutlinedTextField(
-            query, { query = it }, singleLine = true, placeholder = { Text(tr("Suchen")) }, leadingIcon = { Icon(Icons.Outlined.Search, null, Modifier.size(16.dp)) },
-            modifier = Modifier.fillMaxWidth().typing(), textStyle = MaterialTheme.typography.bodySmall,
-        )
+        if (p.media.size > 3) CompactSearch(query, { query = it }, Modifier.fillMaxWidth())
         if (p.bins.isNotEmpty()) FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             FilterChip(selected = bin == null, onClick = { bin = null }, label = { Text(tr("Alle")) })
             FilterChip(selected = bin == "", onClick = { bin = "" }, label = { Text(tr("Ohne Ordner")) })
             p.bins.forEach { b -> FilterChip(selected = bin == b, onClick = { bin = b }, label = { Text(b) }) }
         }
         val shown = p.media.filter { (bin == null || it.bin == bin) && (query.isBlank() || it.name.contains(query.trim(), ignoreCase = true) || it.bin.contains(query.trim(), ignoreCase = true)) }
-        if (p.media.isEmpty()) HintText(tr("Hier liegen die Dateien des Projekts. „+“ holt neue dazu; ziehen legt sie in die Zeitleiste, ein Klick zeigt sie im Quellmonitor."))
-        else if (shown.isEmpty()) HintText(tr("Nichts gefunden."))
+        if (p.media.isEmpty()) {
+            HintText(tr("Hier liegen die Dateien des Projekts. „+“ holt neue dazu; ziehen legt sie in die Zeitleiste, ein Klick zeigt sie im Quellmonitor."))
+            OutlinedButton(onClick = onImport) { Icon(Icons.Outlined.Add, null, Modifier.size(16.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Dateien hinzufügen"), maxLines = 1, softWrap = false) }
+        } else if (shown.isEmpty()) HintText(tr("Nichts gefunden."))
+        else if (p.clips.size <= 1) HintText(tr("Zum Einfügen in die Zeitleiste ziehen."))
         LazyColumn(Modifier.fillMaxWidth().weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             items(shown, key = { it.id }) { item -> PoolRow(h, item, item.id == open, drag, onOpen, onUse) }
         }
@@ -276,32 +276,46 @@ internal fun MarkerProperties(h: History, id: String, onSeek: (Double) -> Unit, 
     OutlinedButton(onClick = { onSeek(m.sec) }) { Text(tr("Hinspringen"), maxLines = 1) }
 }
 
-/** The keys of the video editor, close to DaVinci Resolve (AP-53). */
-internal val VIDEO_SHORTCUTS: List<Pair<String, String>> = listOf(
-    trLater("Leertaste") to trLater("Abspielen / anhalten (mit Schleife: zwischen In und Out)"),
-    trLater("J · K · L") to trLater("Rückwärts · Halt · Vorwärts (mehrmals: schneller)"),
-    trLater("← · →") to trLater("Ein Bild zurück · vor"),
-    trLater("↑ · ↓") to trLater("Zum vorigen · nächsten Schnitt"),
-    trLater("Pos1 · Ende") to trLater("Zum Anfang · Ende"),
-    trLater("I · O") to trLater("In- · Out-Punkt setzen (Quelle oder Zeitleiste)"),
-    trLater("Alt+X") to trLater("In und Out löschen"),
-    trLater("Q") to trLater("Quellmonitor ⇄ Zeitleiste"),
-    trLater("F9 · F10") to trLater("Aus der Quelle einfügen · überschreiben"),
-    trLater("F12") to trLater("Aus der Quelle als Bild-in-Bild"),
-    trLater("A · B · T") to trLater("Auswahl · Klinge · Trimmen"),
-    trLater("S") to trLater("Am Abspielkopf teilen"),
-    trLater("N") to trLater("Magnet ein/aus"),
-    trLater("M") to trLater("Marker setzen"),
-    trLater("Entf") to trLater("Löschen (mit Magnet: Lücke schließen)"),
-    trLater("Umschalt+Entf") to trLater("Löschen und Lücke immer schließen"),
-    trLater("Strg+Alt+L") to trLater("Bild und Ton verknüpfen / lösen"),
-    trLater("Strg+Z · Strg+Y") to trLater("Rückgängig · Wiederholen"),
-    trLater("Alt+F") to trLater("Vorschau groß (Medienpool und Eigenschaften treten zur Seite)"),
-    trLater("Strg+F · Esc") to trLater("Vorschau im Vollbild · Vollbild beenden"),
-    trLater("Strg+B") to trLater("Seitenleiste der App zeigen oder ausblenden"),
-    trLater("Umschalt+Mausrad") to trLater("Spuren auf und ab (auch das Mausrad über den Spurköpfen)"),
-    trLater("?") to trLater("Diese Übersicht"),
+/** The keys of the video editor, close to DaVinci Resolve (AP-53), in groups (AP-121). */
+internal val VIDEO_SHORTCUT_GROUPS: List<Pair<String, List<Pair<String, String>>>> = listOf(
+    trLater("Abspielen") to listOf(
+        trLater("Leertaste") to trLater("Abspielen / anhalten (mit Schleife: zwischen In und Out)"),
+        trLater("J · K · L") to trLater("Rückwärts · Halt · Vorwärts (mehrmals: schneller)"),
+        trLater("← · →") to trLater("Ein Bild zurück · vor"),
+        trLater("↑ · ↓") to trLater("Zum vorigen · nächsten Schnitt"),
+        trLater("Pos1 · Ende") to trLater("Zum Anfang · Ende"),
+    ),
+    trLater("Schneiden") to listOf(
+        trLater("S") to trLater("Am Abspielkopf teilen"),
+        trLater("I · O") to trLater("In- · Out-Punkt setzen (Quelle oder Zeitleiste)"),
+        trLater("Entf") to trLater("Löschen (mit Magnet: Lücke schließen); ohne Auswahl: das Stück zwischen In und Out herausschneiden"),
+        trLater("Umschalt+Entf") to trLater("Löschen und Lücke immer schließen"),
+        trLater("Alt+X") to trLater("In und Out löschen"),
+        trLater("A · B · T") to trLater("Auswahl · Klinge · Trimmen"),
+        trLater("N") to trLater("Magnet ein/aus"),
+        trLater("M") to trLater("Marker setzen"),
+        trLater("Strg+Alt+L") to trLater("Bild und Ton verknüpfen / lösen"),
+        trLater("Strg+Z · Strg+Y") to trLater("Rückgängig · Wiederholen"),
+        trLater("Rechtsklick") to trLater("Was mit dem Clip, Titel oder Ton an dieser Stelle geht"),
+    ),
+    trLater("Quelle") to listOf(
+        trLater("Q") to trLater("Quellmonitor ⇄ Zeitleiste"),
+        trLater("F9 · F10") to trLater("Aus der Quelle einfügen · überschreiben"),
+        trLater("F12") to trLater("Aus der Quelle als Bild-in-Bild"),
+    ),
+    trLater("Ansicht") to listOf(
+        trLater("Umschalt+Z") to trLater("Ganze Zeitleiste zeigen"),
+        trLater("Strg+Mausrad") to trLater("Zeitleiste vergrößern · verkleinern"),
+        trLater("Alt+F") to trLater("Vorschau groß (Medienpool und Eigenschaften treten zur Seite)"),
+        trLater("Strg+F · Esc") to trLater("Vorschau im Vollbild · Vollbild beenden"),
+        trLater("Strg+B") to trLater("Seitenleiste der App zeigen oder ausblenden"),
+        trLater("Umschalt+Mausrad") to trLater("Spuren auf und ab (auch das Mausrad über den Spurköpfen)"),
+        trLater("?") to trLater("Diese Übersicht"),
+    ),
 )
+
+/** All keys in one list (Lora's help and the tests read it). */
+internal val VIDEO_SHORTCUTS: List<Pair<String, String>> = VIDEO_SHORTCUT_GROUPS.flatMap { it.second }
 
 @Composable
 internal fun VideoShortcutsDialog(onDismiss: () -> Unit) {
@@ -309,14 +323,17 @@ internal fun VideoShortcutsDialog(onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         title = { Text(tr("Tastenkürzel im Videoeditor")) },
         text = {
-            Column(Modifier.width(560.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                VIDEO_SHORTCUTS.forEach { (k, what) ->
-                    Row {
-                        Text(tr(k), style = MaterialTheme.typography.labelLarge, modifier = Modifier.width(150.dp))
-                        Text(tr(what), style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
+            Column(Modifier.width(600.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                VIDEO_SHORTCUT_GROUPS.forEach { (group, keys) ->
+                    Text(tr(group), style = MaterialTheme.typography.titleSmall, color = LocalChatLook.current.brand, modifier = Modifier.padding(top = 8.dp, bottom = 2.dp))
+                    keys.forEach { (k, what) ->
+                        Row {
+                            Text(tr(k), style = MaterialTheme.typography.labelLarge, modifier = Modifier.width(160.dp))
+                            Text(tr(what), style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
+                        }
                     }
                 }
-                HintText(tr("Nah an DaVinci Resolve, damit Umsteigen leichtfällt."))
+                HintText(tr("Nah an DaVinci Resolve, damit Umsteigen leichtfällt."), Modifier.padding(top = 8.dp))
             }
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text(tr("Schließen")) } },
