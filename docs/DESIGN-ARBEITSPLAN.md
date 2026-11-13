@@ -1,6 +1,6 @@
 # Design-Arbeitsplan Lora (APD)
 
-Stand: 13.11.2026 (angelegt; APD-01 *Umfassendes UI-Review* als Erstes) · Lebendes Dokument: Status hier pflegen,
+Stand: 13.11.2026 (angelegt; APD-01 *Umfassendes UI-Review* als Erstes; Anspruch des Hauptnutzers: super aussehen, gut bedienbar, rundes Gesamtprodukt mit einheitlichem Stil auf dem Niveau der neuen Lora) · Lebendes Dokument: Status hier pflegen,
 erledigte Pakete abhaken und in der README beschreiben.
 
 **Was hier steht**: alle Arbeitspakete zu **Aussehen, Bedienbarkeit und Nutzerfreundlichkeit** der App – Oberfläche,
@@ -30,7 +30,9 @@ uneinheitlich, wirkt unfertig), **gering** (Feinschliff).
 
 | Thema | Entscheidung |
 | --- | --- |
-| Anspruch | Die App sieht **seriös und modern** aus – ruhig, klar, aufgeräumt, passend für Forschung, Lehre und Verwaltung an der TU Dresden. Kein Effekt um seiner selbst willen. |
+| Anspruch | **Es muss super aussehen und gut bedienbar sein** (Hauptnutzer, 13.11.2026). Die App sieht **seriös und modern** aus – klar, aufgeräumt, hochwertig, passend für Forschung, Lehre und Verwaltung an der TU Dresden. „Geht so“ reicht nicht: Viele Bereiche wirken noch **unübersichtlich oder langweilig** – genau das wird gesucht und behoben. Kein Effekt um seiner selbst willen. |
+| Ein Gesamtprodukt | Ein **rundes Gesamtprodukt mit einheitlichem Stil**: dieselbe Formensprache (Ecken, Karten, Schatten, Abstände), dieselbe Bildsprache (Symbole, Illustrationen), dieselben Muster für Seitenköpfe, Listen, Karten, leere Zustände und Hinweise – in jedem Bereich, vom Chat bis zum Videoeditor. Wer einen Bereich kennt, kennt alle. |
+| Lora als Maßstab | Lora wurde mit AP-122 neu gezeichnet (Volumen, weiches Licht, lebendige Bewegung). **Die Oberfläche soll dasselbe Niveau erreichen** und zu ihr passen: ihre Farben und ihre weiche, freundliche Formensprache prägen den Stil mit; Lora selbst erscheint dort, wo sie hilft (Einrichtung, leere Zustände, Erfolg, Hilfe), seriös und nicht überall. |
 | Priorität | **Nutzerfreundlichkeit vor Schmuck.** Eine Änderung zählt, wenn etwas schneller gefunden, klarer verstanden oder mit weniger Schritten erledigt wird; Verschönerung folgt daraus. |
 | Ein Baukasten | Bildschirme bauen aus gemeinsamen Bausteinen: `ui/Controls.kt` (Knöpfe, Symbol-Knöpfe mit Tooltip, Felder, Schalter, Menüs), `ui/Dialogs.kt` (Dialoge mit Hauptknopf, Enter/Esc), `ui/NoticeBar.kt` (Hinweise), `ui/Scrollbars.kt` (Bildlaufleisten), `ui/Design.kt` (Karten, Gruppenüberschriften, Marken, Segmente), `ui/Theme.kt` (`ChatLook` je Stil), `ui/Chips.kt`, `ui/TextI18n.kt`. Fehlt ein Baustein, kommt er dorthin – keine Einzellösung in einem Bildschirm. |
 | Alle Stile | Jede Änderung gilt für alle 8 Stile (ADEU, TU Dresden, Office, Hoher Kontrast, Claude, Material You, ChatGPT, Gemini), hell und dunkel; Hoher Kontrast bleibt WCAG AAA, sonst mindestens AA (Text 4,5 : 1, Bedienelemente 3 : 1). |
@@ -65,7 +67,10 @@ Gilt für das Review (APD-01) und als Abnahme jedes Pakets. Je Bildschirm:
     Abschneiden, kein ungewollter Umbruch, nichts außerhalb des Bildschirms.
 11. **Barrierefreiheit** – Screenreader-Beschriftungen, Überschriften, Fokus sichtbar, nicht nur Farbe als Information,
     Touch-Ziele mindestens 48 dp (Android).
-12. **Eindruck** – Wirkt der Bildschirm seriös, modern und fertig? Was würde eine Designerin als Erstes ändern?
+12. **Eindruck** – Wirkt der Bildschirm seriös, modern, hochwertig und fertig? Ist er **übersichtlich** (Gruppierung,
+    wenig gleichzeitig, klarer Einstieg) oder überladen? Ist er **ansprechend** oder **langweilig** (graue Listen,
+    Textwüsten, keine visuellen Anker, alles gleich laut)? Passt er zum Rest der App und zu Lora? Was würde eine
+    Designerin als Erstes ändern?
 
 ---
 
@@ -84,7 +89,10 @@ Gilt für das Review (APD-01) und als Abnahme jedes Pakets. Je Bildschirm:
 
 ### APD-01 ☐ Umfassendes UI-Review der ganzen App · L (Wunsch Hauptnutzer 13.11.2026)
 **Ziel**: Die ganze Oberfläche einmal vollständig und ehrlich prüfen – mit dem Blick einer erfahrenen UI/UX-Designerin –
-und daraus einen geordneten Plan machen, mit dem wir das Design Stück für Stück verbessern. **In diesem Paket wird nichts
+und daraus einen geordneten Plan machen, mit dem wir das Design Stück für Stück verbessern, bis die App ein **rundes
+Gesamtprodukt mit einheitlichem Stil** ist, das **super aussieht und sich leicht bedienen lässt** (Grundsätze
+*Anspruch*, *Ein Gesamtprodukt*, *Lora als Maßstab*). Ausdrücklich gesucht: was **unübersichtlich** und was
+**langweilig** wirkt. **In diesem Paket wird nichts
 an der Oberfläche umgebaut** (höchstens Werkzeuge für Bilder und Tests); offensichtliche Fehler werden als Befund mit
 Schweregrad *hoch* erfasst.
 
@@ -94,7 +102,8 @@ Schweregrad *hoch* erfasst.
    400 dp) für die Bereiche, die es auf Android gibt; ADEU hell und dunkel, dazu TU Dresden und Hoher Kontrast
    stichprobenartig; leere und gefüllte Zustände mit Beispieldaten; wichtige Dialoge, Menüs und Hinweise. Was sich im
    Test nicht rendern lässt (z. B. Browser, natives Fenster), im Bericht nennen.
-2. **Prüfen** nach dem *Prüfmaßstab* oben (12 Punkte), Bereich für Bereich.
+2. **Prüfen** nach dem *Prüfmaßstab* oben (12 Punkte), Bereich für Bereich – dazu je Bereich eine Note von 1 bis 5 für
+   **Übersicht**, **Bedienung** und **Ausstrahlung** (sieht es gut aus?), damit die schwächsten Bereiche sichtbar werden.
 3. **Befunde erfassen** in `docs/design/review-2026-11.md` (neu), je Befund: Bereich, Ort im Code (Datei/Composable),
    was ist, warum es stört (Prüfpunkt), Schweregrad, **Vorschlag** (konkret, mit Skizze in Worten oder Bild), Aufwand
    (S/M/L), betroffene Plattformen und Stile. Bereichsübergreifende Muster (z. B. „Seitenköpfe uneinheitlich“) als
@@ -102,8 +111,14 @@ Schweregrad *hoch* erfasst.
 4. **Pakete bilden**: Befunde zu Paketen APD-02 ff. bündeln (eher nach Thema oder Bildschirm als nach Einzelbefund),
    unter *Danach* eintragen – je Paket Befund, Ziel, Vorschläge, *Fertig, wenn*, Größe – und nach Nutzen ordnen:
    zuerst, was im Alltag am meisten stört oder am häufigsten gesehen wird (Chat, Seitenleiste, Dateien, Einstellungen).
-5. **Übersichtsseite** (Artefakt) für den Hauptnutzer: die wichtigsten Befunde mit Bild und Vorschlag, die Paketliste mit
-   Reihenfolge – damit er Prioritäten setzen und streichen kann. Erst danach gilt APD-01 als fertig.
+5. **Stilrichtung für das Gesamtprodukt**: aus dem Review eine einheitliche Gestaltung ableiten, die zur neuen Lora
+   passt – Formensprache, Farbeinsatz, Schrift und Abstände, Symbole und Illustrationen, Muster für Seitenköpfe, Listen,
+   Karten, leere Zustände – und für **2–3 Schlüsselbildschirme** (z. B. Chat-Startseite, Seitenleiste, Dateien) zeigen,
+   wie sie damit aussehen würden (Entwurf als Bild oder HTML, noch nicht in der App). Die Richtung wird die Grundlage der
+   Pakete APD-02 ff. (Baukasten zuerst, dann die Bildschirme).
+6. **Übersichtsseite** (Artefakt) für den Hauptnutzer: Noten je Bereich, die wichtigsten Befunde mit Bild und Vorschlag,
+   die Stilrichtung mit den Entwürfen, die Paketliste mit Reihenfolge – damit er Richtung und Prioritäten freigeben und
+   streichen kann. Erst danach gilt APD-01 als fertig.
 
 **Bereiche** (alle prüfen; Routen aus `ui/AppRoot.kt`, Einstellungsseiten aus `ui/SettingsScreen.kt`)
 - *Rahmen*: Startanimation, Einrichtung beim ersten Start (`SetupWizard`), Seitenleiste mit „Mehr“, Projekten und Chats
@@ -129,11 +144,13 @@ einheitliche Seitenköpfe und eine feste Abstands- und Schriftgrößen-Skala · 
 nächstem Schritt · Fehler direkt am Eingabefeld · Tastenkürzel in Tooltips und Menüs · Bildlaufleisten auch waagerecht
 und in Rastern (rund 65 Stellen mit `LazyRow`, `LazyVerticalGrid`, `horizontalScroll`) · dezente Übergänge · Android mit
 schmalen Bildschirmen und großer Schrift · am Gerät offen aus AP-123: Tooltips, Enter/Esc in echten Dialogen,
-Bildlaufleisten, Hoher Kontrast mit Screenreader.
+Bildlaufleisten, Hoher Kontrast mit Screenreader · **einheitlicher Stil über alle Bereiche** (Wunsch Hauptnutzer) ·
+**Lora (AP-122) als Teil der Identität** – passende Illustrationen und leere Zustände · **visuelle Anker** statt
+grauer Listen und Textwüsten (Symbole, Farbe, Bilder, Vorschauen).
 
 **Fertig, wenn**: Bilder aller Bereiche vorliegen, `docs/design/review-2026-11.md` jeden Bereich mit Befunden und
-Vorschlägen abdeckt, die Pakete APD-02 ff. hier unter *Danach* stehen und der Hauptnutzer die Reihenfolge auf der
-Übersichtsseite freigegeben hat.
+Vorschlägen und Noten abdeckt, die Stilrichtung mit Entwürfen vorliegt, die Pakete APD-02 ff. hier unter *Danach*
+stehen und der Hauptnutzer Richtung und Reihenfolge auf der Übersichtsseite freigegeben hat.
 
 ---
 
