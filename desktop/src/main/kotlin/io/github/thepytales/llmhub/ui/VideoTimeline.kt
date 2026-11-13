@@ -30,6 +30,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.isSecondaryPressed
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -160,8 +166,15 @@ internal fun VideoTimelineView(
     h: History, player: VideoPlayer, pos: Double, sel: Sel, tool: CutTool, drag: PoolDrag,
     onSelect: (Sel) -> Unit, onDropItem: (PoolItem, String, Double) -> Unit, modifier: Modifier = Modifier,
     view: TimelineState = remember { TimelineState() }, scale: Float = 1f, folded: Set<String> = emptySet(), onFold: ((String) -> Unit)? = null,
+    menu: (@Composable (Sel, Double, () -> Unit) -> Unit)? = null,
 ) {
     val p = h.project
+    val playing by player.playing.collectAsState()
+    // Right-click (AP-121): where, on what and at which time the menu opened.
+    var context by remember { mutableStateOf<Triple<Offset, Sel, Double>?>(null) }
+    // Under the mouse (AP-121): the element (a light frame) and the pointer (resize at edges, hand on a clip).
+    var hoverId by remember { mutableStateOf<String?>(null) }
+    var hoverIcon by remember { mutableStateOf(PointerIcon.Default) }
     val measurer = rememberTextMeasurer()
     var zoom by view::zoom
     var scroll by view::scroll
@@ -199,6 +212,11 @@ internal fun VideoTimelineView(
             val sc = scroll.coerceIn(0f, maxScroll)
             fun x(t: Double) = left + (t * pxPerSec).toFloat() - sc
             fun t(x: Float) = ((x - left + sc) / pxPerSec).toDouble()
+            // While playing zoomed in, the view turns the page when the playhead leaves it (AP-121).
+            if (playing && maxScroll > 0f) {
+                val px = x(pos)
+                if (px > width - 24f * u || px < left) SideEffect { scroll = ((pos * pxPerSec).toFloat() - (width - left - 20f) * 0.1f).coerceIn(0f, maxScroll) }
+            }
             // The gesture handler lives longer than one composition (dragging changes the project): it reads these.
             val now = remember { arrayOfNulls<Any>(6) }
             now[0] = pxPerSec; now[1] = sc; now[2] = maxScroll; now[3] = tool; now[4] = lanes; now[5] = maxV
@@ -400,6 +418,44 @@ internal fun VideoTimelineView(
                         awaitPointerEventScope {
                             while (true) {
                                 val ev = awaitPointerEvent()
+                                if (ev.type == PointerEventType.Exit) { hoverId = null; hoverIcon = PointerIcon.Default; continue }
+                                val rightClick = ev.type == PointerEventType.Press && ev.buttons.isSecondaryPressed
+                                if (ev.type != PointerEventType.Move && ev.type != PointerEventType.Enter && !rightClick) continue
+                                val at = ev.changes.firstOrNull()?.position ?: continue
+                                val base = h.project
+                                val pps = now[0] as Float
+                                val sc0 = now[1] as Float
+                                @Suppress("UNCHECKED_CAST")
+                                val ls = now[4] as List<LaneRow>
+                                fun xx(t: Double) = left + (t * pps).toFloat() - sc0
+                                val time = ((at.x - left + sc0) / pps).toDouble()
+                                if (at.x < left || (at.y < 22f * u && !rightClick)) { hoverId = null; hoverIcon = PointerIcon.Default; continue }
+                                val hit = hitAt(base, ls, at, time, base.starts(), u, ::xx)
+                                // Right-click (AP-121): select what is there and show what can be done with it. A secondary
+                                // press is no „down“ for the gestures, so it is read here.
+                                if (rightClick) {
+                                    if (menu != null) { onSelect(hit); context = Triple(at, hit, time.coerceAtLeast(0.0)) }
+                                    ev.changes.forEach { it.consume() }
+                                    continue
+                                }
+                                val (a, b) = spanOf(base, hit) ?: (null to null)
+                                val edge = 7f * u
+                                val nearEdge = a != null && b != null && (abs(at.x - xx(a)) < edge || abs(at.x - xx(b)) < edge)
+                                hoverId = when (hit) { is Sel.Clip -> hit.id; is Sel.Layer -> hit.id; is Sel.Sound -> hit.id; is Sel.Title -> hit.id; else -> null }
+                                hoverIcon = when {
+                                    hoverId == null -> PointerIcon.Default
+                                    now[3] == CutTool.BLADE -> PointerIcon.Crosshair
+                                    nearEdge || now[3] == CutTool.TRIM -> RESIZE_ICON
+                                    else -> PointerIcon.Hand
+                                }
+                            }
+                        }
+                    }
+                    .pointerHoverIcon(hoverIcon)
+                    .pointerInput(Unit) {
+                        awaitPointerEventScope {
+                            while (true) {
+                                val ev = awaitPointerEvent()
                                 if (ev.type == PointerEventType.Scroll) {
                                     val ch = ev.changes.first()
                                     val d = ch.scrollDelta
@@ -492,6 +548,7 @@ internal fun VideoTimelineView(
                     drawRoundRect((if (i % 2 == 0) V1A else V1B).copy(alpha = if (hidden) 0.35f else 1f), Offset(x0, v1.top), Size(maxOf(2f, x1 - x0 - 1f), v1.height), CornerRadius(5f))
                     if (!v1.folded && !c.muted && !p.track("V1").muted) wave(c.path, c.inSec + (x0 - x(starts[i])) / pxPerSec, c.length, x0, x1, v1.top + v1.height * 0.55f, v1.height * 0.42f, Color(0x55FFFFFF))
                     if (selected) drawRoundRect(SELECTED, Offset(x0, v1.top), Size(maxOf(2f, x1 - x0 - 1f), v1.height), CornerRadius(5f), style = Stroke(3f))
+                    else if (hoverId == c.id) drawRoundRect(Color(0x99FFFFFF), Offset(x0, v1.top), Size(maxOf(2f, x1 - x0 - 1f), v1.height), CornerRadius(5f), style = Stroke(2f))
                     // Effects of AP-54 after the name („2× · Zoom · 3 Bereiche“).
                     val fxText = if (c.fx.isNone) "" else io.github.thepytales.llmhub.video.VideoFx.summary(c.fx)
                     if (x1 - x0 > 40 && v1.height >= 20f * u) label(if (fxText.isBlank()) c.name else "${c.name} · $fxText", Offset(x0 + 6f, v1.top + 5f), TextStyle(fontSize = 11.sp, color = Color.White), x1 - x0 - 10f)
@@ -501,6 +558,8 @@ internal fun VideoTimelineView(
                         drawRect(Color(0x66FFFFFF), Offset(tx, v1.top + v1.height - 10f), Size(tw, 8f))
                     }
                 }
+                // An empty project: what to do, right where the clips will be (AP-121).
+                if (p.clips.isEmpty() && !v1.folded) label(tr("Videos aus dem Medienpool oder dem Explorer hierher ziehen"), Offset(left + 12f * u, v1.top + v1.height / 2 - 8f * u), small, size.width - left - 24f * u)
                 // Pictures on V2 ….
                 p.layers.forEach { l ->
                     val ln = lanes.firstOrNull { it.key == "V${l.track}" } ?: return@forEach
@@ -509,6 +568,7 @@ internal fun VideoTimelineView(
                     val selected = sel is Sel.Layer && sel.id == l.id
                     drawRoundRect(LAYER.copy(alpha = if (p.track(ln.key).hidden) 0.35f else 1f), Offset(x0, ln.top), Size(maxOf(2f, x1 - x0 - 1f), ln.height), CornerRadius(5f))
                     if (selected) drawRoundRect(SELECTED, Offset(x0, ln.top), Size(maxOf(2f, x1 - x0 - 1f), ln.height), CornerRadius(5f), style = Stroke(3f))
+                    else if (hoverId == l.id) drawRoundRect(Color(0x99FFFFFF), Offset(x0, ln.top), Size(maxOf(2f, x1 - x0 - 1f), ln.height), CornerRadius(5f), style = Stroke(2f))
                     if (x1 - x0 > 30 && ln.height >= 18f * u) label(l.name, Offset(x0 + 5f, ln.top + 4f), TextStyle(fontSize = 10.sp, color = Color.White), x1 - x0 - 8f)
                     if (x1 - x0 > 30 && ln.height >= 34f * u) label(tr("Bild-in-Bild") + " · " + clock(l.length, true), Offset(x0 + 5f, ln.top + 19f * u), TextStyle(fontSize = 9.sp, color = Color(0xCCFFFFFF)), x1 - x0 - 8f)
                 }
@@ -522,6 +582,7 @@ internal fun VideoTimelineView(
                     drawRoundRect(color, Offset(x0, ln.top), Size(maxOf(2f, x1 - x0 - 1f), ln.height), CornerRadius(5f))
                     if (!ln.folded) wave(a.path, a.inSec + (x0 - x(a.startSec)) / pxPerSec, a.length, x0, x1, ln.top + 2f, ln.height - 4f, Color(0x66FFFFFF))
                     if (selected) drawRoundRect(SELECTED, Offset(x0, ln.top), Size(maxOf(2f, x1 - x0 - 1f), ln.height), CornerRadius(5f), style = Stroke(3f))
+                    else if (hoverId == a.id) drawRoundRect(Color(0x99FFFFFF), Offset(x0, ln.top), Size(maxOf(2f, x1 - x0 - 1f), ln.height), CornerRadius(5f), style = Stroke(2f))
                     if (x1 - x0 > 30 && ln.height >= 18f * u) label((if (a.linkedTo != null) "∞ " else "") + a.name, Offset(x0 + 5f, ln.top + 4f), TextStyle(fontSize = 10.sp, color = Color.White), x1 - x0 - 8f)
                 }
                 // Titles and subtitles.
@@ -532,6 +593,7 @@ internal fun VideoTimelineView(
                     val selected = sel is Sel.Title && sel.id == o.id
                     drawRoundRect(Color(0xFF97C6FF), Offset(x0, tl.top), Size(maxOf(2f, x1 - x0), tl.height), CornerRadius(5f))
                     if (selected) drawRoundRect(SELECTED, Offset(x0, tl.top), Size(maxOf(2f, x1 - x0), tl.height), CornerRadius(5f), style = Stroke(3f))
+                    else if (hoverId == o.id) drawRoundRect(Color(0xCC001450), Offset(x0, tl.top), Size(maxOf(2f, x1 - x0), tl.height), CornerRadius(5f), style = Stroke(1.5f))
                     if (x1 - x0 > 30 && tl.height >= 18f * u) label(TextOverlay.label(o.style) + ": " + o.text, Offset(x0 + 5f, tl.top + 5f), TextStyle(fontSize = 10.sp, color = Color(0xFF001450)), x1 - x0 - 8f)
                 }
                 val sl = lane("S")
@@ -593,6 +655,11 @@ internal fun VideoTimelineView(
                     }
                 }
             }
+            context?.let { (at, s, t) ->
+                if (menu != null) Box(Modifier.offset { IntOffset(at.x.toInt(), at.y.toInt()) }.size(1.dp)) {
+                    DropdownMenu(expanded = true, onDismissRequest = { context = null }) { menu(s, t) { context = null } }
+                }
+            }
         }
     }
 }
@@ -607,4 +674,32 @@ private fun TrackToggle(icon: ImageVector, on: Boolean, label: String, modifier:
             Icon(icon, contentDescription = label, tint = if (on) SELECTED else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), modifier = Modifier.size(15.dp))
         }
     }
+}
+
+/** The pointer for edges that can be dragged (AP-121). */
+private val RESIZE_ICON = PointerIcon(java.awt.Cursor(java.awt.Cursor.E_RESIZE_CURSOR))
+
+/**
+ * What is at [at] (time [time]) on the timeline (AP-121, right-click and the pointer): a marker in the ruler, a title,
+ * a clip of V1, a picture on V2 …, a sound; otherwise nothing.
+ */
+internal fun hitAt(p: VideoProject, lanes: List<LaneRow>, at: Offset, time: Double, starts: List<Double>, u: Float, x: (Double) -> Float): Sel {
+    if (at.y < 22f * u) return p.markers.minByOrNull { abs(x(it.sec) - at.x) }?.takeIf { abs(x(it.sec) - at.x) < 6f * u }?.let { Sel.Mark(it.id) } ?: Sel.None
+    val lane = lanes.firstOrNull { at.y >= it.top - 1.5f * u && at.y <= it.bottom + 1.5f * u } ?: return Sel.None
+    return when {
+        lane.key == "T" -> p.overlays.lastOrNull { time >= it.startSec && time <= it.endSec }?.let { Sel.Title(it.id) }
+        lane.key == "V1" -> starts.indices.lastOrNull { k -> time >= starts[k] && time <= starts[k] + p.clips[k].length }?.let { Sel.Clip(p.clips[it].id) }
+        lane.video -> p.layers.lastOrNull { it.track == lane.number && time >= it.startSec && time <= it.endSec }?.let { Sel.Layer(it.id) }
+        lane.audio -> p.audio.lastOrNull { it.track == lane.number && time >= it.startSec && time <= it.endSec }?.let { Sel.Sound(it.id) }
+        else -> null
+    } ?: Sel.None
+}
+
+/** Start and end on the timeline of what [s] selects (null for nothing and markers). */
+internal fun spanOf(p: VideoProject, s: Sel): Pair<Double, Double>? = when (s) {
+    is Sel.Clip -> p.clips.indexOfFirst { it.id == s.id }.takeIf { it >= 0 }?.let { i -> p.starts()[i].let { it to it + p.clips[i].length } }
+    is Sel.Layer -> p.layers.firstOrNull { it.id == s.id }?.let { it.startSec to it.endSec }
+    is Sel.Sound -> p.audio.firstOrNull { it.id == s.id }?.let { it.startSec to it.endSec }
+    is Sel.Title -> p.overlays.firstOrNull { it.id == s.id }?.let { it.startSec to it.endSec }
+    else -> null
 }

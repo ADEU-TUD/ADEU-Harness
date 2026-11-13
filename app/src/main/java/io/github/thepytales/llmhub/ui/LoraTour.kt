@@ -97,7 +97,9 @@ object LoraTours {
         // The editor opens with the latest project for its steps (AP-70); the card stays beside each place.
         LoraTour(
             "video", "video", trLater("Videoeditor"), android = false, steps = listOf(
-                TourStep("video.new", trLater("Ein neues Projekt beginnt mit einer Aufnahme oder einem Screencast.")),
+                TourStep("video.new", trLater("Ein neues Projekt beginnt mit „Video schneiden“: Videos auswählen oder einfach hierher ziehen.")),
+                TourStep("video.guide", trLater("Rechts zeigt dir „So entsteht dein Video“ den nächsten Schritt – mit Knöpfen, die ihn gleich ausführen.")),
+                TourStep("video.cut", trLater("Zum Schneiden: „Teilen“ am Abspielkopf – oder Anfang und Ende eines Stücks markieren und „Herausschneiden“. Ein Rechtsklick auf einen Clip zeigt, was noch geht.")),
                 TourStep("video.tools", trLater("Über der Zeitleiste liegen die Werkzeuge: Auswahl (A), Klinge (B), Trimmen (T) und der Magnet – die Taste steht im Tooltip.")),
                 TourStep("video.titles", trLater("Daneben setzt du Titel und Bauchbinden im TUD-Design, Untertitel aus der Transkription und den Rohschnitt.")),
                 TourStep("video.layout", trLater("Die Anordnung passt du an: Ränder ziehen, Medienpool und Eigenschaften einklappen – hier setzt du sie zurück.")),

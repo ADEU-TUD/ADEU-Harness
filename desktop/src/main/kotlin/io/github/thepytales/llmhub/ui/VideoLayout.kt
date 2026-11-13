@@ -85,6 +85,8 @@ internal class VideoLayout(private val prefs: SharedPreferences) {
     var bigPreview by bool("videoBigPreview", false)
     /** The app's side menu beside the editor (folded in by default). */
     var menu by bool("videoMenu", false)
+    /** „So entsteht dein Video“ in the properties (AP-121); ✕ folds it away, the help menu brings it back. */
+    var guide by bool("videoGuide", true)
     /** "media" (media pool) or "text" (transcript, AP-55). */
     var leftTab by text("videoLeftTab", "media")
     /** Height of the tracks: 1 = as before, 0.6 … 2. */

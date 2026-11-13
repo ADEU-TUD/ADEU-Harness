@@ -364,6 +364,52 @@ object VideoEdit {
         (if (sec >= 3600) "%d:%02d:%02d".format(sec / 3600, sec / 60 % 60, sec % 60) else "%d:%02d".format(sec / 60, sec % 60)) + " " + title
     }
 
+    // ── Simple cuts for beginners (AP-121) ──
+
+    /**
+     * Trims the V1 clip under the playhead [t]: [start] removes everything of it before [t] („Anfang bis hier
+     * kürzen“), otherwise everything from [t] on („Ende ab hier kürzen“). The clips after it close up; with the magnet
+     * the other tracks move along (a ripple trim). Null when there is no clip under [t], [t] is at its edge already or
+     * less than 0.2 s of it would stay.
+     */
+    fun trimToPlayhead(p: VideoProject, t: Double, start: Boolean): VideoProject? {
+        if (p.track("V1").locked) return null
+        val (i, _) = p.at(t) ?: return null
+        val c = p.clips[i]
+        val local = t - p.starts()[i]
+        if (local < -1e-6 || local > c.length + 1e-6) return null
+        val removed = if (start) local else c.length - local
+        if (removed < 0.04 || c.length - removed < MIN) return null
+        return rippleTrim(p, c.id, start, if (start) removed else -removed).takeIf { it != p }
+    }
+
+    /**
+     * Cuts the piece [a]..[b] of the timeline out (AP-121, „Bereich herausschneiden“ between In and Out): the V1 clips
+     * there are trimmed or split, linked sound goes with them, and everything after it moves along – also without the
+     * magnet, so titles, music and markers stay with their picture. Frozen and reversed clips stay as they are.
+     */
+    fun cutRange(p: VideoProject, a: Double, b: Double): VideoProject {
+        val from = minOf(a, b).coerceAtLeast(0.0)
+        val to = maxOf(a, b).coerceAtMost(p.duration)
+        if (to - from < 0.04 || p.track("V1").locked) return p
+        val s = p.starts()
+        val ranges = p.clips.indices.mapNotNull { i ->
+            val c = p.clips[i]
+            val x0 = maxOf(from, s[i])
+            val x1 = minOf(to, s[i] + c.length)
+            if (x1 - x0 < 0.04 || c.fx.freeze || c.fx.reverse) null
+            else Triple(c.id, c.inSec + (x0 - s[i]) * c.speed, c.inSec + (x1 - s[i]) * c.speed)
+        }
+        if (ranges.isEmpty()) return p
+        return TextCut.cut(p.copy(magnet = true), ranges).copy(magnet = p.magnet)
+    }
+
+    /** A copy of [p] to try something out (AP-121): new id, „(Kopie)“ after the title, the same files. */
+    fun duplicate(p: VideoProject, suffix: String = "(Kopie)"): VideoProject {
+        val now = System.currentTimeMillis()
+        return p.copy(id = java.util.UUID.randomUUID().toString(), title = "${p.title} $suffix", createdAt = now, updatedAt = now)
+    }
+
     // ── Media pool ──
 
     /** Adds [paths] to the pool (in folder [bin]); files already there stay once. */

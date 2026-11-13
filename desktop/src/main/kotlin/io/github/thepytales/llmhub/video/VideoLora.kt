@@ -194,6 +194,22 @@ object VideoLora {
             }
         },
         ToolAction(
+            "video.cut_range", ActionArea.VIDEO, trLater("Stück herausschneiden"),
+            "Schneidet ein Stück aus dem Video heraus, z. B. von 1:20 bis 1:45 (leer: zwischen In und Out); alles danach rückt nach (AP-121).",
+            listOf(ActionParam("von", "Beginn, z. B. 1:20", required = false), ActionParam("bis", "Ende, z. B. 1:45", required = false)),
+            risky = true, android = false,
+        ) { _, a ->
+            val p = need()
+            if (p.clips.isEmpty()) throw ActionFailed(tr("Das Projekt hat noch keine Clips."))
+            val from = seconds(a.s("von")) ?: p.markIn ?: throw ActionFailed(tr("Von wo bis wo? Zum Beispiel „von 1:20 bis 1:45“."))
+            val to = seconds(a.s("bis")) ?: p.markOut ?: throw ActionFailed(tr("Von wo bis wo? Zum Beispiel „von 1:20 bis 1:45“."))
+            val (x, y) = minOf(from, to) to maxOf(from, to).coerceAtMost(p.duration)
+            if (y - x < 0.1 || VideoEdit.cutRange(p, x, y) == p) throw ActionFailed(tr("Zwischen {0} und {1} lässt sich nichts herausschneiden.", clock(x), clock(y)))
+            ActionPlan("video.cut_range", tr("Schneidet {0} bis {1} heraus …", clock(x), clock(y)), true, listOf(tr("{0} bis {1} ({2})", clock(x), clock(y), clock(y - x)) to tr("herausgeschnitten, der Rest rückt nach"))) {
+                change(p, tr("{0} bis {1} herausgeschnitten.", clock(x), clock(y))) { pp -> VideoEdit.cutRange(pp, x, y).copy(markIn = null, markOut = null) }
+            }
+        },
+        ToolAction(
             "video.marker", ActionArea.VIDEO, trLater("Marker setzen"),
             "Setzt einen Marker mit Notiz auf die Zeitleiste; Marker werden zu Kapiteln im MP4 und für YouTube (AP-53).",
             listOf(ActionParam("notiz", "Notiz, z. B. Kapitelname"), ActionParam("zeit", "Zeit, z. B. 1:30 (leer: Abspielposition)", required = false)),
