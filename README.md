@@ -415,8 +415,9 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   `ui/Dialogs.kt`, `ui/NoticeBar.kt`, `ui/Scrollbars.kt`), die Bildschirme nehmen sie ohne Import;
   `ControlsBehaviourTest` prüft Tasten, Tooltips, Bildlaufleisten und dass kein Bildschirm mehr die Bausteine von
   Material 3 direkt nimmt.
-  Weiter geht es mit **AP-124** (Arbeitsplan): Dem Hauptnutzer reicht das noch nicht – die App wird Bildschirm für
-  Bildschirm weiter verbessert.
+  Weiter geht es im **Design-Arbeitsplan** ([`docs/DESIGN-ARBEITSPLAN.md`](docs/DESIGN-ARBEITSPLAN.md), Pakete APD-xx):
+  Dem Hauptnutzer reicht das noch nicht – als Erstes prüft APD-01 die ganze Oberfläche, danach wird sie Stück für Stück
+  verbessert.
 
   | Vorher | Nachher |
   | --- | --- |

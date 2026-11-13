@@ -8,6 +8,12 @@
 - **Arbeitsplan:** Geplante Erweiterungen mit Arbeitspaketen (`AP-xx`), Grundsätzen und Entscheidungen stehen in
   `docs/ARBEITSPLAN.md`, gegliedert in *Jetzt / Danach / Später / Ideen*. Als Nächstes kommt das erste offene Paket unter
   *Jetzt*. Status dort pflegen (☐/◐/☑), wenn ein Paket begonnen oder fertig wird.
+- **Design-Arbeitsplan:** Alles zu Aussehen, Bedienbarkeit und Nutzerfreundlichkeit steht in
+  `docs/DESIGN-ARBEITSPLAN.md`, Pakete heißen **`APD-xx`**. Spricht der Hauptnutzer vom „Design-Arbeitsplan“ oder von
+  „APD“ („arbeite Pakete aus dem Design-Arbeitsplan ab“), ist **diese Datei** gemeint – nicht `docs/ARBEITSPLAN.md`.
+  Als Nächstes kommt dort das erste offene Paket unter *Jetzt*; Grundsätze und Prüfmaßstab der Datei gelten. Neue
+  Design-Pakete bekommen die nächste freie APD-Nummer und stehen nur dort; Status (☐/◐/☑) dort pflegen. Jede
+  Design-Stufe zeigt dem Hauptnutzer vor PR und Merge Vorher/Nachher-Bilder aus Tests auf einer Vergleichsseite.
 - **Kotlin-Schalter `-Xskip-metadata-version-check`** (seit AP-118, `desktop/build.gradle.kts` im Block `kotlin { … }`):
   nötig, weil JediTerm 3.76 (Terminal des Server-Terminals) mit Kotlin 2.4 gebaut ist, die App aber mit Kotlin 2.0.21
   baut; ohne ihn bricht der Desktop-Build mit „Module was compiled with an incompatible version of Kotlin. The binary
