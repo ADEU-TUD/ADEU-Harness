@@ -3020,22 +3020,29 @@ internal fun DrawScope.drawLoraFace(frame: LoraFrame, timeMs: Long, c: LoraColor
  * the body (a shade above, a light edge below), [face] gives the look of eyes and mouth, [slosh] moves them with her
  * motion.
  */
+/** Lora's face in a dark look of the app: the glass stays white, eyes and mouth dark (as in the light look). */
+private val FaceGlass = Color(0xFFF6F6F9)
+private val FaceInk = Color(0xFF16161D)
+
 private fun DrawScope.drawFace(pose: LoraPose, face: LoraFaceShape, s: Float, cx: Float, visorTop: Float, u: Float, c: LoraColors, slosh: Offset) {
     val tl = Offset(cx - 9 * u, visorTop)
-    val glass = Size(18 * u, 11 * u)
+    val pane = Size(18 * u, 11 * u)
+    // The face is always bright: in a dark look of the app the glass stays white and the eyes dark.
+    val dim = c.visor.brightness() < 0.4f
+    val glass = if (dim) FaceGlass.copy(alpha = c.visor.alpha) else c.visor
+    val ink = if (dim) FaceInk.copy(alpha = c.eye.alpha) else c.eye
     val round = CornerRadius(5.5f * u)
-    drawRoundRect(c.body.shade(-0.38f).fade(0.55f), Offset(tl.x - 0.25f * u, tl.y - 0.5f * u), Size(glass.width + 0.5f * u, glass.height + 0.6f * u), CornerRadius(5.7f * u))
-    drawRoundRect(Color.White.copy(alpha = 0.3f * c.body.alpha), Offset(tl.x - 0.1f * u, tl.y + 0.4f * u), Size(glass.width + 0.2f * u, glass.height), round)
-    drawRoundRect(Brush.verticalGradient(listOf(c.visor, c.visor.tint(c.body, 0.1f)), tl.y + 3 * u, tl.y + glass.height), tl, glass, round)
-    val dark = c.visor.brightness() < 0.4f
-    val visor = Path().apply { addRoundRect(RoundRect(tl.x, tl.y, tl.x + glass.width, tl.y + glass.height, round)) }
+    drawRoundRect(c.body.shade(-0.38f).fade(0.55f), Offset(tl.x - 0.25f * u, tl.y - 0.5f * u), Size(pane.width + 0.5f * u, pane.height + 0.6f * u), CornerRadius(5.7f * u))
+    drawRoundRect(Color.White.copy(alpha = 0.3f * c.body.alpha), Offset(tl.x - 0.1f * u, tl.y + 0.4f * u), Size(pane.width + 0.2f * u, pane.height), round)
+    drawRoundRect(Brush.verticalGradient(listOf(glass, glass.tint(c.body, 0.1f)), tl.y + 3 * u, tl.y + pane.height), tl, pane, round)
+    val visor = Path().apply { addRoundRect(RoundRect(tl.x, tl.y, tl.x + pane.width, tl.y + pane.height, round)) }
     clipPath(visor) {
         // The shade of the body on the upper rim of the glass, and a reflection across it.
-        drawRoundRect(c.eye.fade(if (dark) 0.05f else 0.07f), Offset(tl.x, tl.y - glass.height + 1.3f * u), glass, round)
+        drawRoundRect(ink.fade(0.07f), Offset(tl.x, tl.y - pane.height + 1.3f * u), pane, round)
         val sheen = Path().apply {
-            moveTo(tl.x + 3.2f * u, tl.y); lineTo(tl.x + 6.4f * u, tl.y); lineTo(tl.x + 2.2f * u, tl.y + glass.height); lineTo(tl.x - 1f * u, tl.y + glass.height); close()
+            moveTo(tl.x + 3.2f * u, tl.y); lineTo(tl.x + 6.4f * u, tl.y); lineTo(tl.x + 2.2f * u, tl.y + pane.height); lineTo(tl.x - 1f * u, tl.y + pane.height); close()
         }
-        drawPath(sheen, Color.White.copy(alpha = (if (dark) 0.05f else 0.5f) * c.visor.alpha))
+        drawPath(sheen, Color.White.copy(alpha = 0.5f * glass.alpha))
     }
 
     val open = blink(s)
@@ -3060,17 +3067,15 @@ private fun DrawScope.drawFace(pose: LoraPose, face: LoraFaceShape, s: Float, cx
             cubicTo(ex + w * box, eyeY + (4 * down - corner) / 3, ex - w * box, eyeY + (4 * down - corner) / 3, ex - w, eyeY + corner)
             close()
         }
-        // On a dark glass the eyes glow a little.
-        if (dark) drawPath(shape, c.eye.fade(0.16f), style = Stroke(2f * u, join = StrokeJoin.Round))
-        drawPath(shape, c.eye)
-        drawPath(shape, c.eye, style = Stroke(0.6f * u, join = StrokeJoin.Round))
+        drawPath(shape, ink)
+        drawPath(shape, ink, style = Stroke(0.6f * u, join = StrokeJoin.Round))
         if (shine > 0.05f) {
             val k = shine.coerceAtMost(1.2f)
             val light = Offset(ex - 0.5f * u - pose.lookX * 0.2f * u, eyeY - 0.8f * u * (up / (1.9f * u)).coerceIn(0.3f, 1.3f))
             val star = e(EYE_STAR)
-            if (star > 0.05f) star(light, 1.25f * u * star * (0.85f + 0.15f * wave(s, 2.2f)), c.visor)
-            drawCircle(c.visor, 0.62f * u * k * (1 - 0.6f * star), light)
-            drawCircle(c.visor.fade(0.75f), 0.3f * u * k, Offset(ex + 0.55f * u, eyeY + 0.75f * u * (down / (1.9f * u)).coerceIn(0.2f, 1.2f)))
+            if (star > 0.05f) star(light, 1.25f * u * star * (0.85f + 0.15f * wave(s, 2.2f)), glass)
+            drawCircle(glass, 0.62f * u * k * (1 - 0.6f * star), light)
+            drawCircle(glass.fade(0.75f), 0.3f * u * k, Offset(ex + 0.55f * u, eyeY + 0.75f * u * (down / (1.9f * u)).coerceIn(0.2f, 1.2f)))
         }
         // Cheeks: a soft blush, a little rosier with a broad smile.
         val cheek = Offset(cx + side * 6.1f * u + pose.lookX * 0.8f * u + slosh.x, visorTop + (8.05f + pose.lookY * 0.3f) * u + slosh.y)
@@ -3089,23 +3094,23 @@ private fun DrawScope.drawFace(pose: LoraPose, face: LoraFaceShape, s: Float, cx
         val mt = m[MOUTH_TOP] * u
         val mb = m[MOUTH_BOTTOM] * u
         val mbox = m[MOUTH_BOX]
-        val ink = c.eye.fade(alpha)
+        val lips = ink.fade(alpha)
         val shape = Path().apply {
             moveTo(mx - mw, my + mc)
             cubicTo(mx - mw * mbox, my + (4 * mt - mc) / 3, mx + mw * mbox, my + (4 * mt - mc) / 3, mx + mw, my + mc)
             cubicTo(mx + mw * mbox, my + (4 * mb - mc) / 3, mx - mw * mbox, my + (4 * mb - mc) / 3, mx - mw, my + mc)
             close()
         }
-        drawPath(shape, ink)
+        drawPath(shape, lips)
         val tongue = m[MOUTH_TONGUE]
         if (tongue > 0.05f && mb - mt > 0.5f * u) {
             clipPath(shape) { drawOval(c.blush.fade(alpha * tongue), Offset(mx - mw * 0.62f, my + mb - 0.75f * u), Size(mw * 1.24f, 1.6f * u)) }
         }
-        drawPath(shape, ink, style = Stroke(0.8f * u, cap = StrokeCap.Round, join = StrokeJoin.Round))
+        drawPath(shape, lips, style = Stroke(0.8f * u, cap = StrokeCap.Round, join = StrokeJoin.Round))
         val lick = m[MOUTH_LICK]
         if (lick > 0.05f) {
             val tip = Offset(mx + mw * 0.72f, my + mc + 0.75f * u)
-            drawCircle(ink, 0.95f * u * lick, tip)
+            drawCircle(lips, 0.95f * u * lick, tip)
             drawCircle(c.blush.fade(alpha), 0.62f * u * lick, tip)
         }
     }

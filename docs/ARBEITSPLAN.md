@@ -1152,6 +1152,8 @@ sie gleich groß bleiben. Neu `LoraPreviewTest` (Filme aller Aktionen, nur mit `
    zwischen Stehen und Schritten bei langsamer Bewegung (`walk` in `drawLora`) und der Richtungswechsel. Mit dem
    Hauptnutzer klären, wo genau.
 3. Vorschau danach neu rendern und unter derselben Adresse aktualisieren.
+4. Beim Ausgeben der Symbole prüfen, dass im Benachrichtigungssymbol (`ic_notification`) nichts den Rand berührt (der
+   Lichthof des Sterns reicht höher als der alte Stern).
 **Nach der Freigabe**: Pull Request von diesem Zweig, App-Symbole neu ausgeben und kopieren (README › *Logo ändern*, auch
 `app.icns`), README-Abschnitte *Logo und Startanimation* und *Lora, das Maskottchen* anpassen, Paket abhaken.
 Veröffentlicht wird nur auf ausdrücklichen Wunsch.

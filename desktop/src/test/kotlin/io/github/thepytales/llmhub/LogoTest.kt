@@ -66,10 +66,10 @@ class LogoTest {
         for ((name, f) in densities) {
             val fg = (108 * f).toInt()
             val mipmap = File(out, "android/mipmap-$name").apply { mkdirs() }
-            ImageIO.write(render(fg, tile = false, scale = 0.68f), "png", File(mipmap, "ic_launcher_foreground.png"))
-            ImageIO.write(monochrome(render(fg, tile = false, scale = 0.68f)), "png", File(mipmap, "ic_launcher_monochrome.png"))
+            ImageIO.write(render(fg, tile = false, scale = 0.61f), "png", File(mipmap, "ic_launcher_foreground.png"))
+            ImageIO.write(monochrome(render(fg, tile = false, scale = 0.61f)), "png", File(mipmap, "ic_launcher_monochrome.png"))
             val drawable = File(out, "android/drawable-$name").apply { mkdirs() }
-            ImageIO.write(monochrome(render((24 * f).toInt(), tile = false, scale = 1.25f)), "png", File(drawable, "ic_notification.png"))
+            ImageIO.write(monochrome(render((24 * f).toInt(), tile = false, scale = 1.12f)), "png", File(drawable, "ic_notification.png"))
         }
         val ico = File(out, "app.ico")
         assertTrue(ico.length() > 10_000, "ico mit allen Größen: ${ico.length()} Bytes")
