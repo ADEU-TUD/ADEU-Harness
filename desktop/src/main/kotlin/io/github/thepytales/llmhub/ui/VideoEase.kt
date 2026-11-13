@@ -200,11 +200,13 @@ internal fun GuideCard(p: VideoProject, a: VideoActions, onSplit: () -> Unit, on
                     StepNumber(i + 1, isDone, current = !isDone && s.key == next)
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        tr(s.title) + if (s.optional) " " + tr("(wenn du willst)") else "",
+                        tr(s.title),
                         style = MaterialTheme.typography.bodyMedium, fontWeight = if (isOpen) FontWeight.SemiBold else FontWeight.Normal,
                         color = if (isDone && !isOpen) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
+                        maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false),
                     )
+                    if (s.optional) Text(tr("wenn du willst"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, modifier = Modifier.padding(start = 6.dp))
+                    Spacer(Modifier.weight(0.001f))
                 }
                 if (isOpen) Column(Modifier.padding(start = 34.dp, end = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     HintText(tr(s.text))
