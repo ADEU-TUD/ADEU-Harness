@@ -14,6 +14,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
@@ -32,6 +33,8 @@ import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
+import kotlin.math.exp
+import kotlin.math.floor
 import kotlin.math.min
 import kotlin.math.sin
 import kotlin.math.sqrt
@@ -297,17 +300,18 @@ fun LoraFigure(
     }
 }
 
-/** How Lora's eyes look. */
-internal enum class LoraEyes { OPEN, HAPPY, WIDE, CLOSED, FOCUS }
+/** How Lora's eyes look: [SOFT] half closed and content, [SPARKLE] wide with a sparkle in them, [WINK] one of them shut. */
+internal enum class LoraEyes { OPEN, HAPPY, WIDE, CLOSED, FOCUS, SOFT, SPARKLE, WINK }
 
-/** How Lora's mouth looks. */
-internal enum class LoraMouth { SMILE, GRIN, OPEN, FLAT, NONE }
+/** How Lora's mouth looks: [OOH] a small round one, [TONGUE] a smile with the tip of the tongue out (concentrating). */
+internal enum class LoraMouth { SMILE, GRIN, OPEN, FLAT, NONE, OOH, TONGUE }
 
 /**
  * Lora's posture in units: [dx] sideways, [hop] up, [tilt] in degrees around the feet, eyes [lookX]/[lookY] (-1..1),
  * [legs] swing (-1..1), arm angles in degrees from hanging down (positive = raised to the side, negative = in front),
  * [squash] of the body height, [glow] of the antenna star, [turn] of the head and body in degrees (0 = facing the
- * viewer, positive = towards the viewer's right, 180 = the back).
+ * viewer, positive = towards the viewer's right, 180 = the back), [sway] of the body sideways over feet that stay where
+ * they are (a shift of her weight; [dx] moves her as a whole and makes her take steps).
  */
 internal data class LoraPose(
     val dx: Float = 0f,
@@ -321,6 +325,7 @@ internal data class LoraPose(
     val squash: Float = 1f,
     val glow: Float = 1f,
     val turn: Float = 0f,
+    val sway: Float = 0f,
     val eyes: LoraEyes = LoraEyes.OPEN,
     val mouth: LoraMouth = LoraMouth.SMILE,
     /**
@@ -366,6 +371,7 @@ private fun lerp(a: LoraPose, b: LoraPose, t: Float, tArms: Float = t) = LoraPos
     squash = mix(a.squash, b.squash, t),
     glow = mix(a.glow, b.glow, t),
     turn = mix(a.turn, b.turn, t),
+    sway = mix(a.sway, b.sway, t),
     eyes = if (t < 0.5f) a.eyes else b.eyes,
     mouth = if (t < 0.5f) a.mouth else b.mouth,
     reachL = when { a.reachLW == 0f -> b.reachL; b.reachLW == 0f -> a.reachL; else -> mixO(a.reachL, b.reachL, tArms) },
@@ -475,43 +481,73 @@ private fun planePath(k: Float): Offset {
 /** How far the paper plane has flown at phase [p] (outside 0..1: not in the air). */
 private fun planeK(p: Float) = (p - 0.46f) / 0.5f
 
+/** A talking mouth: open, round and closed in turn. */
+private fun talk(s: Float): LoraMouth = when ((s * 6.5f).toInt() % 4) {
+    0 -> LoraMouth.OPEN
+    1 -> LoraMouth.OOH
+    2 -> LoraMouth.SMILE
+    else -> LoraMouth.OPEN
+}
+
 /** Lora's posture during [a] at phase [p] (0..1) and [s] seconds. */
 internal fun loraPose(a: LoraAction, p: Float, s: Float): LoraPose = when (a) {
     LoraAction.WALK -> {
-        val legs = wave(s, 2.2f)
-        val facing = cos(2 * PI * p).toFloat()
+        // Strolls to one side, across to the other and home. Her feet take the steps (drawLora), arms and a small
+        // waddle go with them; passing the middle on the way back she smiles at the viewer.
+        val x = wave(p, 1f) * 20
+        val heading = cos(2 * PI * p).toFloat()
+        val step = (2 * PI * x / STRIDE).toFloat()
+        val hello = bump(p, 0.42f, 0.48f, 0.56f, 0.62f)
         LoraPose(
-            dx = wave(p, 1f) * 20, hop = abs(legs) * 1.4f, lookX = facing, legs = legs, turn = 30 * facing,
-            armL = 12 + 22 * legs, armR = 12 - 22 * legs,
+            dx = x, lookX = heading * (1 - hello), lookY = -0.15f * hello, turn = 36 * heading * (1 - 0.7f * hello),
+            tilt = -1.8f * sin(step - 0.3f) * abs(heading), armL = 12 + 22 * cos(step), armR = 12 - 22 * cos(step),
+            eyes = if (hello > 0.5f) LoraEyes.HAPPY else LoraEyes.OPEN, mouth = if (hello > 0.5f) LoraMouth.GRIN else LoraMouth.SMILE,
         )
     }
     LoraAction.READ -> {
-        // Reads line by line (from Lora's left to right, so from the viewer's right to left), peeks over the book once.
+        // Reads line by line (from Lora's left to right, so from the viewer's right to left), comes across something
+        // remarkable, and peeks over the book once with a wink.
         val peek = bump(p, 0.5f, 0.58f, 0.7f, 0.78f)
+        val gasp = bump(p, 0.22f, 0.26f, 0.34f, 0.4f)
         LoraPose(
-            tilt = 2 * wave(s, 0.25f) * (1 - peek), hop = arc(p, 0.56f, 0.64f) * 1.2f,
-            lookX = mix(0.5f - ((s * 0.7f) % 1f), 0f, peek), lookY = mix(0.8f, -0.2f, peek),
+            tilt = 2 * wave(s, 0.25f) * (1 - peek) - 3 * gasp, hop = arc(p, 0.56f, 0.64f) * 1.2f + arc(p, 0.22f, 0.3f) * 0.7f,
+            sway = 0.5f * wave(s, 0.2f) * (1 - peek),
+            lookX = mix(0.5f - ((s * 0.7f) % 1f), 0f, peek) * (1 - 0.6f * gasp), lookY = mix(0.8f, -0.2f, peek),
+            legs = 0.3f * maxOf(0f, wave(s, 0.9f)) * bump(p, 0.82f, 0.86f, 0.96f, 1f),
             armL = -20 + 2 * wave(s, 0.25f), armR = -20 - 2 * wave(s, 0.25f),
-            eyes = if (peek > 0.5f) LoraEyes.HAPPY else LoraEyes.OPEN, mouth = if (peek > 0.5f) LoraMouth.GRIN else LoraMouth.SMILE,
+            eyes = when { peek > 0.5f -> LoraEyes.WINK; gasp > 0.5f -> LoraEyes.SPARKLE; else -> LoraEyes.OPEN },
+            mouth = when { peek > 0.5f -> LoraMouth.GRIN; gasp > 0.5f -> LoraMouth.OOH; else -> LoraMouth.SMILE },
         )
     }
-    LoraAction.TYPE -> LoraPose(
-        lookX = 0.15f * wave(s, 0.5f), lookY = 0.8f, armL = -40 + 9 * wave(s, 4f), armR = -40 - 9 * wave(s, 4f),
-        mouth = LoraMouth.FLAT,
-    )
-    LoraAction.SCISSORS -> {
-        // Holds a sheet low in front and cuts it across, snip by snip, along the line; the lower half drops and she
-        // holds up the scissors (AP-36).
-        val grab = ramp(p, 0f, 0.08f)
-        val tip = mix(9.4f, -1.4f, scissorsCut(p))
-        val done = ramp(p, 0.68f, 0.76f)
+    LoraAction.TYPE -> {
+        // Types in bursts with the tip of her tongue out, stops to think, and ends with a firm last key.
+        val burst = 1 - bump(p, 0.4f, 0.44f, 0.54f, 0.58f)
+        val last = bump(p, 0.84f, 0.88f, 0.9f, 0.93f)
+        val done = ramp(p, 0.9f, 0.94f)
+        val keys = wave(s, 4f) * burst * (1 - done)
         LoraPose(
-            tilt = 2 * wave(s, 0.4f) * (1 - done), hop = done * abs(wave(s, 1.4f)) * 0.9f,
+            lookX = 0.25f * wave(s, 0.5f) * burst + 0.5f * (1 - burst), lookY = mix(-0.7f, 0.8f, burst) * (1 - done) - 0.1f * done,
+            tilt = 1.2f * wave(s, 0.5f) * burst - 3 * (1 - burst), squash = 1 - 0.012f * abs(keys) - 0.03f * arc(p, 0.89f, 0.93f),
+            armL = -40 + 9 * keys, armR = -40 - 9 * keys - 34 * last, hop = done * arc(p, 0.93f, 1f),
+            eyes = if (done > 0.5f) LoraEyes.HAPPY else LoraEyes.OPEN,
+            mouth = when { done > 0.5f -> LoraMouth.GRIN; burst < 0.5f -> LoraMouth.OOH; else -> LoraMouth.TONGUE },
+        )
+    }
+    LoraAction.SCISSORS -> {
+        // Holds a sheet low in front and cuts it across, snip by snip, along the line – the tip of her tongue out; the
+        // lower half drops and she holds up the scissors (AP-36).
+        val grab = ramp(p, 0f, 0.08f)
+        val cut = scissorsCut(p)
+        val tip = mix(9.4f, -1.4f, cut)
+        val done = ramp(p, 0.68f, 0.76f)
+        val snip = if (cut > 0f && cut < 1f) 0.5f - 0.5f * cos(2 * PI * cut * 6).toFloat() else 0f
+        LoraPose(
+            tilt = 2 * wave(s, 0.4f) * (1 - done), hop = done * abs(wave(s, 1.4f)) * 0.9f, squash = 1 - 0.015f * snip,
             lookX = mix(0.3f, (tip / 9f).coerceIn(-0.5f, 0.9f), grab) * (1 - done), lookY = 0.9f * grab * (1 - done) - 0.2f * done,
             reachL = Offset(-3f, -2.6f), reachLW = grab,
             reachR = Offset(tip + 5.1f, -2.6f), reachRW = grab * (1 - done), armR = mix(14f, 150f, done),
             eyes = when { done > 0.5f -> LoraEyes.HAPPY; grab > 0.5f -> LoraEyes.FOCUS; else -> LoraEyes.OPEN },
-            mouth = if (done > 0.5f) LoraMouth.GRIN else LoraMouth.FLAT,
+            mouth = when { done > 0.5f -> LoraMouth.GRIN; grab > 0.5f -> LoraMouth.TONGUE; else -> LoraMouth.SMILE },
         )
     }
     LoraAction.STAPLER -> {
@@ -526,7 +562,7 @@ internal fun loraPose(a: LoraAction, p: Float, s: Float): LoraPose = when (a) {
             else -> mixO(Offset(15f, -6.2f), Offset(15f, -13f), show)
         }
         LoraPose(
-            turn = 24 * at * (1 - show), squash = 1 - 0.05f * press, hop = show * arc(p, 0.74f, 0.88f) * 1.2f, tilt = 3 * press,
+            turn = 24 * at * (1 - show), squash = 1 - 0.05f * press, hop = show * arc(p, 0.74f, 0.88f) * 1.2f, tilt = 3 * press + 2 * at * (1 - show),
             lookX = mix(0.8f * at, 0.3f, show), lookY = mix(0.7f, -0.1f, show),
             armL = -24f + 6 * wave(s, 0.4f), reachR = hand, reachRW = at,
             eyes = when { press > 0.5f -> LoraEyes.FOCUS; show > 0.5f -> LoraEyes.HAPPY; else -> LoraEyes.OPEN },
@@ -546,24 +582,27 @@ internal fun loraPose(a: LoraAction, p: Float, s: Float): LoraPose = when (a) {
             else -> mixO(Offset(17.4f, -6.2f), Offset(15f, -13f), show)
         }
         LoraPose(
-            turn = 24 * at * (1 - show), tilt = -3 * lift + 2 * hit, squash = 1 - 0.03f * hit,
+            turn = 24 * at * (1 - show), tilt = -3 * lift + 3 * hit + 2 * at * (1 - show), squash = 1 - 0.05f * hit + 0.03f * lift,
             lookX = mix(0.8f * at, 0.3f, show), lookY = mix(0.6f - 1.2f * lift, -0.1f, show),
             hop = show * arc(p, 0.74f, 0.88f) * 1.2f,
             armL = -24f + 6 * wave(s, 0.4f), reachR = hand, reachRW = at,
             eyes = when { hit > 0.5f -> LoraEyes.WIDE; show > 0.5f -> LoraEyes.HAPPY; lift > 0.3f -> LoraEyes.FOCUS; else -> LoraEyes.OPEN },
-            mouth = if (hit > 0.5f || show > 0.5f) LoraMouth.GRIN else LoraMouth.SMILE,
+            mouth = when { hit > 0.5f || show > 0.5f -> LoraMouth.GRIN; lift > 0.3f -> LoraMouth.FLAT; else -> LoraMouth.SMILE },
         )
     }
     LoraAction.MAIL -> {
         // Folds a letter, slides it into an envelope, seals it with a heart and holds it up.
         val fold = ramp(p, 0.08f, 0.3f)
         val seal = ramp(p, 0.54f, 0.6f)
+        val lick = bump(p, 0.48f, 0.52f, 0.56f, 0.6f)
         val up = ramp(p, 0.66f, 0.74f)
         LoraPose(
             lookY = 0.8f * (1 - up) - 0.3f * up, lookX = 0.15f * wave(s, 0.5f) * (1 - up), hop = up * arc(p, 0.74f, 0.9f) * 1.6f,
+            tilt = 2 * wave(s, 0.35f) * (1 - up) + 3 * up, squash = 1 - 0.05f * arc(p, 0.68f, 0.76f),
             reachL = Offset(-4.4f + 0.8f * fold, -3f), reachLW = 1 - up, reachR = Offset(4.4f - 0.8f * fold, -3f), reachRW = 1 - up,
             armL = 14f + 16 * up, armR = mix(14f, 155f, up),
-            eyes = if (up > 0.5f) LoraEyes.HAPPY else LoraEyes.OPEN, mouth = if (seal > 0.5f) LoraMouth.GRIN else LoraMouth.SMILE,
+            eyes = when { up > 0.5f -> LoraEyes.HAPPY; seal > 0.5f -> LoraEyes.SOFT; else -> LoraEyes.OPEN },
+            mouth = when { lick > 0.5f -> LoraMouth.TONGUE; seal > 0.5f -> LoraMouth.GRIN; else -> LoraMouth.SMILE },
         )
     }
     LoraAction.CALENDAR -> {
@@ -579,46 +618,51 @@ internal fun loraPose(a: LoraAction, p: Float, s: Float): LoraPose = when (a) {
         }
         LoraPose(
             turn = -26 * to * (1 - 0.6f * done), lookX = -0.9f * to * (1 - done), lookY = mix(-0.5f, 0.1f, ramp(p, 0.36f, 0.42f)) * (1 - done),
+            tilt = -2 * to * (1 - done), squash = 1 - 0.05f * arc(p, 0.74f, 0.82f),
             hop = done * arc(p, 0.8f, 0.92f) * 1.4f, reachL = hand, reachLW = to * (1 - done), armL = mix(14f, 140f, done),
             armR = 14f + 4 * wave(s, 0.5f),
             eyes = when { done > 0.5f -> LoraEyes.HAPPY; circle > 0f -> LoraEyes.FOCUS; else -> LoraEyes.OPEN },
-            mouth = if (done > 0.5f) LoraMouth.GRIN else LoraMouth.SMILE,
+            mouth = when { done > 0.5f -> LoraMouth.GRIN; circle > 0f -> LoraMouth.TONGUE; else -> LoraMouth.SMILE },
         )
     }
     LoraAction.PAINT -> {
-        // At the easel: a hill, the sun, the water; then a step back to admire it.
+        // At the easel: a hill, the sun, the water – the tip of her tongue out; then a step back to admire it.
         val to = ramp(p, 0f, 0.08f) * (1 - ramp(p, 0.9f, 1f))
         val admire = ramp(p, 0.76f, 0.84f)
         val tip = paintTip(p)
         LoraPose(
             turn = 22 * to * (1 - 0.7f * admire), dx = -2.5f * admire, lookX = 0.9f * to, lookY = -0.4f + 0.2f * admire,
+            tilt = -5 * admire * (1 - ramp(p, 0.92f, 1f)),
             hop = admire * arc(p, 0.84f, 0.96f) * 1.2f, reachR = Offset(tip.x - 3.2f, tip.y + 1.8f), reachRW = to * (1 - admire),
             armR = mix(14f, 60f, admire), armL = 38f + 4 * wave(s, 0.4f),
-            eyes = if (admire > 0.5f) LoraEyes.HAPPY else LoraEyes.FOCUS, mouth = if (admire > 0.5f) LoraMouth.GRIN else LoraMouth.SMILE,
+            eyes = when { admire > 0.5f && p < 0.9f -> LoraEyes.SPARKLE; admire > 0.5f -> LoraEyes.HAPPY; else -> LoraEyes.FOCUS },
+            mouth = when { admire > 0.5f -> LoraMouth.GRIN; to > 0.5f -> LoraMouth.TONGUE; else -> LoraMouth.SMILE },
         )
     }
     LoraAction.LOCK -> {
-        // Holds a padlock, turns the key, the shackle clicks shut and the lock glows.
+        // Holds a padlock, turns the key, the shackle clicks shut – a start – and the lock glows.
         val insert = ramp(p, 0.12f, 0.42f)
+        val click = bump(p, 0.6f, 0.62f, 0.68f, 0.72f)
         val done = ramp(p, 0.7f, 0.78f)
         val key = mixO(Offset(8.2f, -2.8f), Offset(1.6f, -2.6f), insert)
         LoraPose(
-            lookX = 0.3f * (1 - insert) * (1 - done), lookY = 0.9f * (1 - done) - 0.2f * done, hop = done * arc(p, 0.78f, 0.92f) * 1.2f,
+            lookX = 0.3f * (1 - insert) * (1 - done), lookY = 0.9f * (1 - done) - 0.2f * done, hop = done * arc(p, 0.78f, 0.92f) * 1.2f + 0.8f * arc(p, 0.6f, 0.68f),
             reachL = Offset(-3.6f, -2.2f), reachLW = 1f - 0.4f * done, reachR = Offset(key.x + 2.4f, key.y), reachRW = 1 - done,
             armR = mix(14f, 140f, done), tilt = 2 * wave(s, 0.4f) * done,
-            eyes = when { done > 0.5f -> LoraEyes.HAPPY; insert > 0f -> LoraEyes.FOCUS; else -> LoraEyes.OPEN },
-            mouth = if (done > 0.5f) LoraMouth.GRIN else LoraMouth.FLAT,
+            eyes = when { done > 0.5f -> LoraEyes.HAPPY; click > 0.5f -> LoraEyes.WIDE; insert > 0f -> LoraEyes.FOCUS; else -> LoraEyes.OPEN },
+            mouth = when { done > 0.5f -> LoraMouth.GRIN; click > 0.5f -> LoraMouth.OOH; insert > 0f -> LoraMouth.TONGUE; else -> LoraMouth.FLAT },
         )
     }
     LoraAction.SLIDES -> {
-        // Presents: points at the bars of a chart, the slide changes, then at the points of a list.
+        // Presents: points at the bars of a chart, the slide changes, then at the points of a list – talking all the while.
         val to = ramp(p, 0f, 0.08f) * (1 - ramp(p, 0.92f, 1f))
-        val tip = slideTip(p)
+        val audience = 0.5f + 0.5f * wave(p, 2f)
         LoraPose(
-            turn = -20 * to, lookX = mix(-0.9f, 0.4f, 0.5f + 0.5f * wave(p, 2f)) * to, lookY = -0.4f, tilt = -2 * to,
+            turn = -20 * to, lookX = mix(-0.9f, 0.4f, audience) * to, lookY = -0.4f, tilt = -2 * to + 1.5f * wave(s, 0.6f) * to,
             reachL = Offset(-15.2f, -9.6f), reachLW = to, armL = 14f, armR = 20f + 30 * bump(p, 0.44f, 0.5f, 0.56f, 0.62f) + 6 * wave(s, 0.6f),
-            mouth = if (wave(s, 2.2f) > 0.3f && to > 0.5f) LoraMouth.OPEN else LoraMouth.SMILE, eyes = LoraEyes.OPEN,
-            hop = 0.4f * arc(p, 0.46f, 0.54f) + 0f * tip.x,
+            mouth = if (to > 0.5f && p !in 0.44f..0.56f) talk(s) else LoraMouth.SMILE,
+            eyes = if (audience > 0.85f && to > 0.5f) LoraEyes.HAPPY else LoraEyes.OPEN,
+            hop = 0.6f * arc(p, 0.46f, 0.54f),
         )
     }
     LoraAction.SHEET -> {
@@ -629,20 +673,23 @@ internal fun loraPose(a: LoraAction, p: Float, s: Float): LoraPose = when (a) {
         val done = ramp(p, 0.76f, 0.84f)
         LoraPose(
             turn = 22 * to * (1 - done), lookX = 0.8f * to * (1 - done), lookY = -0.2f, hop = done * arc(p, 0.84f, 0.96f) * 1.2f,
+            squash = 1 - 0.05f * arc(p, 0.78f, 0.86f),
             reachR = Offset(cell.x - 0.6f, cell.y + 0.8f + 0.5f * abs(wave(s, 2.4f))), reachRW = to * (1 - done), armR = mix(14f, 150f, done),
             armL = 14f + 4 * wave(s, 0.5f),
-            eyes = if (done > 0.5f) LoraEyes.HAPPY else LoraEyes.FOCUS, mouth = if (done > 0.5f) LoraMouth.GRIN else LoraMouth.SMILE,
+            eyes = if (done > 0.5f) LoraEyes.HAPPY else LoraEyes.FOCUS,
+            mouth = when { done > 0.5f -> LoraMouth.GRIN; to > 0.5f -> LoraMouth.TONGUE; else -> LoraMouth.SMILE },
         )
     }
     LoraAction.TRANSLATE -> {
         // Says something to one side, then the same to the other – the speech bubbles answer each other.
         val right = ramp(p, 0.46f, 0.56f)
-        val talk = wave(s, 2.6f) > 0.2f
+        val speaking = p in 0.08f..0.42f || p in 0.58f..0.9f
         LoraPose(
-            lookX = mix(-0.9f, 0.9f, right), lookY = -0.5f, turn = mix(-16f, 16f, right), tilt = mix(-3f, 3f, right),
+            lookX = mix(-0.9f, 0.9f, right), lookY = -0.5f, turn = mix(-16f, 16f, right), tilt = mix(-3f, 3f, right), sway = mix(-1f, 1f, right),
+            hop = 0.9f * (arc(p, 0.06f, 0.14f) + arc(p, 0.56f, 0.64f)) + (if (speaking) 0.25f * abs(wave(s, 1.6f)) else 0f),
             armL = 14f + 70 * bump(p, 0.06f, 0.14f, 0.38f, 0.46f), armR = 14f + 70 * bump(p, 0.56f, 0.64f, 0.86f, 0.94f),
-            mouth = if (talk && (p in 0.08f..0.42f || p in 0.58f..0.9f)) LoraMouth.OPEN else LoraMouth.SMILE,
-            eyes = if (p in 0.42f..0.58f) LoraEyes.HAPPY else LoraEyes.OPEN,
+            mouth = if (speaking) talk(s) else LoraMouth.SMILE,
+            eyes = if (p in 0.42f..0.58f || p > 0.9f) LoraEyes.HAPPY else LoraEyes.OPEN,
         )
     }
     LoraAction.HIGHLIGHT -> {
@@ -652,134 +699,184 @@ internal fun loraPose(a: LoraAction, p: Float, s: Float): LoraPose = when (a) {
         val done = ramp(p, 0.7f, 0.78f)
         LoraPose(
             lookX = (tip.x / 8f).coerceIn(-0.6f, 0.8f) * (1 - done), lookY = 0.9f * grab * (1 - done) - 0.2f * done, hop = done * arc(p, 0.78f, 0.92f) * 1.2f,
+            squash = 1 - 0.05f * arc(p, 0.72f, 0.8f),
             reachL = Offset(-4.4f, -2.6f), reachLW = grab, reachR = Offset(tip.x + 2.3f, tip.y + 1.1f), reachRW = grab * (1 - done),
             armR = mix(14f, 140f, done), tilt = 2 * wave(s, 0.4f) * done,
             eyes = when { done > 0.5f -> LoraEyes.HAPPY; grab > 0.5f -> LoraEyes.FOCUS; else -> LoraEyes.OPEN },
-            mouth = if (done > 0.5f) LoraMouth.GRIN else LoraMouth.SMILE,
+            mouth = when { done > 0.5f -> LoraMouth.GRIN; grab > 0.5f -> LoraMouth.TONGUE; else -> LoraMouth.SMILE },
         )
     }
     LoraAction.FOLDER -> {
-        // A sheet drops into the folder, the cover closes, Lora hugs the folder.
+        // A sheet drops into the folder, the cover closes, Lora hugs the folder and rocks it.
         val hug = ramp(p, 0.64f, 0.72f) * (1 - ramp(p, 0.9f, 0.98f))
         LoraPose(
-            lookY = mix(-0.3f + 1.1f * ramp(p, 0.1f, 0.3f), -0.1f, hug), hop = hug * abs(wave(s, 1.2f)) * 0.8f, tilt = 3 * hug * wave(s, 0.6f),
+            lookY = mix(-0.3f + 1.1f * ramp(p, 0.1f, 0.3f), -0.1f, hug), hop = hug * abs(wave(s, 1.2f)) * 0.8f, tilt = 4 * hug * wave(s, 0.6f),
+            sway = 1.1f * hug * wave(s, 0.6f),
             reachL = mixO(Offset(-5.8f, -1.6f), Offset(-4.4f, -6.8f), hug), reachLW = 1f, reachR = mixO(Offset(5.8f, -1.6f), Offset(4.4f, -6.8f), hug), reachRW = 1f,
-            eyes = if (hug > 0.5f) LoraEyes.HAPPY else LoraEyes.OPEN, mouth = if (hug > 0.5f) LoraMouth.GRIN else LoraMouth.SMILE,
+            eyes = when { hug > 0.5f -> LoraEyes.HAPPY; p in 0.44f..0.6f -> LoraEyes.SOFT; else -> LoraEyes.OPEN },
+            mouth = if (hug > 0.5f) LoraMouth.GRIN else LoraMouth.SMILE,
         )
     }
     LoraAction.FLY -> LoraPose(
         // Flying from her panel to a place of the app (ui/LoraFlight): arms ahead, the antenna bright.
-        hop = 1.6f + 0.7f * wave(s, 1.1f), squash = 1.03f, legs = 0.35f * wave(s, 1.1f), armL = 160f + 6 * wave(s, 1.1f), armR = 150f - 6 * wave(s, 1.1f),
-        lookY = -0.2f, glow = 1.35f, eyes = LoraEyes.HAPPY, mouth = LoraMouth.GRIN,
+        hop = 1.6f + 0.7f * wave(s, 1.1f), squash = 1.04f, legs = 0.35f * wave(s, 1.1f), armL = 160f + 6 * wave(s, 1.1f), armR = 150f - 6 * wave(s, 1.1f),
+        tilt = 1.5f * wave(s, 0.7f), lookY = -0.2f, glow = 1.35f, eyes = LoraEyes.HAPPY, mouth = LoraMouth.GRIN,
     )
-    LoraAction.IDLE -> LoraPose(
-        // Just there: breathes, sways a little, looks around now and then.
-        tilt = 1.5f * wave(s, 0.2f), lookX = 0.35f * wave(s, 0.11f), lookY = -0.1f + 0.15f * wave(s, 0.07f),
-        armL = 10 + 2 * wave(s, 0.3f), armR = 10 - 2 * wave(s, 0.3f), hop = 0.5f * arc(p, 0.5f, 0.56f),
-    )
+    LoraAction.IDLE -> {
+        // Just there: breathes, shifts her weight from one foot to the other, looks around and once up at her own star.
+        val shift = wave(p, 1f)
+        val star = bump(p, 0.62f, 0.68f, 0.8f, 0.86f)
+        val rock = arc(p, 0.3f, 0.42f)
+        LoraPose(
+            sway = 0.9f * shift, tilt = 1.6f * shift + 1.2f * wave(s, 0.2f), lookX = mix(0.45f * wave(s, 0.11f), 0.12f, star),
+            lookY = mix(-0.1f + 0.15f * wave(s, 0.07f), -0.95f, star), glow = 1 + 0.3f * star,
+            armL = 10 + 3 * wave(s, 0.3f) + 6 * rock, armR = 10 - 3 * wave(s, 0.3f) + 6 * rock, hop = 0.6f * rock,
+            eyes = if (star > 0.6f) LoraEyes.HAPPY else LoraEyes.OPEN,
+        )
+    }
     LoraAction.NOD -> {
+        // Two nods with the whole body, smiling.
         val nod = arc(p, 0.08f, 0.28f) + arc(p, 0.34f, 0.54f)
         LoraPose(
-            lookY = 0.7f * nod - 0.1f, tilt = 2 * nod, squash = 1 - 0.02f * nod, armL = 12f, armR = 12f,
-            eyes = if (nod > 0.3f) LoraEyes.HAPPY else LoraEyes.OPEN, mouth = LoraMouth.SMILE,
+            lookY = 0.75f * nod - 0.1f, tilt = 1.5f * nod, squash = 1 - 0.05f * nod, armL = 12f + 4 * nod, armR = 12f + 4 * nod,
+            eyes = if (nod > 0.3f) LoraEyes.HAPPY else LoraEyes.OPEN, mouth = if (p in 0.06f..0.62f) LoraMouth.GRIN else LoraMouth.SMILE,
         )
     }
     LoraAction.CHEER -> {
-        // Jumps with both arms up; confetti falls.
-        val jump = arc(p, 0.08f, 0.42f) + 0.6f * arc(p, 0.5f, 0.74f)
-        val up = ramp(p, 0.02f, 0.1f) * (1 - ramp(p, 0.84f, 0.96f))
+        // Crouches and jumps with both arms up – twice, the second jump smaller –, kicking her legs; confetti falls.
+        val jump = arc(p, 0.1f, 0.42f) + 0.6f * arc(p, 0.5f, 0.74f)
+        val dip = arc(p, 0f, 0.12f) + 0.6f * arc(p, 0.42f, 0.52f)
+        val up = ramp(p, 0.04f, 0.14f) * (1 - ramp(p, 0.84f, 0.96f))
         LoraPose(
-            hop = 5 * jump, squash = 1 - 0.08f * arc(p, 0f, 0.1f) + 0.04f * jump, lookY = -0.4f, glow = 1.4f,
+            hop = 5 * jump, squash = 1 - 0.1f * dip + 0.04f * jump, lookY = -0.4f * up, glow = 1 + 0.4f * up,
+            legs = 0.45f * wave(s, 2.2f) * minOf(1f, jump * 2),
             armL = mix(14f, 158f + 10 * wave(s, 2f), up), armR = mix(14f, 158f - 10 * wave(s, 2f), up),
             eyes = LoraEyes.HAPPY, mouth = LoraMouth.GRIN,
         )
     }
     LoraAction.SHRUG -> {
-        // Nothing found: shoulders up, palms out, the head tilted – a question mark above.
+        // Nothing found: shoulders up – and once more –, palms out, the head tilted; a question mark above.
         val up = bump(p, 0.08f, 0.2f, 0.7f, 0.82f)
+        val again = arc(p, 0.36f, 0.5f)
         LoraPose(
-            tilt = -6 * up, armL = mix(12f, 64f, up), armR = mix(12f, 64f, up), squash = 1 + 0.03f * up, lookX = -0.3f * up, lookY = -0.3f * up,
+            tilt = -6 * up, sway = 0.8f * up, armL = mix(12f, 64f + 8 * again, up), armR = mix(12f, 64f + 8 * again, up),
+            squash = 1 + 0.03f * up + 0.02f * again, lookX = -0.3f * up, lookY = -0.3f * up,
             mouth = if (up > 0.5f) LoraMouth.FLAT else LoraMouth.SMILE,
         )
     }
     LoraAction.SCRATCH -> {
-        // Something went wrong: scratches her head, a drop of sweat.
+        // Something went wrong: scratches her head and shuffles a foot, a drop of sweat.
         val up = bump(p, 0.06f, 0.16f, 0.74f, 0.86f)
         LoraPose(
-            tilt = 4 * up, reachR = Offset(10.5f, -20f + 0.7f * wave(s, 3f)), reachRW = up, lookX = -0.3f * up, lookY = -0.5f * up,
-            eyes = if (up > 0.5f) LoraEyes.FOCUS else LoraEyes.OPEN, mouth = if (up > 0.5f) LoraMouth.FLAT else LoraMouth.SMILE,
+            tilt = 4 * up, sway = -0.7f * up, reachR = Offset(10.5f, -20f + 0.7f * wave(s, 3f)), reachRW = up, lookX = -0.3f * up, lookY = -0.5f * up,
+            legs = 0.28f * maxOf(0f, wave(s, 1.4f)) * up, armL = 12f + 8 * up,
+            eyes = if (up > 0.5f) LoraEyes.FOCUS else LoraEyes.OPEN,
+            mouth = when { up > 0.5f -> LoraMouth.FLAT; p > 0.86f -> LoraMouth.OOH; else -> LoraMouth.SMILE },
         )
     }
     LoraAction.POINT -> {
-        // Points the way – to where she leads.
-        val out = ramp(p, 0.04f, 0.16f) * (1 - ramp(p, 0.84f, 0.96f))
+        // Points the way – to where she leads –, with a small hop and a nudge of the arm: there!
+        val out = ramp(p, 0.06f, 0.18f) * (1 - ramp(p, 0.84f, 0.96f))
         LoraPose(
-            armR = mix(12f, 92f + 3 * wave(s, 1.2f), out), tilt = 3 * out, turn = 18 * out, lookX = 0.9f * out, lookY = -0.1f,
-            hop = arc(p, 0.04f, 0.2f) * 1.2f, eyes = LoraEyes.HAPPY, mouth = LoraMouth.SMILE,
+            armR = mix(12f, 92f + 3 * wave(s, 1.2f) + 7 * arc(p, 0.42f, 0.54f), out), armL = 12f + 10 * out, tilt = 3 * out, sway = 1.2f * out,
+            turn = 18 * out, lookX = 0.9f * out, lookY = -0.1f,
+            hop = arc(p, 0.06f, 0.22f) * 1.4f, squash = 1 - 0.06f * arc(p, 0f, 0.08f),
+            eyes = LoraEyes.HAPPY, mouth = if (out > 0.5f) LoraMouth.GRIN else LoraMouth.SMILE,
         )
     }
-    LoraAction.JUGGLE -> LoraPose(
-        hop = abs(wave(s, 1.6f)) * 0.6f, lookX = 0.5f * wave(s, 0.35f), lookY = -0.7f,
-        armL = 60 + 25 * wave(s, 1.6f), armR = 60 - 25 * wave(s, 1.6f), mouth = LoraMouth.GRIN,
-    )
-    LoraAction.SEARCH -> {
-        val found = ramp(p, 0.78f, 0.86f)
+    LoraAction.JUGGLE -> {
+        // Three balls in the air, her weight going from foot to foot – and one that nearly got away.
+        val beat = wave(s, 1.6f)
+        val oops = bump(p, 0.56f, 0.6f, 0.66f, 0.72f)
         LoraPose(
-            dx = wave(p, 1f) * 6, hop = found * abs(wave(s, 2f)) * 1.5f, tilt = 3 * wave(s, 0.4f), lookX = wave(s, 0.4f),
-            turn = 18 * wave(s, 0.4f) * (1 - found), armL = 14f, armR = 95 + 15 * wave(s, 0.8f),
-            eyes = if (found > 0.5f) LoraEyes.WIDE else LoraEyes.OPEN, mouth = if (found > 0.5f) LoraMouth.OPEN else LoraMouth.SMILE,
+            hop = abs(beat) * 0.6f, sway = 1.1f * wave(s, 0.8f), lookX = 0.6f * wave(s, 0.8f), lookY = -0.7f + 0.3f * oops,
+            tilt = 1.5f * wave(s, 0.8f) + 4 * oops,
+            armL = 60 + 25 * beat, armR = 60 - 25 * beat,
+            eyes = if (oops > 0.5f) LoraEyes.WIDE else LoraEyes.OPEN, mouth = if (oops > 0.5f) LoraMouth.OOH else LoraMouth.GRIN,
+        )
+    }
+    LoraAction.SEARCH -> {
+        // Goes looking with the magnifying glass, bends down for a closer look – and finds it.
+        val found = ramp(p, 0.78f, 0.86f)
+        val peer = bump(p, 0.3f, 0.36f, 0.5f, 0.56f)
+        LoraPose(
+            dx = wave(p, 1f) * 6, hop = found * abs(wave(s, 2f)) * 1.5f, tilt = 3 * wave(s, 0.4f) * (1 - found) + 5 * peer,
+            lookX = mix(wave(s, 0.4f), 0.6f, found), lookY = 0.5f * peer - 0.2f * found, squash = 1 - 0.05f * peer,
+            turn = 18 * wave(s, 0.4f) * (1 - found), armL = 14f + 40 * found, armR = 95 + 15 * wave(s, 0.8f) * (1 - found),
+            eyes = when { found > 0.5f -> LoraEyes.SPARKLE; peer > 0.5f -> LoraEyes.FOCUS; else -> LoraEyes.OPEN },
+            mouth = when { p > 0.9f -> LoraMouth.GRIN; found > 0.5f -> LoraMouth.OPEN; peer > 0.5f -> LoraMouth.OOH; else -> LoraMouth.SMILE },
         )
     }
     LoraAction.DANCE -> {
+        // Hops from side to side with swinging arms and hips; in the second half one arm up and one down in turn.
         val beat = wave(s, 1.2f)
+        val second = ramp(p, 0.46f, 0.54f)
+        val turns = wave(s, 0.6f)
         LoraPose(
-            hop = abs(beat) * 3, tilt = 9 * beat, legs = 0.6f * beat, armL = 120 + 35 * beat, armR = 120 - 35 * beat,
+            hop = abs(beat) * 3, tilt = 9 * beat * (1 - 0.5f * second), sway = 1.6f * beat, legs = 0.6f * beat,
+            armL = mix(120 + 35 * beat, 100 + 62 * turns, second), armR = mix(120 - 35 * beat, 100 - 62 * turns, second),
             squash = 0.94f + 0.06f * abs(beat), turn = 15 * beat, eyes = LoraEyes.HAPPY, mouth = LoraMouth.GRIN,
         )
     }
-    LoraAction.THINK -> LoraPose(
-        tilt = -4f, lookX = 0.5f, lookY = -0.7f, legs = 0.25f * maxOf(0f, wave(s, 1.5f)) * ramp(p, 0.4f, 0.5f),
-        armL = 14f, armR = -92 + 4 * wave(s, 0.7f), turn = 10f, mouth = LoraMouth.FLAT,
-    )
+    LoraAction.THINK -> {
+        // Hand at the chin, eyes up; the head goes over to the other side, a foot taps – and something dawns.
+        val other = ramp(p, 0.46f, 0.56f)
+        val tap = ramp(p, 0.4f, 0.5f)
+        val dawn = ramp(p, 0.88f, 0.94f)
+        LoraPose(
+            tilt = mix(-4f, 3f, other), sway = mix(-0.5f, 0.5f, other), lookX = mix(0.55f, -0.45f, other), lookY = -0.7f + 0.12f * wave(s, 0.3f),
+            legs = 0.25f * maxOf(0f, wave(s, 1.5f)) * tap * (1 - dawn),
+            armL = 14f, armR = -92 + 4 * wave(s, 0.7f) + 5 * maxOf(0f, wave(s, 2f)) * tap * (1 - dawn), turn = mix(10f, -8f, other),
+            eyes = if (dawn > 0.5f) LoraEyes.WIDE else LoraEyes.OPEN, mouth = if (dawn > 0.5f) LoraMouth.OOH else LoraMouth.FLAT,
+        )
+    }
     LoraAction.MICROSCOPE -> {
+        // Leans over to the microscope, one eye at the lens, turns the wheel – and is amazed.
         val lean = ramp(p, 0.04f, 0.16f) * (1 - ramp(p, 0.66f, 0.74f))
         val amazed = ramp(p, 0.70f, 0.78f)
         LoraPose(
-            dx = 3 * lean, hop = amazed * abs(wave(s, 1.6f)) * 2.2f, tilt = 16 * lean - 4 * amazed * (1 - ramp(p, 0.9f, 1f)),
+            sway = 3 * lean, hop = amazed * abs(wave(s, 1.6f)) * 2.2f, tilt = 16 * lean - 4 * amazed * (1 - ramp(p, 0.9f, 1f)),
             lookX = 0.9f * lean, lookY = 0.4f * lean - 0.5f * amazed, turn = 30 * lean,
             armL = mix(14f, 145 - 15 * wave(s, 2f), amazed),
             armR = mix(mix(14f, 38 + 8 * wave(s, 1.5f), lean), 150 + 15 * wave(s, 2f), amazed),
-            eyes = when { lean > 0.5f -> LoraEyes.FOCUS; amazed > 0.5f -> LoraEyes.WIDE; else -> LoraEyes.OPEN },
-            mouth = if (amazed > 0.5f) LoraMouth.OPEN else LoraMouth.SMILE,
+            eyes = when { lean > 0.5f -> LoraEyes.WINK; amazed > 0.5f -> LoraEyes.SPARKLE; else -> LoraEyes.OPEN },
+            mouth = when { amazed > 0.5f && p > 0.86f -> LoraMouth.GRIN; amazed > 0.5f -> LoraMouth.OPEN; lean > 0.5f -> LoraMouth.OOH; else -> LoraMouth.SMILE },
         )
     }
     LoraAction.FLASK -> {
+        // Swirls the flask and watches it bubble; a puff makes her start, then she is delighted.
         val startle = bump(p, 0.52f, 0.57f, 0.66f, 0.74f)
         val happy = ramp(p, 0.72f, 0.8f)
         LoraPose(
-            hop = startle * 1.5f, tilt = -6 * startle, lookX = 0.8f, lookY = -0.3f, turn = 12 * (1 - startle),
+            hop = startle * 1.5f + happy * abs(wave(s, 1.4f)) * 0.7f, tilt = -6 * startle, sway = -1.2f * startle, lookX = 0.8f, lookY = -0.3f + 0.2f * wave(s, 0.6f) * (1 - startle),
+            turn = 12 * (1 - startle), squash = 1 + 0.04f * startle,
             armL = 14 + 6 * wave(s, 0.8f) + 40 * startle, armR = 70 + 8 * wave(s, 1.6f) * (1 - startle),
             eyes = when { startle > 0.5f -> LoraEyes.WIDE; happy > 0.5f -> LoraEyes.HAPPY; else -> LoraEyes.OPEN },
             mouth = when { startle > 0.5f -> LoraMouth.OPEN; happy > 0.5f -> LoraMouth.GRIN; else -> LoraMouth.SMILE },
         )
     }
     LoraAction.GLOBE -> {
+        // Spins the globe, spots a place and is glad about it.
+        val spot = bump(p, 0.36f, 0.42f, 0.48f, 0.54f)
         val happy = p > 0.5f && p < 0.85f
         LoraPose(
-            dx = -1.5f, tilt = -4f, lookX = -0.9f, lookY = 0.1f, turn = -24f,
-            armL = 62 + 14 * maxOf(0f, wave(s, 0.7f)), armR = 12 + 4 * wave(s, 0.5f),
-            eyes = if (happy) LoraEyes.HAPPY else LoraEyes.OPEN, mouth = if (happy) LoraMouth.GRIN else LoraMouth.SMILE,
+            sway = -1.5f, tilt = -4f + 2 * spot, lookX = -0.9f, lookY = 0.1f + 0.2f * wave(s, 0.5f), turn = -24f,
+            hop = 0.9f * arc(p, 0.5f, 0.6f),
+            armL = 62 + 14 * maxOf(0f, wave(s, 0.7f)), armR = 12 + 4 * wave(s, 0.5f) + 20 * (if (happy) 1f else 0f) * arc(p, 0.5f, 0.85f),
+            eyes = when { happy -> LoraEyes.HAPPY; spot > 0.5f -> LoraEyes.WIDE; else -> LoraEyes.OPEN },
+            mouth = when { happy -> LoraMouth.GRIN; spot > 0.5f -> LoraMouth.OOH; else -> LoraMouth.SMILE },
         )
     }
     LoraAction.TELESCOPE -> {
+        // One eye at the telescope, then she points up at a shooting star.
         val lean = ramp(p, 0.04f, 0.14f) * (1 - ramp(p, 0.6f, 0.68f))
         val point = ramp(p, 0.62f, 0.7f)
         LoraPose(
-            dx = 2 * lean, hop = point * abs(wave(s, 1.2f)) * 1.2f, tilt = 10 * lean,
+            sway = 2 * lean, hop = point * abs(wave(s, 1.2f)) * 1.2f, tilt = 10 * lean,
             lookX = mix(0.9f * lean, 0.6f, point), lookY = mix(-0.3f * lean, -1f, point), turn = 26 * lean + 10 * point,
-            armL = 14f, armR = mix(mix(14f, 48f, lean), 158 + 6 * wave(s, 1f), point),
-            eyes = when { lean > 0.5f -> LoraEyes.FOCUS; point > 0.5f -> LoraEyes.HAPPY; else -> LoraEyes.OPEN },
-            mouth = if (point > 0.5f) LoraMouth.GRIN else LoraMouth.SMILE,
+            armL = 14f + 16 * point, armR = mix(mix(14f, 48f, lean), 158 + 6 * wave(s, 1f), point),
+            eyes = when { lean > 0.5f -> LoraEyes.WINK; point > 0.5f && p < 0.9f -> LoraEyes.SPARKLE; point > 0.5f -> LoraEyes.HAPPY; else -> LoraEyes.OPEN },
+            mouth = when { point > 0.5f && p < 0.82f -> LoraMouth.OPEN; point > 0.5f -> LoraMouth.GRIN; lean > 0.5f -> LoraMouth.OOH; else -> LoraMouth.SMILE },
         )
     }
     LoraAction.NOTES -> {
@@ -789,77 +886,92 @@ internal fun loraPose(a: LoraAction, p: Float, s: Float): LoraPose = when (a) {
         val done = ramp(p, 0.84f, 0.9f)
         LoraPose(
             hop = done * abs(wave(s, 1.5f)) * 0.8f, lookX = 0.3f * writing + 0.1f * wave(s, 0.5f) * writing,
-            lookY = 0.8f * (1 - show) - 0.1f * show,
+            lookY = 0.8f * (1 - show) - 0.1f * show, tilt = 1.5f * wave(s, 0.4f) * writing,
             armL = -36f, armR = mix(-38f, -92 + 6 * wave(s, 3f), writing),
-            eyes = if (done > 0.5f) LoraEyes.HAPPY else LoraEyes.OPEN, mouth = if (done > 0.5f) LoraMouth.GRIN else LoraMouth.SMILE,
+            eyes = if (done > 0.5f) LoraEyes.HAPPY else LoraEyes.OPEN,
+            mouth = when { done > 0.5f -> LoraMouth.GRIN; writing > 0.5f -> LoraMouth.TONGUE; else -> LoraMouth.SMILE },
         )
     }
     LoraAction.DIG -> {
+        // Crouches and digs, stroke by stroke – there is something! – and lifts the find.
         val crouch = ramp(p, 0f, 0.08f) * (1 - ramp(p, 0.6f, 0.7f))
         val lift = ramp(p, 0.66f, 0.76f)
+        val find = bump(p, 0.52f, 0.56f, 0.64f, 0.68f)
         LoraPose(
             hop = lift * abs(wave(s, 1.4f)) * 2, tilt = 8 * crouch, lookX = 0.9f * crouch, lookY = 0.9f * crouch - 0.7f * lift,
             armL = mix(mix(14f, 20f, crouch), 140 - 15 * wave(s, 2f), lift), armR = mix(mix(14f, 60 + 18 * wave(s, 2.4f), crouch), 150 + 6 * wave(s, 2f), lift),
-            squash = mix(1f, 0.86f, crouch), turn = 22 * crouch,
-            eyes = if (lift > 0.5f) LoraEyes.HAPPY else LoraEyes.OPEN, mouth = if (lift > 0.5f) LoraMouth.GRIN else LoraMouth.SMILE,
+            squash = mix(1f, 0.86f + 0.02f * wave(s, 2.4f), crouch), turn = 22 * crouch,
+            eyes = when { lift > 0.5f -> LoraEyes.HAPPY; find > 0.5f -> LoraEyes.WIDE; crouch > 0.5f -> LoraEyes.FOCUS; else -> LoraEyes.OPEN },
+            mouth = when { lift > 0.5f -> LoraMouth.GRIN; find > 0.5f -> LoraMouth.OOH; crouch > 0.5f -> LoraMouth.TONGUE; else -> LoraMouth.SMILE },
         )
     }
     LoraAction.EUREKA -> {
+        // An idea: a start, a crouch, a jump with one arm up – the light bulb is on.
         val jump = arc(p, 0.2f, 0.45f)
         val raise = ramp(p, 0.12f, 0.22f)
         LoraPose(
             hop = jump * 5, lookX = 0.2f, lookY = -1f + 0.5f * ramp(p, 0.5f, 0.7f),
             armL = mix(14f, 50f, raise), armR = mix(14f, 165f, raise),
-            squash = 1 - 0.1f * arc(p, 0.12f, 0.22f) + 0.04f * jump, glow = 1.4f,
-            eyes = if (p < 0.45f) LoraEyes.WIDE else LoraEyes.HAPPY, mouth = if (p < 0.45f) LoraMouth.OPEN else LoraMouth.GRIN,
+            squash = 1 - 0.1f * arc(p, 0.1f, 0.22f) + 0.04f * jump, glow = 1.4f,
+            eyes = when { p < 0.1f -> LoraEyes.WIDE; p < 0.5f -> LoraEyes.SPARKLE; else -> LoraEyes.HAPPY },
+            mouth = when { p < 0.12f -> LoraMouth.OOH; p < 0.45f -> LoraMouth.OPEN; else -> LoraMouth.GRIN },
         )
     }
     LoraAction.BOOKS -> {
-        val legs = 0.7f * wave(s, 1.8f)
+        // Carries a pile of books to and fro; it sways, and she keeps an eye on it.
+        val heading = cos(2 * PI * p).toFloat()
+        val wobble = wave(s, 0.9f)
         LoraPose(
-            dx = wave(p, 1f) * 8, hop = abs(legs) * 1.1f, tilt = 3 * wave(s, 0.9f),
-            lookX = 0.35f * cos(2 * PI * p).toFloat(), lookY = -0.6f, legs = legs, armL = -15f, armR = -15f,
-            turn = 20 * cos(2 * PI * p).toFloat(),
+            dx = wave(p, 1f) * 8, tilt = 3 * wobble, lookX = 0.35f * heading, lookY = -0.6f, armL = -15f, armR = -15f, turn = 20 * heading,
+            eyes = if (abs(wobble) > 0.85f) LoraEyes.WIDE else LoraEyes.OPEN, mouth = if (abs(wobble) > 0.85f) LoraMouth.OOH else LoraMouth.SMILE,
         )
     }
     LoraAction.CHART -> {
+        // Shows the bars of a chart as they grow, the pointer rising with them; the trend delights her.
         val done = ramp(p, 0.74f, 0.8f)
         LoraPose(
-            lookX = mix(-1f, 0.3f, done), lookY = -0.2f * (1 - done), armL = 96 + 10 * wave(s, 0.6f), armR = 12 + 4 * wave(s, 0.5f),
-            hop = done * abs(wave(s, 1.4f)) * 0.8f, turn = -28 * (1 - done),
-            eyes = if (done > 0.5f) LoraEyes.HAPPY else LoraEyes.OPEN, mouth = if (done > 0.5f) LoraMouth.GRIN else LoraMouth.SMILE,
+            lookX = mix(-1f, 0.3f, done), lookY = -0.2f * (1 - done), armL = 88 + 16 * ramp(p, 0.08f, 0.7f) + 5 * wave(s, 0.6f), armR = 12 + 4 * wave(s, 0.5f) + 30 * done,
+            hop = done * abs(wave(s, 1.4f)) * 0.8f, turn = -28 * (1 - done), sway = -0.8f * (1 - done), tilt = -2 * (1 - done),
+            eyes = when { done > 0.5f && p < 0.9f -> LoraEyes.SPARKLE; done > 0.5f -> LoraEyes.HAPPY; else -> LoraEyes.OPEN },
+            mouth = if (done > 0.5f) LoraMouth.GRIN else LoraMouth.SMILE,
         )
     }
     LoraAction.COFFEE -> {
+        // Blows on the coffee, takes a sip with her eyes closed, and sighs contentedly.
+        val blow = bump(p, 0.06f, 0.1f, 0.18f, 0.22f)
         val sip = bump(p, 0.25f, 0.38f, 0.58f, 0.68f)
         val ahh = bump(p, 0.62f, 0.68f, 0.86f, 0.94f)
         LoraPose(
-            tilt = -3 * sip, lookX = 0.3f * (1 - sip), lookY = 0.2f - 0.3f * sip,
-            armL = 12 + 3 * wave(s, 0.5f), armR = mix(-55f, -115f, sip) + 2 * wave(s, 0.8f),
-            eyes = when { sip > 0.5f -> LoraEyes.CLOSED; ahh > 0.5f -> LoraEyes.HAPPY; else -> LoraEyes.OPEN },
-            mouth = when { sip > 0.5f -> LoraMouth.NONE; ahh > 0.5f -> LoraMouth.GRIN; else -> LoraMouth.SMILE },
+            tilt = -3 * sip + 1.5f * ahh * wave(s, 0.4f), sway = 0.7f * ahh * wave(s, 0.4f), lookX = 0.3f * (1 - sip) * (1 - blow), lookY = 0.2f - 0.3f * sip + 0.4f * blow,
+            squash = 1 - 0.025f * ahh,
+            armL = 12 + 3 * wave(s, 0.5f), armR = mix(-55f, -115f, sip) + 2 * wave(s, 0.8f) - 22 * blow,
+            eyes = when { sip > 0.5f -> LoraEyes.CLOSED; ahh > 0.5f -> LoraEyes.SOFT; else -> LoraEyes.OPEN },
+            mouth = when { sip > 0.5f -> LoraMouth.NONE; ahh > 0.5f -> LoraMouth.GRIN; blow > 0.5f -> LoraMouth.OOH; else -> LoraMouth.SMILE },
         )
     }
     LoraAction.RADAR -> {
-        // Sends signals from the antenna and turns the head to listen, then a ping in the sky: there!
+        // Sends signals from the antenna and turns the head to listen, eyes half closed; then a ping in the sky: there!
         val ping = ramp(p, 0.64f, 0.72f)
         val scan = wave(s, 0.4f) * (1 - ping)
         LoraPose(
-            hop = ping * abs(wave(s, 1.5f)) * 1.2f, tilt = 3 * scan, lookX = mix(scan, 0.8f, ping), lookY = -0.5f - 0.4f * ping,
+            hop = ping * abs(wave(s, 1.5f)) * 1.2f, tilt = 3 * scan, sway = 0.8f * scan, lookX = mix(scan, 0.8f, ping), lookY = -0.5f - 0.4f * ping,
             turn = mix(28 * scan, 18f, ping), armL = mix(28 + 6 * wave(s, 0.8f), 14f, ping), armR = mix(28 - 6 * wave(s, 0.8f), 152f, ping),
-            eyes = if (ping > 0.5f) LoraEyes.WIDE else LoraEyes.OPEN, mouth = if (ping > 0.5f) LoraMouth.OPEN else LoraMouth.FLAT,
+            glow = 1 + 0.25f * (1 - ping) * (0.5f + 0.5f * wave(s, 0.8f)),
+            eyes = if (ping > 0.5f) LoraEyes.SPARKLE else LoraEyes.SOFT,
+            mouth = when { ping > 0.5f && p > 0.86f -> LoraMouth.GRIN; ping > 0.5f -> LoraMouth.OPEN; else -> LoraMouth.FLAT },
         )
     }
     LoraAction.BINOCULARS -> {
+        // Lifts the binoculars, sweeps the horizon, lowers them and waves: seen it!
         val up = ramp(p, 0.04f, 0.14f) * (1 - ramp(p, 0.64f, 0.72f))
         val seen = ramp(p, 0.68f, 0.76f)
         val sweep = wave(s, 0.4f)
         LoraPose(
-            dx = 2.5f * sweep * up, tilt = 3 * sweep * up, turn = 12 * sweep * up, lookY = -0.3f * seen,
+            sway = 2.5f * sweep * up, tilt = 3 * sweep * up, turn = 12 * sweep * up, lookY = -0.3f * seen,
             hop = seen * abs(wave(s, 1.5f)) * 1.4f,
             armL = mix(mix(14f, -128f, up), 140 + 10 * wave(s, 1.6f), seen), armR = mix(mix(-30f, -128f, up), -60f, seen),
             eyes = if (seen > 0.5f) LoraEyes.HAPPY else LoraEyes.OPEN,
-            mouth = when { seen > 0.5f -> LoraMouth.GRIN; up > 0.5f -> LoraMouth.OPEN; else -> LoraMouth.SMILE },
+            mouth = when { seen > 0.5f -> LoraMouth.GRIN; up > 0.5f -> LoraMouth.OOH; else -> LoraMouth.SMILE },
         )
     }
     LoraAction.CARDS -> {
@@ -867,33 +979,34 @@ internal fun loraPose(a: LoraAction, p: Float, s: Float): LoraPose = when (a) {
         val lean = ramp(p, 0.04f, 0.14f) * (1 - ramp(p, 0.56f, 0.64f))
         val found = ramp(p, 0.58f, 0.68f)
         LoraPose(
-            dx = 2.5f * lean, tilt = 9 * lean, turn = 30 * lean, lookX = 0.9f * lean, lookY = 0.7f * lean - 0.8f * found,
+            sway = 2.5f * lean, tilt = 9 * lean, turn = 30 * lean, lookX = 0.9f * lean, lookY = 0.7f * lean - 0.8f * found,
             hop = found * abs(wave(s, 1.4f)) * 1.5f,
             armL = mix(14f, 22f, lean) + 3 * wave(s, 0.6f), armR = mix(mix(14f, 75 + 10 * wave(s, 2.6f), lean), 162 + 5 * wave(s, 1.4f), found),
             eyes = when { found > 0.5f -> LoraEyes.HAPPY; lean > 0.5f -> LoraEyes.FOCUS; else -> LoraEyes.OPEN },
-            mouth = if (found > 0.5f) LoraMouth.GRIN else LoraMouth.SMILE,
+            mouth = when { found > 0.5f -> LoraMouth.GRIN; lean > 0.5f -> LoraMouth.TONGUE; else -> LoraMouth.SMILE },
         )
     }
     LoraAction.SHELF -> {
-        // Turns to the shelf, runs a hand along the books, pulls one out and hugs it.
+        // Steps to the shelf, runs a hand along the books, pulls one out and hugs it.
         val toShelf = ramp(p, 0.02f, 0.12f) * (1 - ramp(p, 0.56f, 0.66f))
         val pull = ramp(p, 0.42f, 0.5f)
         val hug = ramp(p, 0.6f, 0.7f)
         LoraPose(
-            dx = -3.5f * toShelf, tilt = -5 * toShelf + 3 * hug * wave(s, 0.7f), turn = -32 * toShelf,
+            dx = -3.5f * toShelf, tilt = -5 * toShelf + 3 * hug * wave(s, 0.7f), turn = -32 * toShelf, sway = 0.9f * hug * wave(s, 0.7f),
             lookX = -0.9f * toShelf, lookY = -0.7f * toShelf + 0.3f * hug, hop = hug * abs(wave(s, 1.2f)) * 0.8f,
             armL = mix(mix(14f, 132 + 8 * wave(s, 1.1f) * (1 - pull), toShelf), -62f, hug), armR = mix(14f, -62f, hug),
             eyes = when { hug > 0.5f -> LoraEyes.HAPPY; toShelf > 0.5f -> LoraEyes.FOCUS; else -> LoraEyes.OPEN },
-            mouth = if (hug > 0.5f) LoraMouth.GRIN else LoraMouth.SMILE,
+            mouth = when { hug > 0.5f -> LoraMouth.GRIN; pull > 0.2f && pull < 1f -> LoraMouth.OOH; else -> LoraMouth.SMILE },
         )
     }
     LoraAction.NET -> {
-        // Pages flutter by; Lora swings the net and catches one.
+        // Pages flutter by; Lora follows one, crouches, swings the net with a jump and catches it.
         val swing = ramp(p, 0.38f, 0.5f)
         val caught = ramp(p, 0.5f, 0.58f)
         val follow = ramp(p, 0.05f, 0.45f)
         LoraPose(
-            tilt = -4 * (1 - swing) + 8 * arc(p, 0.38f, 0.56f), hop = caught * abs(wave(s, 1.5f)) * 1.2f,
+            tilt = -4 * (1 - swing) + 8 * arc(p, 0.38f, 0.56f), hop = caught * abs(wave(s, 1.5f)) * 1.2f + 1.8f * arc(p, 0.4f, 0.52f),
+            squash = 1 - 0.07f * arc(p, 0.3f, 0.42f),
             lookX = mix(mix(-0.9f, 0.9f, follow), 0.8f, caught), lookY = mix(-0.6f, 0.3f, caught), turn = mix(-14f, 20f, follow),
             armL = 14 + 120 * bump(p, 0.58f, 0.64f, 0.8f, 0.86f), armR = mix(150 + 5 * wave(s, 0.9f), 75 + 4 * wave(s, 0.8f), swing),
             eyes = when { caught > 0.5f -> LoraEyes.HAPPY; swing > 0.1f -> LoraEyes.WIDE; else -> LoraEyes.OPEN },
@@ -906,10 +1019,11 @@ internal fun loraPose(a: LoraAction, p: Float, s: Float): LoraPose = when (a) {
         val done = ramp(p, 0.62f, 0.7f)
         LoraPose(
             turn = 22 * (1 - done), tilt = 3 * wave(s, 0.3f) * (1 - done), lookX = mix(0.8f, 0.2f, done), lookY = mix(-0.2f, -0.4f, done),
-            hop = done * abs(wave(s, 1.4f)) * 1.4f,
+            hop = done * abs(wave(s, 1.4f)) * 1.4f, squash = 1 - 0.05f * arc(p, 0.6f, 0.68f),
             armL = mix(-92 + 4 * wave(s, 0.7f), 140 + 10 * wave(s, 1.4f), done),
             armR = mix(mix(55 + 8 * wave(s, 0.7f), 100f, place), 140 - 10 * wave(s, 1.4f), done),
-            eyes = if (done > 0.5f) LoraEyes.HAPPY else LoraEyes.OPEN, mouth = if (done > 0.5f) LoraMouth.GRIN else LoraMouth.FLAT,
+            eyes = when { done > 0.5f && p < 0.82f -> LoraEyes.SPARKLE; done > 0.5f -> LoraEyes.HAPPY; place > 0f -> LoraEyes.FOCUS; else -> LoraEyes.OPEN },
+            mouth = when { done > 0.5f -> LoraMouth.GRIN; place > 0f -> LoraMouth.TONGUE; else -> LoraMouth.FLAT },
         )
     }
     LoraAction.PLANE -> {
@@ -921,32 +1035,38 @@ internal fun loraPose(a: LoraAction, p: Float, s: Float): LoraPose = when (a) {
         val plane = planePath(k.coerceIn(0f, 1f))
         val watching = k in 0f..1f
         LoraPose(
-            tilt = -7 * windUp * (1 - thrown) + 6 * arc(p, 0.44f, 0.6f), hop = arc(p, 0.44f, 0.56f) * 1.2f,
+            tilt = -7 * windUp * (1 - thrown) + 6 * arc(p, 0.44f, 0.6f), hop = arc(p, 0.44f, 0.56f) * 1.4f,
+            squash = 1 - 0.05f * windUp * (1 - thrown), sway = -1.2f * windUp * (1 - thrown) + 1.2f * arc(p, 0.44f, 0.6f),
             armL = mix(-42 + 5 * wave(s, 1.2f) * folding, 25f, windUp),
             armR = mix(mix(-42 - 5 * wave(s, 1.2f) * folding, 160f, windUp), 75f, thrown),
             lookX = if (watching) (plane.x / 20f).coerceIn(-1f, 1f) else 0.5f * windUp,
             lookY = if (watching) ((plane.y - 24f) / 12f).coerceIn(-1f, 0.6f) else 0.7f * (1 - windUp) - 0.4f * windUp,
             turn = if (watching) (plane.x * 0.8f).coerceIn(-20f, 20f) else 0f,
-            eyes = if (p > 0.9f) LoraEyes.HAPPY else LoraEyes.OPEN, mouth = if (p > 0.46f) LoraMouth.GRIN else LoraMouth.SMILE,
+            eyes = when { p > 0.9f -> LoraEyes.HAPPY; watching && k > 0.2f -> LoraEyes.WIDE; else -> LoraEyes.OPEN },
+            mouth = when { p > 0.9f -> LoraMouth.GRIN; watching && k > 0.2f -> LoraMouth.OOH; p > 0.44f -> LoraMouth.GRIN; folding > 0.5f -> LoraMouth.TONGUE; else -> LoraMouth.SMILE },
         )
     }
     LoraAction.HEADPHONES -> {
-        // Listens with the eyes closed, bobbing to the beat, then grooves.
+        // Listens with the eyes closed, bobbing to the beat, then grooves from foot to foot.
         val beat = wave(s, 1.1f)
         val groove = bump(p, 0.45f, 0.52f, 0.8f, 0.86f)
         LoraPose(
-            dx = 3 * groove * wave(s, 0.55f), hop = abs(beat) * (0.6f + 1.2f * groove), tilt = 5 * beat * (0.6f + 0.6f * groove),
+            sway = 2.6f * groove * wave(s, 0.55f) + 0.5f * (1 - groove) * wave(s, 0.55f), hop = abs(beat) * (0.6f + 1.2f * groove), tilt = 5 * beat * (0.6f + 0.6f * groove),
             legs = 0.3f * maxOf(0f, beat), squash = 0.98f + 0.02f * abs(beat), turn = 14 * groove * wave(s, 0.55f),
             armL = mix(14 + 4 * beat, 120 + 25 * beat, groove), armR = mix(168f, 120 - 25 * beat, groove),
             eyes = if (groove > 0.5f) LoraEyes.HAPPY else LoraEyes.CLOSED, mouth = if (groove > 0.5f) LoraMouth.GRIN else LoraMouth.SMILE,
         )
     }
     LoraAction.ABACUS -> {
+        // Counts on the abacus bead by bead, nodding along; the sum is right.
         val done = ramp(p, 0.8f, 0.86f)
+        val count = abs(wave(s, 1.6f)) * (1 - done)
         LoraPose(
-            lookX = 0.2f * wave(s, 0.8f) * (1 - done), lookY = 0.8f * (1 - done) - 0.2f * done, hop = done * abs(wave(s, 1.4f)),
+            lookX = 0.35f * wave(s, 0.8f) * (1 - done), lookY = 0.8f * (1 - done) - 0.2f * done, hop = done * abs(wave(s, 1.4f)),
+            squash = 1 - 0.015f * count - 0.05f * arc(p, 0.78f, 0.86f),
             armL = -12f, armR = mix(-48 + 14 * wave(s, 1.6f), 130f, done),
-            eyes = if (done > 0.5f) LoraEyes.HAPPY else LoraEyes.OPEN, mouth = if (done > 0.5f) LoraMouth.GRIN else LoraMouth.FLAT,
+            eyes = if (done > 0.5f) LoraEyes.HAPPY else LoraEyes.OPEN,
+            mouth = if (done > 0.5f) LoraMouth.GRIN else LoraMouth.TONGUE,
         )
     }
     LoraAction.TWIRL -> {
@@ -959,24 +1079,35 @@ internal fun loraPose(a: LoraAction, p: Float, s: Float): LoraPose = when (a) {
         )
     }
     LoraAction.WAVE -> {
-        val hello = arc(p, 0f, 0.22f)
+        // A little crouch, a hop and a big wave, leaning away from the waving arm – and a wink at the end.
+        val hello = arc(p, 0.06f, 0.28f)
+        val wink = bump(p, 0.6f, 0.64f, 0.8f, 0.86f)
         LoraPose(
-            hop = hello * 3, tilt = 4 * wave(s, 0.9f), lookX = 0.2f, lookY = -0.1f,
-            armL = 12 + 6 * hello, armR = 150 + 25 * wave(s, 1.8f), eyes = LoraEyes.HAPPY, mouth = LoraMouth.GRIN,
+            hop = hello * 3, squash = 1 - 0.07f * arc(p, 0f, 0.1f), tilt = 4 * wave(s, 0.9f) - 2f, sway = -0.8f, lookX = 0.2f, lookY = -0.1f,
+            armL = 12 + 6 * hello + 4 * wave(s, 0.9f), armR = 150 + 25 * wave(s, 1.8f),
+            eyes = if (wink > 0.5f) LoraEyes.WINK else LoraEyes.HAPPY, mouth = LoraMouth.GRIN,
         )
     }
     LoraAction.LOOK -> {
+        // Looks to one side and to the other, her weight going with it; something catches her eye – a hop –, then a foot taps.
         val look = -0.8f * bump(p, 0.06f, 0.18f, 0.32f, 0.42f) + 0.8f * bump(p, 0.38f, 0.5f, 0.62f, 0.72f)
         val tap = bump(p, 0.76f, 0.78f, 0.92f, 0.94f)
+        val spot = bump(p, 0.5f, 0.53f, 0.6f, 0.66f)
         LoraPose(
-            hop = arc(p, 0.5f, 0.6f) * 1.6f, tilt = 4 * look, lookX = look, lookY = -0.2f * tap, turn = 32 * look,
-            legs = tap * 0.35f * maxOf(0f, wave(s, 3f)), armL = 12 + 3 * wave(s, 0.5f), armR = 12 - 3 * wave(s, 0.5f),
+            hop = arc(p, 0.5f, 0.6f) * 1.6f, tilt = 5 * look, sway = 1.4f * look, lookX = look, lookY = -0.2f * tap - 0.15f * abs(look), turn = 32 * look,
+            legs = tap * 0.35f * maxOf(0f, wave(s, 3f)), armL = 12 + 3 * wave(s, 0.5f) + 10 * maxOf(0f, -look), armR = 12 - 3 * wave(s, 0.5f) + 10 * maxOf(0f, look),
+            eyes = if (spot > 0.5f) LoraEyes.WIDE else LoraEyes.OPEN, mouth = if (spot > 0.5f) LoraMouth.OOH else LoraMouth.SMILE,
         )
     }
-    LoraAction.SLEEP -> LoraPose(
-        tilt = -7f, lookY = 0.4f, armL = 6f, armR = 6f, squash = 0.93f + 0.03f * wave(s, 0.25f), glow = 0.3f,
-        eyes = LoraEyes.CLOSED, mouth = LoraMouth.NONE,
-    )
+    LoraAction.SLEEP -> {
+        // Asleep on her feet: slow deep breaths, the head sinking with each, a small snore.
+        val breath = wave(s, 0.22f)
+        LoraPose(
+            tilt = -7f + 1.2f * breath, sway = -0.6f, lookY = 0.45f - 0.15f * breath, armL = 6f - 2 * breath, armR = 6f - 2 * breath,
+            squash = 0.93f + 0.035f * breath, glow = 0.3f,
+            eyes = LoraEyes.CLOSED, mouth = if (breath > 0.55f) LoraMouth.OOH else LoraMouth.NONE,
+        )
+    }
     LoraAction.STRETCH -> {
         // Reaches up on tiptoes with a yawn, then shakes it off.
         val up = bump(p, 0.06f, 0.24f, 0.5f, 0.62f)
@@ -984,20 +1115,23 @@ internal fun loraPose(a: LoraAction, p: Float, s: Float): LoraPose = when (a) {
         val shake = bump(p, 0.62f, 0.66f, 0.8f, 0.86f)
         LoraPose(
             squash = 1 + 0.08f * up, hop = 0.8f * up, tilt = 3 * up * wave(s, 0.5f) + 7 * shake * wave(s, 3f), lookY = -0.6f * up,
+            sway = 0.8f * up * wave(s, 0.5f),
             armL = mix(14f, 172f, up) + 12 * shake * wave(s, 3f), armR = mix(14f, 172f, up) - 12 * shake * wave(s, 3f),
-            eyes = when { yawn > 0.3f || up > 0.6f -> LoraEyes.CLOSED; shake > 0.5f -> LoraEyes.HAPPY; else -> LoraEyes.OPEN },
+            eyes = when { yawn > 0.3f || up > 0.6f -> LoraEyes.CLOSED; shake > 0.5f -> LoraEyes.HAPPY; p in 0.5f..0.64f -> LoraEyes.SOFT; else -> LoraEyes.OPEN },
             mouth = when { yawn > 0.3f -> LoraMouth.OPEN; shake > 0.5f -> LoraMouth.GRIN; else -> LoraMouth.SMILE },
         )
     }
     LoraAction.WATER -> {
-        // Waters the little plant, which grows and blooms.
+        // Waters the little plant, which grows and blooms – and is delighted with it.
         val reach = ramp(p, 0.04f, 0.12f) * (1 - ramp(p, 0.56f, 0.64f))
         val pour = bump(p, 0.12f, 0.18f, 0.5f, 0.56f)
         val admire = ramp(p, 0.68f, 0.76f)
         LoraPose(
-            turn = 25f, lookX = 0.8f, lookY = 0.4f * pour + 0.1f, tilt = 4 * pour, hop = admire * arc(p, 0.76f, 0.9f) * 1.6f,
+            turn = 25f, lookX = 0.8f, lookY = 0.4f * pour + 0.1f - 0.3f * admire, tilt = 4 * pour, sway = 1.2f * pour, hop = admire * arc(p, 0.76f, 0.9f) * 1.6f,
+            squash = 1 - 0.05f * arc(p, 0.7f, 0.78f),
             armL = 14 + 3 * wave(s, 0.5f) + 120 * bump(p, 0.76f, 0.82f, 0.9f, 0.96f), armR = mix(45f, 105f, reach),
-            eyes = if (admire > 0.5f) LoraEyes.HAPPY else LoraEyes.OPEN, mouth = if (admire > 0.5f) LoraMouth.GRIN else LoraMouth.SMILE,
+            eyes = when { admire > 0.5f && p < 0.9f -> LoraEyes.SPARKLE; admire > 0.5f -> LoraEyes.HAPPY; pour > 0.5f -> LoraEyes.SOFT; else -> LoraEyes.OPEN },
+            mouth = if (admire > 0.5f) LoraMouth.GRIN else LoraMouth.SMILE,
         )
     }
 }
@@ -1006,12 +1140,34 @@ internal fun loraPose(a: LoraAction, p: Float, s: Float): LoraPose = when (a) {
 private fun posed(frame: LoraFrame, s: Float): LoraPose {
     val now = loraPose(frame.action, frame.phase, s)
     val prev = frame.previous ?: return now
-    val mixed = lerp(loraPose(prev, 1f, s), now, ease(frame.blend), overshoot(frame.blend))
+    // The arms start gently, swing a little past their new place and settle.
+    val mixed = lerp(loraPose(prev, 1f, s), now, ease(frame.blend), overshoot(ease(frame.blend)))
     return if (prev == frame.action) mixed else mixed.copy(hop = mixed.hop + 1.8f * sin(PI * frame.blend).toFloat())
 }
 
-/** How far back Lora looks to feel the motion (leaning into it, stretching, the antenna lagging). */
-private const val MOTION_MS = 60L
+/** How far back Lora looks to feel her motion: [TRAIL] moments, [TRAIL_MS] apart. */
+private const val TRAIL = 9
+private const val TRAIL_MS = 40L
+
+/** How strongly a jolt [k] moments ago still swings in something soft: a spring of 2.6 swings a second that dies out. */
+private val JELLY: FloatArray = run {
+    val w = 2 * PI * 2.6
+    val damping = 0.28
+    val wd = w * sqrt(1 - damping * damping)
+    val dt = TRAIL_MS / 1000.0
+    FloatArray(TRAIL) { k -> (exp(-damping * w * k * dt) * sin(wd * k * dt) / (wd * dt)).toFloat() }
+}
+
+/**
+ * How far something soft that rides on Lora (the tip of the antenna, her arms, her own weight) is ahead of her (+) or
+ * behind (−): it stays behind when she starts, swings on when she stops and dies out. [value] is where she was
+ * [TRAIL_MS] × k ago (0 = now); the answer has its unit. Steady motion gives 0 – only changes of speed swing.
+ */
+private inline fun jelly(value: (Int) -> Float): Float {
+    var z = 0f
+    for (k in 1 until TRAIL) z -= JELLY[k] * (value(k - 1) - 2 * value(k) + value(k + 1))
+    return z
+}
 
 /** [frame] [ms] earlier. */
 private fun earlier(frame: LoraFrame, ms: Long) = frame.copy(
@@ -2345,6 +2501,229 @@ private fun DrawScope.notes(s: Float, a: Float, cx: Float, top: Float, g: LoraGe
     }
 }
 
+/** Lighter ([k] > 0, towards white) or darker ([k] < 0, towards black); the alpha stays. */
+private fun Color.shade(k: Float): Color {
+    val t = abs(k).coerceAtMost(1f)
+    val to = if (k > 0f) 1f else 0f
+    return Color(red + (to - red) * t, green + (to - green) * t, blue + (to - blue) * t, alpha)
+}
+
+/** This color with a part [k] of [other] mixed in; the alpha stays. */
+private fun Color.tint(other: Color, k: Float) = Color(red + (other.red - red) * k, green + (other.green - green) * k, blue + (other.blue - blue) * k, alpha)
+
+/** How bright a color is (0 = black, 1 = white). */
+private fun Color.brightness() = 0.299f * red + 0.587f * green + 0.114f * blue
+
+/** Lora's body: a dome at the head, rounder than the seat. */
+private fun bodyPath(cx: Float, top: Float, bw: Float, bh: Float, u: Float): Path {
+    val l = cx - bw / 2
+    val r = cx + bw / 2
+    val b = top + bh
+    val tx = min(10.5f * u, bw / 2)
+    val ty = min(10.5f * u, bh * 0.5f)
+    val bx = min(8f * u, bw / 2)
+    val by = min(8f * u, bh * 0.42f)
+    val k = 0.5523f
+    return Path().apply {
+        moveTo(l + tx, top)
+        lineTo(r - tx, top)
+        cubicTo(r - tx + tx * k, top, r, top + ty - ty * k, r, top + ty)
+        lineTo(r, b - by)
+        cubicTo(r, b - by + by * k, r - bx + bx * k, b, r - bx, b)
+        lineTo(l + bx, b)
+        cubicTo(l + bx - bx * k, b, l, b - by + by * k, l, b - by)
+        lineTo(l, top + ty)
+        cubicTo(l, top + ty - ty * k, l + tx - tx * k, top, l + tx, top)
+        close()
+    }
+}
+
+/** The body with its volume: lighter above, darker below, a soft light from the upper left and a gloss on the shoulder. */
+private fun DrawScope.drawBody(shape: Path, cx: Float, top: Float, bw: Float, bh: Float, u: Float, c: LoraColors, sideways: Float) {
+    drawPath(
+        shape,
+        Brush.verticalGradient(0f to c.body.shade(0.13f), 0.5f to c.body, 1f to c.body.shade(-0.17f), startY = top, endY = top + bh),
+    )
+    val light = Offset(cx - bw * 0.2f - sideways * 2.5f * u, top + bh * 0.2f)
+    drawPath(shape, Brush.radialGradient(listOf(Color.White.copy(alpha = 0.26f * c.body.alpha), Color.White.copy(alpha = 0f)), light, bw * 0.55f))
+    // The gloss follows the round of the head (it slides the other way when Lora turns).
+    val r = min(10.5f * u, bh * 0.5f) - 1.5f * u
+    if (r > 2 * u) {
+        val center = Offset(cx - bw / 2 + 1.5f * u + r - sideways * 2 * u, top + 1.5f * u + r)
+        drawArc(
+            Color.White.copy(alpha = 0.34f * c.body.alpha), 196f, 46f, useCenter = false, topLeft = Offset(center.x - r, center.y - r),
+            size = Size(2 * r, 2 * r), style = Stroke(1.05f * u, cap = StrokeCap.Round),
+        )
+        val dot = Math.toRadians(254.0)
+        drawCircle(Color.White.copy(alpha = 0.34f * c.body.alpha), 0.55f * u, Offset(center.x + (cos(dot) * r).toFloat(), center.y + (sin(dot) * r).toFloat()))
+    }
+}
+
+/** A soft limb from [a] over the bend [c] to [b], [wa] wide at its start and [wb] at its end, with round ends. */
+private fun DrawScope.limb(a: Offset, c: Offset, b: Offset, wa: Float, wb: Float, color: Color) {
+    val n = 10
+    val xs = FloatArray(2 * (n + 1))
+    val ys = FloatArray(2 * (n + 1))
+    for (i in 0..n) {
+        val t = i / n.toFloat()
+        val p = quadO(a, c, b, t)
+        var dx = 2 * (1 - t) * (c.x - a.x) + 2 * t * (b.x - c.x)
+        var dy = 2 * (1 - t) * (c.y - a.y) + 2 * t * (b.y - c.y)
+        val len = sqrt(dx * dx + dy * dy).coerceAtLeast(0.001f)
+        dx /= len
+        dy /= len
+        val w = mix(wa, wb, t) / 2
+        xs[i] = p.x - dy * w
+        ys[i] = p.y + dx * w
+        xs[2 * n + 1 - i] = p.x + dy * w
+        ys[2 * n + 1 - i] = p.y - dx * w
+    }
+    val path = Path().apply {
+        moveTo(xs[0], ys[0])
+        for (i in 1 until xs.size) lineTo(xs[i], ys[i])
+        close()
+    }
+    drawPath(path, color)
+    drawCircle(color, wa / 2, a)
+    drawCircle(color, wb / 2, b)
+}
+
+/** Stride of Lora's walk (units from one footprint to the next of the same foot) and the part of it a foot is in the air. */
+private const val STRIDE = 9f
+private const val SWING = 0.4f
+
+/**
+ * Walking: where a foot is relative to Lora once she has come [q] strides (the other foot is half a stride ahead).
+ * It stays where it was put down while she moves on, then swings forward to its next place – so feet never slide.
+ * In strides; [stepLift] is how high it is on the way (0..1).
+ */
+private fun stepOffset(q: Float): Float {
+    val frac = q - floor(q)
+    val stance = 1 - SWING
+    return if (frac < stance) stance / 2 - frac else stance / 2 + ease((frac - stance) / SWING) - frac
+}
+
+private fun stepLift(q: Float): Float {
+    val frac = q - floor(q)
+    val stance = 1 - SWING
+    return if (frac < stance) 0f else sin(PI * (frac - stance) / SWING).toFloat()
+}
+
+/**
+ * A little boot at the ankle [at]: its toe to the side [toe] (-1 = to the viewer's left, 1 = right, 0 = towards the
+ * viewer), tipped by [pitch] degrees (positive: toe down).
+ */
+private fun DrawScope.boot(at: Offset, toe: Float, pitch: Float, u: Float, c: LoraColors) {
+    val t = abs(toe).coerceAtMost(1f)
+    val hl = (2.3f - 0.45f * t) * u
+    val hr = (2.3f + 0.95f * t) * u
+    val ht = (1.3f - 0.4f * t) * u
+    val sole = 1.2f * u
+    withTransform({
+        rotate(pitch * (if (toe < 0f) -1f else 1f), at)
+        scale(if (toe < 0f) -1f else 1f, 1f, at)
+    }) {
+        val x = at.x
+        val y = at.y
+        val shape = Path().apply {
+            moveTo(x - hl + 1f * u, y + sole)
+            lineTo(x + hr - 1f * u, y + sole)
+            cubicTo(x + hr + 0.2f * u, y + sole, x + hr + 0.2f * u, y - ht, x + hr - 1.3f * u, y - ht)
+            cubicTo(x + hr - 2.1f * u, y - ht - 0.1f * u, x - hl + 2f * u, y - 1.4f * u, x - hl + 1.2f * u, y - 1.3f * u)
+            cubicTo(x - hl - 0.2f * u, y - 1.3f * u, x - hl - 0.2f * u, y + sole, x - hl + 1f * u, y + sole)
+            close()
+        }
+        drawPath(shape, Brush.verticalGradient(listOf(c.body.shade(-0.06f), c.body.shade(-0.24f)), y - 1.4f * u, y + sole))
+        drawLine(c.body.shade(-0.45f).fade(0.55f), Offset(x - hl + 1f * u, y + sole - 0.25f * u), Offset(x + hr - 1f * u, y + sole - 0.25f * u), 0.5f * u, StrokeCap.Round)
+        drawCircle(Color.White.copy(alpha = 0.22f * c.body.alpha), 0.5f * u, Offset(x + hr - 1.45f * u, y - ht + 0.75f * u))
+    }
+}
+
+/** How far the eyes are open at [s] seconds (1 = open): a quick blink now and then, sometimes two in a row. */
+private fun blink(s: Float): Float {
+    fun lid(t: Float) = when {
+        t < 0.06f -> 1 - ease(t / 0.06f)
+        t < 0.2f -> ease((t - 0.06f) / 0.14f)
+        else -> 1f
+    }
+    return min(lid(s % 3.7f), lid((s + 1.9f) % 9.1f))
+}
+
+/**
+ * The shape of an eye in units: half its width, the height of its corners (down is positive), how far the upper lid
+ * rises above the middle and the lower one drops below it (negative: the lid bows the other way, as in a smile), how
+ * square the lids are (1 = a pill, less = a soft arc), the light in the eye, how much of it is a sparkle and how far
+ * the eye on the viewer's left is shut in a wink.
+ */
+private const val EYE_W = 0
+private const val EYE_CORNER = 1
+private const val EYE_UP = 2
+private const val EYE_DOWN = 3
+private const val EYE_BOX = 4
+private const val EYE_SHINE = 5
+private const val EYE_STAR = 6
+private const val EYE_WINK = 7
+
+private val EYE_SHAPES: List<FloatArray> = LoraEyes.entries.map {
+    when (it) {
+        LoraEyes.OPEN -> floatArrayOf(1.4f, 0f, 1.9f, 1.9f, 1f, 1f, 0f, 0f)
+        LoraEyes.WIDE -> floatArrayOf(1.65f, 0f, 2.3f, 2.3f, 1f, 1.15f, 0f, 0f)
+        LoraEyes.SPARKLE -> floatArrayOf(1.75f, 0f, 2.35f, 2.35f, 1f, 1.2f, 1f, 0f)
+        LoraEyes.FOCUS -> floatArrayOf(1.55f, 0.1f, 0.5f, 1.15f, 0.85f, 0.5f, 0f, 0f)
+        LoraEyes.SOFT -> floatArrayOf(1.45f, 0.1f, 0.75f, 1.85f, 0.95f, 0.7f, 0f, 0f)
+        LoraEyes.HAPPY -> floatArrayOf(1.6f, 0.75f, 1.5f, -0.95f, 0.62f, 0f, 0f, 0f)
+        LoraEyes.CLOSED -> floatArrayOf(1.6f, -0.2f, -0.75f, 1.15f, 0.62f, 0f, 0f, 0f)
+        LoraEyes.WINK -> floatArrayOf(1.4f, 0f, 1.9f, 1.9f, 1f, 1f, 0f, 1f)
+    }
+}
+
+/**
+ * The shape of the mouth in units: half its width, the height of its corners, where the upper and the lower lip are in
+ * the middle (down is positive), how square it is, how visible, how much of the tongue shows inside and whether its
+ * tip peeks out at the side (while she concentrates).
+ */
+private const val MOUTH_W = 0
+private const val MOUTH_CORNER = 1
+private const val MOUTH_TOP = 2
+private const val MOUTH_BOTTOM = 3
+private const val MOUTH_BOX = 4
+private const val MOUTH_ALPHA = 5
+private const val MOUTH_TONGUE = 6
+private const val MOUTH_LICK = 7
+
+private val MOUTH_SHAPES: List<FloatArray> = LoraMouth.entries.map {
+    when (it) {
+        LoraMouth.SMILE -> floatArrayOf(1.4f, -0.35f, 0.6f, 0.6f, 0.6f, 1f, 0f, 0f)
+        LoraMouth.GRIN -> floatArrayOf(1.75f, -0.55f, -0.3f, 1.25f, 0.62f, 1f, 1f, 0f)
+        LoraMouth.OPEN -> floatArrayOf(0.9f, 0.2f, -0.8f, 1.2f, 1f, 1f, 0.7f, 0f)
+        LoraMouth.OOH -> floatArrayOf(0.62f, 0.2f, -0.45f, 0.85f, 1f, 1f, 0f, 0f)
+        LoraMouth.FLAT -> floatArrayOf(1.05f, 0.2f, 0.2f, 0.2f, 0.6f, 1f, 0f, 0f)
+        LoraMouth.NONE -> floatArrayOf(0.5f, 0.1f, 0.25f, 0.25f, 0.6f, 0f, 0f, 0f)
+        LoraMouth.TONGUE -> floatArrayOf(1.3f, -0.25f, 0.5f, 0.5f, 0.6f, 1f, 0f, 1f)
+    }
+}
+
+/** The face of one moment: the shapes of eyes and mouth ([EYE_SHAPES], [MOUTH_SHAPES]), moving from one look into the next. */
+private class LoraFaceShape(val eye: FloatArray, val mouth: FloatArray)
+
+/** The face of the last moments blended, so a new look grows out of the old one within a blink. */
+private fun faceOf(trail: Array<LoraPose>): LoraFaceShape {
+    val n = 4
+    val eye = FloatArray(8)
+    val mouth = FloatArray(8)
+    for (k in 0 until n) {
+        val e = EYE_SHAPES[trail[k].eyes.ordinal]
+        val m = MOUTH_SHAPES[trail[k].mouth.ordinal]
+        for (i in eye.indices) eye[i] += e[i] / n
+        for (i in mouth.indices) mouth[i] += m[i] / n
+    }
+    return LoraFaceShape(eye, mouth)
+}
+
+/** Lora's pose of the last moments, the newest first ([TRAIL] steps of [TRAIL_MS] back). */
+private fun trailOf(frame: LoraFrame, s: Float, now: LoraPose): Array<LoraPose> =
+    Array(TRAIL + 1) { k -> if (k == 0) now else posed(earlier(frame, k * TRAIL_MS), s - k * TRAIL_MS / 1000f) }
+
 /** Draws Lora at [timeMs] (seconds drive the small motions, [frame] the activity); runs without an animation clock. */
 internal fun DrawScope.drawLora(frame: LoraFrame, timeMs: Long, c: LoraColors, gaze: Offset? = null) {
     val s = timeMs / 1000f
@@ -2352,24 +2731,45 @@ internal fun DrawScope.drawLora(frame: LoraFrame, timeMs: Long, c: LoraColors, g
     val same = prev == frame.action
     val b = ease(frame.blend)
     val base = posed(frame, s)
-    // The motion of the last moment: Lora leans into it, stretches when hopping, squashes on landing, the antenna lags.
-    val dt = MOTION_MS / 1000f
-    val before = posed(earlier(frame, MOTION_MS), s - dt)
-    val vx = (base.dx - before.dx) / dt
-    val vy = (base.hop - before.hop) / dt
-    val vt = (base.tilt - before.tilt) / dt
-    val springy = if (base.hop < 0.5f && vy < -4f) 1 - min(0.05f, -vy * 0.003f) else 1 + min(0.04f, abs(vy) * 0.003f)
+    // The motion of the last moments: Lora leans into it and settles after a stop, stretches in the air and gives in
+    // the knees on landing, her arms and the antenna swing behind. Calmer with "Ruhigere Bewegungen".
+    val trail = trailOf(frame, s, base)
+    val lively = if (LoraMotion.calm) 0.35f else 1f
+    val dt = TRAIL_MS / 1000f
+    val vx = (trail[0].dx + trail[0].sway - trail[2].dx - trail[2].sway) / (2 * dt)
+    val vy = (trail[0].hop - trail[2].hop) / (2 * dt)
+    val vt = (trail[0].tilt - trail[2].tilt) / (2 * dt)
+    val zx = jelly { trail[it].dx + trail[it].sway } * lively
+    val zy = jelly { trail[it].hop } * lively
+    val zt = jelly { trail[it].tilt } * lively
+    // Walking: fast enough over the ground, her feet take steps.
+    val walkV = (trail[0].dx - trail[TRAIL].dx) / (TRAIL * dt)
+    val walk = ramp(abs(walkV), 2.5f, 8f)
+    val strides = base.dx / STRIDE
+    val bob = 0.55f * abs(sin(2 * PI * strides).toFloat()) * walk
+    val stretch = (1 + (abs(vy) * 0.0035f).coerceAtMost(0.05f) * lively + (zy * 0.06f).coerceIn(-0.09f, 0.07f)) * (1 + 0.014f * wave(s, 0.3f))
+    val armDrag = (vx * 0.35f - zx * 7f).coerceIn(-12f, 12f) * lively
+    val armFloat = (-vy * 0.4f + zy * 7f).coerceIn(-12f, 16f) * lively
+    fun swung(angle: Float, side: Int, weight: Float): Float {
+        val rad = Math.toRadians(angle.toDouble())
+        // Arms held in front are busy (a book, the keys); only those hanging or raised to the side swing behind.
+        val free = ((angle + 10f) / 20f).coerceIn(0f, 1f) * (1 - weight)
+        return angle + free * (-side * armDrag * cos(rad).toFloat() + armFloat * sin(rad).toFloat())
+    }
     val moved = base.copy(
-        tilt = base.tilt + (vx * 0.15f).coerceIn(-5f, 5f),
-        // And breathes.
-        squash = base.squash * springy * (1 + 0.012f * wave(s, 0.3f)),
+        tilt = base.tilt + (vx * 0.13f + zx * 2.4f).coerceIn(-7f, 7f) * lively,
+        hop = base.hop + bob,
+        squash = base.squash * stretch,
+        armL = swung(base.armL, -1, base.reachLW),
+        armR = swung(base.armR, 1, base.reachRW),
     )
     // While she is just there, her eyes follow the pointer (AP-36).
     val pose = if (gaze != null && frame.action in GAZE_ACTIONS) moved.copy(
         lookX = mix(moved.lookX, gaze.x, 0.75f), lookY = mix(moved.lookY, gaze.y * 0.8f, 0.75f), turn = moved.turn + 8 * gaze.x,
     ) else moved
-    val lagX = (-vx * 0.04f - vt * 0.02f).coerceIn(-2.2f, 2.2f)
-    val lagY = (vy * 0.05f).coerceIn(-1.2f, 1.5f)
+    val lagX = (-vx * 0.045f + zx * 1.5f - vt * 0.02f + zt * 0.4f).coerceIn(-3f, 3f) * lively
+    val lagY = (vy * 0.04f - zy * 0.9f).coerceIn(-1.6f, 2.2f) * lively
+    val face = faceOf(trail)
     // Props of the previous action fade out while the new ones fade in; a repeated action keeps its props.
     val inA = if (prev == null || same) 1f else b
     val outA = if (prev == null || same) 0f else 1 - b
@@ -2381,8 +2781,10 @@ internal fun DrawScope.drawLora(frame: LoraFrame, timeMs: Long, c: LoraColors, g
     val hop = pose.hop * u
     val bw = 24 * u * (1 + (1 - pose.squash) * 0.5f)
     val bh = 21 * u * pose.squash
-    val cx = cx0 + pose.dx * u
-    val bottom = ground - 5 * u - hop
+    val cx = cx0 + (pose.dx + pose.sway) * u
+    // Squashed, she gives in the knees: the body comes down while the feet stay where they are.
+    val sink = if (pose.hop < 1.2f) ((1 - pose.squash) * 9f).coerceIn(-0.6f, 2.4f) * u * (1 - pose.hop / 1.2f).coerceIn(0f, 1f) else 0f
+    val bottom = ground - 5 * u - hop + sink
     val top = bottom - bh
     // The turn of the head: the face moves sideways and narrows; past 90 degrees the back shows.
     val turnRad = Math.toRadians(pose.turn.toDouble())
@@ -2394,17 +2796,42 @@ internal fun DrawScope.drawLora(frame: LoraFrame, timeMs: Long, c: LoraColors, g
     if (prev != null && outA > 0f) drawScene(prev, 1f, s, outA, g, c)
     drawScene(frame.action, frame.phase, s, inA, g, c)
 
-    // Shadow on the ground, smaller while hopping.
-    val shadowW = bw * (1f - hop / (14 * u)).coerceAtLeast(0.4f)
-    drawOval(c.shadow, Offset(cx - shadowW / 2, ground - 0.9f * u), Size(shadowW, 1.8f * u))
+    // Shadow on the ground, soft at the rim, smaller while hopping.
+    val shadowW = bw * (1f - hop / (14 * u)).coerceAtLeast(0.4f) * 1.06f
+    drawOval(c.shadow.fade(0.5f), Offset(cx - shadowW / 2, ground - 1.1f * u), Size(shadowW, 2.2f * u))
+    drawOval(c.shadow, Offset(cx - shadowW * 0.39f, ground - 0.8f * u), Size(shadowW * 0.78f, 1.6f * u))
 
-    // Legs with round feet; a swinging foot lifts a little.
+    // Legs with little boots. On the ground the feet stay put (the knees give, she rises on her toes), while walking
+    // they take steps, in the air the legs hang.
+    val tiltRad = Math.toRadians(pose.tilt.toDouble())
+    val feetX = cx0 + pose.dx * u
+    val heading = (walkV / 8f).coerceIn(-1f, 1f)
     for (side in listOf(-1, 1)) {
-        val hipX = cx + side * 5.5f * u * spread
+        val hx = side * 5.5f * u * spread
+        val hip = Offset(cx + (hx * cos(tiltRad) + u * sin(tiltRad)).toFloat(), bottom + (hx * sin(tiltRad) - u * cos(tiltRad)).toFloat())
         val swing = if (side < 0) pose.legs else -pose.legs
-        val foot = Offset(hipX + swing * 2.6f * u, bottom + 3.8f * u - maxOf(0f, swing) * 0.9f * u)
-        drawLine(c.body, Offset(hipX, bottom - u), Offset(foot.x, foot.y - 0.6f * u), 2.8f * u, StrokeCap.Round)
-        drawOval(c.body, Offset(foot.x + side * 0.5f * u - 2.3f * u, foot.y - 1.2f * u), Size(4.6f * u, 2.4f * u))
+        val q = strides + (if (side < 0) 0f else 0.5f)
+        val ahead = stepOffset(q) * walk
+        val lift = maxOf(0f, swing) * 0.9f * u + stepLift(q) * walk * 1.5f * u
+        val stand = ground - 1.2f * u - lift
+        val reach = hip.y + 5.9f * u
+        val grounded = reach >= stand
+        val toes = if (grounded) ((stand - hip.y - 4.8f * u) / (1.1f * u)).coerceIn(0f, 1f) else 0f
+        val hang = if (grounded) 0f else maxOf(4.3f * u + (abs(vy) * 0.04f).coerceAtMost(1.3f) * u, 5.9f * u - (stand - reach) * 1.2f)
+        val air = if (grounded) 0f else ((stand - reach) / (2 * u)).coerceIn(0f, 1f)
+        val ankle = Offset(
+            mix(feetX + side * 5.5f * u * spread + ahead * STRIDE * u + swing * 2.6f * u, hip.x + swing * 2.2f * u - side * 0.5f * u, air),
+            if (grounded) stand - toes * 0.9f * u else hip.y + hang,
+        )
+        val dxl = ankle.x - hip.x
+        val dyl = ankle.y - hip.y
+        val slack = (4.8f * u) * (4.8f * u) - (dxl * dxl + dyl * dyl)
+        val knee = if (slack > 0f) 0.45f * sqrt(slack) else 0f
+        val bend = Offset((hip.x + ankle.x) / 2 + side * knee, (hip.y + ankle.y) / 2)
+        limb(hip, bend, Offset(ankle.x, ankle.y - 0.5f * u), 3.2f * u, 2.7f * u, c.body.shade(-0.1f))
+        val toe = (side * 0.45f * (1 - walk) + heading * walk + sideways * 1.2f).coerceIn(-1f, 1f)
+        val pitch = 26f * toes + 16f * air - 12f * maxOf(0f, swing) - 14f * walk * (stepOffset(q) / 0.3f) * (if (heading < 0f) -1f else 1f)
+        boot(ankle, toe, pitch, u, c)
     }
 
     rotate(pose.tilt, Offset(cx, bottom)) {
@@ -2412,41 +2839,49 @@ internal fun DrawScope.drawLora(frame: LoraFrame, timeMs: Long, c: LoraColors, g
         val pulse = 0.5f + 0.5f * wave(s, 0.9f)
         val tip = Offset(cx + 0.7f * u * wave(s, 0.6f) + lagX * u, top - 5.2f * u + lagY * u)
         val antenna = Path().apply { moveTo(cx, top + 0.6f * u); quadraticTo(cx, top - 2.4f * u, tip.x, tip.y) }
-        drawPath(antenna, c.line, style = Stroke(1.3f * u, cap = StrokeCap.Round))
-        if (pose.glow > 1f) drawCircle(c.spark.fade(0.2f * (pose.glow - 1f) / 0.4f), 4.2f * u, tip)
-        star(tip, 2.4f * u * (0.88f + 0.12f * pulse) * (if (pose.glow > 1f) 1.15f else 1f), c.spark.fade((0.75f + 0.25f * pulse) * min(1f, pose.glow)))
-
-        // Body with a glossy highlight (it slides the other way when Lora turns).
-        val bodyShape = Path().apply { addRoundRect(RoundRect(cx - bw / 2, top, cx + bw / 2, top + bh, CornerRadius(min(9 * u, bh / 2)))) }
-        drawPath(bodyShape, c.body)
-        // The highlight stays on the body (at the rounded corner it would stick out).
-        clipPath(bodyShape) {
-            drawRoundRect(
-                Color.White.copy(alpha = 0.22f), Offset(cx - bw / 2 + 2.6f * u - sideways * 2 * u, top + 1.1f * u), Size(5.5f * u, 1.5f * u), CornerRadius(0.75f * u),
-            )
+        drawPath(antenna, c.line, style = Stroke(1.25f * u, cap = StrokeCap.Round))
+        val lit = min(1f, pose.glow)
+        val halo = (0.16f + 0.1f * pulse) * lit + (if (pose.glow > 1f) 0.3f * (pose.glow - 1f) / 0.4f else 0f)
+        drawCircle(Brush.radialGradient(listOf(c.spark.fade(halo), c.spark.fade(0f)), tip, 5 * u), 5 * u, tip)
+        rotate(8f * wave(s, 0.45f) + lagX * 9f, tip) {
+            star(tip, 2.4f * u * (0.88f + 0.12f * pulse) * (if (pose.glow > 1f) 1.15f else 1f), c.spark.fade((0.75f + 0.25f * pulse) * lit))
         }
+        drawCircle(Color.White.copy(alpha = 0.55f * lit * c.spark.alpha), 0.55f * u, Offset(tip.x - 0.35f * u, tip.y - 0.35f * u))
+
+        val bodyShape = bodyPath(cx, top, bw, bh, u)
+        drawBody(bodyShape, cx, top, bw, bh, u, c, sideways)
+        // Where the antenna sits.
+        drawOval(c.body.shade(-0.3f).fade(0.6f), Offset(cx - 1.5f * u, top + 0.15f * u), Size(3 * u, 1.1f * u))
 
         val visorTop = top + 3.2f * u * pose.squash
+        // The face gives a little with her motion, like something soft behind the glass.
+        val slosh = Offset((zx * 0.25f).coerceIn(-0.5f, 0.5f) * u, (-zy * 0.3f).coerceIn(-0.5f, 0.6f) * u)
         if (facing > 0.04f) {
             // The little star on the chest and the face, both turned with the head.
             withTransform({ translate(left = sideways * 6 * u); scale(facing, 1f, Offset(cx, top + bh * 0.84f)) }) {
-                star(Offset(cx, top + bh * 0.84f), 1.5f * u, Color.White.copy(alpha = 0.35f))
+                star(Offset(cx, top + bh * 0.84f), 1.5f * u, Color.White.copy(alpha = 0.38f * c.body.alpha))
             }
-            withTransform({ translate(left = g.faceDx); scale(facing, 1f, Offset(cx, visorTop + 5.5f * u)) }) {
-                drawFace(pose, s, cx, visorTop, u, c)
+            clipPath(bodyShape) {
+                withTransform({ translate(left = g.faceDx); scale(facing, 1f, Offset(cx, visorTop + 5.5f * u)) }) {
+                    drawFace(pose, face, s, cx, visorTop, u, c, slosh)
+                }
             }
         } else if (facing < -0.04f) {
             // The back: a small hatch with two screws.
             withTransform({ translate(left = -g.faceDx); scale(-facing, 1f, Offset(cx, visorTop + 5.5f * u)) }) {
-                drawRoundRect(Color.White.copy(alpha = 0.18f), Offset(cx - 5 * u, visorTop + 2 * u), Size(10 * u, 7 * u), CornerRadius(1.6f * u))
-                for (side in listOf(-1, 1)) drawCircle(Color.White.copy(alpha = 0.35f), 0.6f * u, Offset(cx + side * 3.4f * u, visorTop + 3.4f * u))
+                drawRoundRect(c.body.shade(-0.22f).fade(0.7f), Offset(cx - 5 * u, visorTop + 2 * u), Size(10 * u, 7 * u), CornerRadius(1.6f * u))
+                drawRoundRect(Color.White.copy(alpha = 0.16f * c.body.alpha), Offset(cx - 5 * u, visorTop + 2.35f * u), Size(10 * u, 7 * u), CornerRadius(1.6f * u), style = Stroke(0.35f * u))
+                for (side in listOf(-1, 1)) drawCircle(Color.White.copy(alpha = 0.4f * c.body.alpha), 0.6f * u, Offset(cx + side * 3.4f * u, visorTop + 3.4f * u))
             }
         }
 
-        // Arms in front of the body with a soft elbow; a light edge keeps them visible on it. Hands come after the held things.
+        // Arms in front of the body with a soft elbow; a shade under them keeps them visible on it. Hands come after the held things.
         val shoulderY = top + bh * 0.69f
+        val armColor = c.body.shade(0.07f)
+        val armShade = c.body.shade(-0.42f).fade(0.42f)
         fun shoulder(side: Int) = Offset(cx + side * (bw / 2 - 0.9f * u) * spread, shoulderY)
-        fun arm(side: Int, degrees: Float, reach: Offset, weight: Float): Offset {
+        /** The elbow and the hand of an arm. */
+        fun arm(side: Int, degrees: Float, reach: Offset, weight: Float): Pair<Offset, Offset> {
             val rad = Math.toRadians(degrees.toDouble())
             val start = shoulder(side)
             var ex = side * (sin(rad) * 8 * u).toFloat() * spread
@@ -2466,23 +2901,28 @@ internal fun DrawScope.drawLora(frame: LoraFrame, timeMs: Long, c: LoraColors, g
             }
             val end = Offset(start.x + ex, start.y + ey)
             val len = sqrt(ex * ex + ey * ey).coerceAtLeast(0.01f)
-            val bend = 1.6f * u * (1 + 0.2f * wave(s + side * 0.4f, 0.7f))
-            val elbow = Offset((start.x + end.x) / 2 + side * ey / len * bend, (start.y + end.y) / 2 - side * ex / len * bend)
-            val path = Path().apply { moveTo(start.x, start.y); quadraticTo(elbow.x, elbow.y, end.x, end.y) }
-            drawPath(path, c.visor.copy(alpha = 0.55f), style = Stroke(3.8f * u, cap = StrokeCap.Round))
-            drawPath(path, c.body, style = Stroke(2.8f * u, cap = StrokeCap.Round))
-            return end
+            val bend = 1.7f * u * (1 + 0.2f * wave(s + side * 0.4f, 0.7f))
+            return Offset((start.x + end.x) / 2 + side * ey / len * bend, (start.y + end.y) / 2 - side * ex / len * bend) to end
         }
-        val handL = arm(-1, pose.armL, pose.reachL, pose.reachLW)
-        val handR = arm(1, pose.armR, pose.reachR, pose.reachRW)
+        val (elbowL, handL) = arm(-1, pose.armL, pose.reachL, pose.reachLW)
+        val (elbowR, handR) = arm(1, pose.armR, pose.reachR, pose.reachRW)
         val shoulderL = shoulder(-1)
         val shoulderR = shoulder(1)
+        // The shade of the arms falls on the body only.
+        val low = Offset(0f, 0.45f * u)
+        clipPath(bodyShape) {
+            limb(shoulderL + low, elbowL + low, handL + low, 4.1f * u, 3.5f * u, armShade)
+            limb(shoulderR + low, elbowR + low, handR + low, 4.1f * u, 3.5f * u, armShade)
+        }
+        limb(shoulderL, elbowL, handL, 3.3f * u, 2.6f * u, armColor)
+        limb(shoulderR, elbowR, handR, 3.3f * u, 2.6f * u, armColor)
 
         if (prev != null && outA > 0f) drawHeld(prev, 1f, s, outA, g, c, shoulderL, shoulderR, handL, handR, front = false)
         drawHeld(frame.action, frame.phase, s, inA, g, c, shoulderL, shoulderR, handL, handR, front = false)
+        clipPath(bodyShape) { for (hand in listOf(handL, handR)) drawCircle(armShade, 2.2f * u, Offset(hand.x, hand.y + 0.4f * u)) }
         for (hand in listOf(handL, handR)) {
-            drawCircle(c.visor.copy(alpha = 0.55f), 2.05f * u, hand)
-            drawCircle(c.body, 1.6f * u, hand)
+            drawCircle(armColor, 1.75f * u, hand)
+            drawCircle(Color.White.copy(alpha = 0.24f * c.body.alpha), 0.55f * u, Offset(hand.x - 0.55f * u, hand.y - 0.6f * u))
         }
         if (prev != null && outA > 0f) drawHeld(prev, 1f, s, outA, g, c, shoulderL, shoulderR, handL, handR, front = true)
         drawHeld(frame.action, frame.phase, s, inA, g, c, shoulderL, shoulderR, handL, handR, front = true)
@@ -2509,6 +2949,8 @@ private const val FACE_CHIN = 28.6f
 internal fun DrawScope.drawLoraFace(frame: LoraFrame, timeMs: Long, c: LoraColors, gaze: Offset? = null) {
     val s = timeMs / 1000f
     val base = posed(frame, s)
+    val trail = trailOf(frame, s, base)
+    val lively = if (LoraMotion.calm) 0.35f else 1f
     val pose = if (gaze != null && frame.action in GAZE_ACTIONS) base.copy(
         lookX = mix(base.lookX, gaze.x, 0.75f), lookY = mix(base.lookY, gaze.y * 0.8f, 0.75f),
     ) else base
@@ -2517,34 +2959,37 @@ internal fun DrawScope.drawLoraFace(frame: LoraFrame, timeMs: Long, c: LoraColor
     val oy = (size.height - FACE_SPACE * u) / 2
     val cx = ox + 15 * u
     // The head breathes and squashes a little with the pose (never as much as the whole figure hops).
-    val squash = 1 + (pose.squash - 1) * 0.5f + 0.012f * wave(s, 0.3f)
+    val zy = jelly { trail[it].hop } * lively
+    val squash = 1 + (pose.squash - 1) * 0.5f + 0.014f * wave(s, 0.3f) + (zy * 0.03f).coerceIn(-0.04f, 0.04f)
     val bw = 23 * u
     val bh = 20 * u * squash
     val bottom = oy + FACE_CHIN * u
     val top = bottom - bh
     // A gentle tilt of the head: half of the figure's, at most six degrees.
     val tilt = (pose.tilt * 0.5f).coerceIn(-6f, 6f)
+    val zt = jelly { trail[it].tilt } * lively
     rotate(tilt, Offset(cx, bottom)) {
         val pulse = 0.5f + 0.5f * wave(s, 0.9f)
-        val tip = Offset(cx + 0.7f * u * wave(s, 0.6f), top - 4.6f * u)
+        val tip = Offset(cx + 0.7f * u * wave(s, 0.6f) + (zt * 0.35f).coerceIn(-1.6f, 1.6f) * u, top - 4.6f * u + (-zy * 0.5f).coerceIn(-0.8f, 0.8f) * u)
         val antenna = Path().apply { moveTo(cx, top + 0.6f * u); quadraticTo(cx, top - 2.2f * u, tip.x, tip.y) }
-        drawPath(antenna, c.line, style = Stroke(1.3f * u, cap = StrokeCap.Round))
-        if (pose.glow > 1f) drawCircle(c.spark.fade(0.2f * (pose.glow - 1f) / 0.4f), 3.8f * u, tip)
-        star(tip, 2.3f * u * (0.88f + 0.12f * pulse), c.spark.fade((0.75f + 0.25f * pulse) * min(1f, pose.glow)))
-        val head = Path().apply { addRoundRect(RoundRect(cx - bw / 2, top, cx + bw / 2, top + bh, CornerRadius(8.5f * u))) }
-        drawPath(head, c.body)
-        clipPath(head) {
-            drawRoundRect(Color.White.copy(alpha = 0.22f), Offset(cx - bw / 2 + 2.6f * u, top + 1.1f * u), Size(5.5f * u, 1.5f * u), CornerRadius(0.75f * u))
-        }
-        drawFace(pose, s, cx, top + 3.4f * u, u, c)
+        drawPath(antenna, c.line, style = Stroke(1.25f * u, cap = StrokeCap.Round))
+        val lit = min(1f, pose.glow)
+        val halo = (0.16f + 0.1f * pulse) * lit + (if (pose.glow > 1f) 0.3f * (pose.glow - 1f) / 0.4f else 0f)
+        drawCircle(Brush.radialGradient(listOf(c.spark.fade(halo), c.spark.fade(0f)), tip, 4.2f * u), 4.2f * u, tip)
+        rotate(8f * wave(s, 0.45f), tip) { star(tip, 2.3f * u * (0.88f + 0.12f * pulse), c.spark.fade((0.75f + 0.25f * pulse) * lit)) }
+        drawCircle(Color.White.copy(alpha = 0.55f * lit * c.spark.alpha), 0.5f * u, Offset(tip.x - 0.35f * u, tip.y - 0.35f * u))
+        val head = bodyPath(cx, top, bw, bh, u)
+        drawBody(head, cx, top, bw, bh, u, c, 0f)
+        drawOval(c.body.shade(-0.3f).fade(0.6f), Offset(cx - 1.5f * u, top + 0.15f * u), Size(3 * u, 1.1f * u))
+        drawFace(pose, faceOf(trail), s, cx, top + 3.4f * u, u, c, Offset.Zero)
     }
     when (frame.action) {
         LoraAction.WAVE -> {
             // A hand waving at the lower right, with two small lines.
             val swing = wave(s, 1.8f)
             val hand = Offset(ox + 25.6f * u + swing * 0.8f * u, oy + (FACE_CHIN - 9.5f) * u - abs(swing) * 0.6f * u)
-            drawCircle(c.visor.copy(alpha = 0.55f), 2.3f * u, hand)
-            drawCircle(c.body, 1.85f * u, hand)
+            drawCircle(c.body.shade(0.07f), 1.95f * u, hand)
+            drawCircle(Color.White.copy(alpha = 0.24f * c.body.alpha), 0.6f * u, Offset(hand.x - 0.6f * u, hand.y - 0.65f * u))
             for (i in 0..1) {
                 val r = (3.1f + i * 1.2f) * u
                 drawArc(
@@ -2570,49 +3015,99 @@ internal fun DrawScope.drawLoraFace(frame: LoraFrame, timeMs: Long, c: LoraColor
     }
 }
 
-/** Lora's visor with eyes, cheeks and mouth; blinks now and then, sometimes twice. */
-private fun DrawScope.drawFace(pose: LoraPose, s: Float, cx: Float, visorTop: Float, u: Float, c: LoraColors) {
-    drawRoundRect(c.visor, Offset(cx - 9 * u, visorTop), Size(18 * u, 11 * u), CornerRadius(5.5f * u))
-    fun lid(t: Float) = if (t < 0.14f) abs(t - 0.07f) / 0.07f else 1f
-    val open = min(lid(s % 3.7f), lid((s + 1.9f) % 9.1f))
-    val eyeY = visorTop + 5 * u + pose.lookY * 1.1f * u
-    for (side in listOf(-1, 1)) {
-        val ex = cx + side * 3.9f * u + pose.lookX * 2 * u
-        when (pose.eyes) {
-            LoraEyes.OPEN, LoraEyes.WIDE -> {
-                val wide = pose.eyes == LoraEyes.WIDE
-                val w = (if (wide) 3.3f else 2.8f) * u
-                val h = ((if (wide) 4.4f else 3.6f) * u * open).coerceAtLeast(0.5f * u)
-                drawRoundRect(c.eye, Offset(ex - w / 2, eyeY - h / 2), Size(w, h), CornerRadius(w / 2))
-                if (open > 0.6f) drawCircle(c.visor, (if (wide) 0.7f else 0.55f) * u, Offset(ex - 0.45f * u, eyeY - 0.8f * u))
-            }
-            LoraEyes.FOCUS -> drawRoundRect(c.eye, Offset(ex - 1.5f * u, eyeY - 0.75f * u), Size(3 * u, 1.5f * u), CornerRadius(0.75f * u))
-            LoraEyes.HAPPY -> {
-                val path = Path().apply { moveTo(ex - 1.5f * u, eyeY + 0.7f * u); quadraticTo(ex, eyeY - 1.6f * u, ex + 1.5f * u, eyeY + 0.7f * u) }
-                drawPath(path, c.eye, style = Stroke(1f * u, cap = StrokeCap.Round))
-            }
-            LoraEyes.CLOSED -> {
-                val path = Path().apply { moveTo(ex - 1.5f * u, eyeY); quadraticTo(ex, eyeY + 1.3f * u, ex + 1.5f * u, eyeY) }
-                drawPath(path, c.eye, style = Stroke(0.9f * u, cap = StrokeCap.Round))
-            }
+/**
+ * Lora's visor with eyes, cheeks and mouth; she blinks now and then, sometimes twice. The glass sits a little inside
+ * the body (a shade above, a light edge below), [face] gives the look of eyes and mouth, [slosh] moves them with her
+ * motion.
+ */
+private fun DrawScope.drawFace(pose: LoraPose, face: LoraFaceShape, s: Float, cx: Float, visorTop: Float, u: Float, c: LoraColors, slosh: Offset) {
+    val tl = Offset(cx - 9 * u, visorTop)
+    val glass = Size(18 * u, 11 * u)
+    val round = CornerRadius(5.5f * u)
+    drawRoundRect(c.body.shade(-0.38f).fade(0.55f), Offset(tl.x - 0.25f * u, tl.y - 0.5f * u), Size(glass.width + 0.5f * u, glass.height + 0.6f * u), CornerRadius(5.7f * u))
+    drawRoundRect(Color.White.copy(alpha = 0.3f * c.body.alpha), Offset(tl.x - 0.1f * u, tl.y + 0.4f * u), Size(glass.width + 0.2f * u, glass.height), round)
+    drawRoundRect(Brush.verticalGradient(listOf(c.visor, c.visor.tint(c.body, 0.1f)), tl.y + 3 * u, tl.y + glass.height), tl, glass, round)
+    val dark = c.visor.brightness() < 0.4f
+    val visor = Path().apply { addRoundRect(RoundRect(tl.x, tl.y, tl.x + glass.width, tl.y + glass.height, round)) }
+    clipPath(visor) {
+        // The shade of the body on the upper rim of the glass, and a reflection across it.
+        drawRoundRect(c.eye.fade(if (dark) 0.05f else 0.07f), Offset(tl.x, tl.y - glass.height + 1.3f * u), glass, round)
+        val sheen = Path().apply {
+            moveTo(tl.x + 3.2f * u, tl.y); lineTo(tl.x + 6.4f * u, tl.y); lineTo(tl.x + 2.2f * u, tl.y + glass.height); lineTo(tl.x - 1f * u, tl.y + glass.height); close()
         }
-        val cheek = Offset(cx + side * 5.9f * u + pose.lookX * 0.8f * u, visorTop + (8 + pose.lookY * 0.3f) * u)
-        drawOval(c.blush.copy(alpha = 0.55f), Offset(cheek.x - 1.4f * u, cheek.y - 0.75f * u), Size(2.8f * u, 1.5f * u))
+        drawPath(sheen, Color.White.copy(alpha = (if (dark) 0.05f else 0.5f) * c.visor.alpha))
     }
-    val mx = cx + pose.lookX * 1.4f * u
-    val my = visorTop + 8.3f * u + pose.lookY * 0.6f * u
-    when (pose.mouth) {
-        LoraMouth.SMILE -> {
-            val path = Path().apply { moveTo(mx - 1.3f * u, my - 0.3f * u); quadraticTo(mx, my + 1f * u, mx + 1.3f * u, my - 0.3f * u) }
-            drawPath(path, c.eye, style = Stroke(0.8f * u, cap = StrokeCap.Round))
+
+    val open = blink(s)
+    val smiling = EYE_SHAPES[LoraEyes.HAPPY.ordinal]
+    val eyeY = visorTop + 4.75f * u + pose.lookY * 1.05f * u + slosh.y
+    for (side in listOf(-1, 1)) {
+        // In a wink the eye on the viewer's left smiles shut.
+        val wink = if (side < 0) face.eye[EYE_WINK] else 0f
+        fun e(i: Int) = mix(face.eye[i], smiling[i], wink)
+        // A blink closes the lids to a thin line just below the middle; smiling and closed eyes do not blink.
+        val shut = (1 - open) * (e(EYE_SHINE) * 2).coerceIn(0f, 1f)
+        val w = e(EYE_W) * u
+        val corner = mix(e(EYE_CORNER), 0.1f, shut) * u
+        val up = mix(e(EYE_UP), -0.3f, shut) * u
+        val down = mix(e(EYE_DOWN), 0.55f, shut) * u
+        val box = e(EYE_BOX)
+        val shine = e(EYE_SHINE) * (1 - shut)
+        val ex = cx + side * 3.95f * u + pose.lookX * 2 * u + slosh.x
+        val shape = Path().apply {
+            moveTo(ex - w, eyeY + corner)
+            cubicTo(ex - w * box, eyeY - (4 * up + corner) / 3, ex + w * box, eyeY - (4 * up + corner) / 3, ex + w, eyeY + corner)
+            cubicTo(ex + w * box, eyeY + (4 * down - corner) / 3, ex - w * box, eyeY + (4 * down - corner) / 3, ex - w, eyeY + corner)
+            close()
         }
-        LoraMouth.GRIN -> {
-            val path = Path().apply { moveTo(mx - 1.6f * u, my - 0.5f * u); quadraticTo(mx, my + 2f * u, mx + 1.6f * u, my - 0.5f * u); close() }
-            drawPath(path, c.eye)
+        // On a dark glass the eyes glow a little.
+        if (dark) drawPath(shape, c.eye.fade(0.16f), style = Stroke(2f * u, join = StrokeJoin.Round))
+        drawPath(shape, c.eye)
+        drawPath(shape, c.eye, style = Stroke(0.6f * u, join = StrokeJoin.Round))
+        if (shine > 0.05f) {
+            val k = shine.coerceAtMost(1.2f)
+            val light = Offset(ex - 0.5f * u - pose.lookX * 0.2f * u, eyeY - 0.8f * u * (up / (1.9f * u)).coerceIn(0.3f, 1.3f))
+            val star = e(EYE_STAR)
+            if (star > 0.05f) star(light, 1.25f * u * star * (0.85f + 0.15f * wave(s, 2.2f)), c.visor)
+            drawCircle(c.visor, 0.62f * u * k * (1 - 0.6f * star), light)
+            drawCircle(c.visor.fade(0.75f), 0.3f * u * k, Offset(ex + 0.55f * u, eyeY + 0.75f * u * (down / (1.9f * u)).coerceIn(0.2f, 1.2f)))
         }
-        LoraMouth.OPEN -> drawOval(c.eye, Offset(mx - 0.8f * u, my - 0.75f * u), Size(1.6f * u, 1.9f * u))
-        LoraMouth.FLAT -> drawLine(c.eye, Offset(mx - 1 * u, my + 0.2f * u), Offset(mx + 1 * u, my + 0.2f * u), 0.8f * u, StrokeCap.Round)
-        LoraMouth.NONE -> Unit
+        // Cheeks: a soft blush, a little rosier with a broad smile.
+        val cheek = Offset(cx + side * 6.1f * u + pose.lookX * 0.8f * u + slosh.x, visorTop + (8.05f + pose.lookY * 0.3f) * u + slosh.y)
+        val rosy = 0.42f + 0.16f * face.mouth[MOUTH_TONGUE]
+        drawOval(c.blush.copy(alpha = rosy * 0.5f * c.blush.alpha), Offset(cheek.x - 1.75f * u, cheek.y - 1f * u), Size(3.5f * u, 2f * u))
+        drawOval(c.blush.copy(alpha = rosy * c.blush.alpha), Offset(cheek.x - 1.3f * u, cheek.y - 0.7f * u), Size(2.6f * u, 1.4f * u))
+    }
+
+    val m = face.mouth
+    val alpha = m[MOUTH_ALPHA]
+    if (alpha > 0.02f) {
+        val mx = cx + pose.lookX * 1.4f * u + slosh.x
+        val my = visorTop + 8.35f * u + pose.lookY * 0.6f * u + slosh.y
+        val mw = m[MOUTH_W] * u
+        val mc = m[MOUTH_CORNER] * u
+        val mt = m[MOUTH_TOP] * u
+        val mb = m[MOUTH_BOTTOM] * u
+        val mbox = m[MOUTH_BOX]
+        val ink = c.eye.fade(alpha)
+        val shape = Path().apply {
+            moveTo(mx - mw, my + mc)
+            cubicTo(mx - mw * mbox, my + (4 * mt - mc) / 3, mx + mw * mbox, my + (4 * mt - mc) / 3, mx + mw, my + mc)
+            cubicTo(mx + mw * mbox, my + (4 * mb - mc) / 3, mx - mw * mbox, my + (4 * mb - mc) / 3, mx - mw, my + mc)
+            close()
+        }
+        drawPath(shape, ink)
+        val tongue = m[MOUTH_TONGUE]
+        if (tongue > 0.05f && mb - mt > 0.5f * u) {
+            clipPath(shape) { drawOval(c.blush.fade(alpha * tongue), Offset(mx - mw * 0.62f, my + mb - 0.75f * u), Size(mw * 1.24f, 1.6f * u)) }
+        }
+        drawPath(shape, ink, style = Stroke(0.8f * u, cap = StrokeCap.Round, join = StrokeJoin.Round))
+        val lick = m[MOUTH_LICK]
+        if (lick > 0.05f) {
+            val tip = Offset(mx + mw * 0.72f, my + mc + 0.75f * u)
+            drawCircle(ink, 0.95f * u * lick, tip)
+            drawCircle(c.blush.fade(alpha), 0.62f * u * lick, tip)
+        }
     }
 }
 

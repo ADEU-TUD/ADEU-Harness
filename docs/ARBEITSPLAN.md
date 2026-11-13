@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 11.11.2026 (Sitzung Dateiwerkzeuge: AP-90 Rest, AP-91, AP-93, AP-97 bis AP-100, AP-107 Rest, neu AP-119 und AP-120 in der App, Prüfung am Gerät offen) · 11.11.2026 (AP-112 und AP-116 in der App, Messung am Gerät offen; AP-117 erledigt; AP-118 Server-Terminal in der App, am eigenen Server zu prüfen) · 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen; neu: AP-116 lokale Modelle auf dem Handy zu langsam, nicht abbrechbar, Gerät heiß) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 13.11.2026 (AP-121 Lora-Aussehen und -Animationen: Entwurf fertig, Freigabe offen, nicht in der App) · 11.11.2026 (Sitzung Dateiwerkzeuge: AP-90 Rest, AP-91, AP-93, AP-97 bis AP-100, AP-107 Rest, neu AP-119 und AP-120 in der App, Prüfung am Gerät offen) · 11.11.2026 (AP-112 und AP-116 in der App, Messung am Gerät offen; AP-117 erledigt; AP-118 Server-Terminal in der App, am eigenen Server zu prüfen) · 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen; neu: AP-116 lokale Modelle auf dem Handy zu langsam, nicht abbrechbar, Gerät heiß) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -73,6 +73,7 @@ Fairlight).
 | **Danach** | ~~AP-86 Lokale Modelle auf dem Mac laden~~ ☑ (10.11.2026, 1.0.67) |
 | **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung ◐ · AP-106 Modellkatalog in feinen Stufen, nach Zweck ◐ · AP-107 Suche nach Bedeutung auf dem Gerät ◐ (Rest in der App) · AP-108 Lange Texte lokal ◐ · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal ◐ · AP-111 Sprachausgabe lokal ☑ · AP-112 Offline-Schiene in der Oberfläche ◐ · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 ☑ · **AP-116 Lokale Modelle: Tempo, Abbruch, Hitze ◐** (Fehler aus 1.0.67, vor AP-109) · ~~AP-117 Eigene Modelle aktualisieren, auf GitHub~~ ☑ (11.11.2026) |
 | **Neu (11.11.2026)** | **AP-118 Server-Terminal mit Lora ◐** (SSH wie PuTTY, Lora schlägt Schritte vor, Ausführung nur nach Zustimmung; nur Desktop) · ~~AP-119 Anzeige, wohin die Daten gehen~~ ☑ (Wunsch des Kollegen) · **AP-120 Lora einrichten Schritt für Schritt ◐** (Wunsch Hauptnutzer) |
+| **Neu (12.11.2026)** | **AP-121 Lora: neues Aussehen und lebendigere Animationen ◐** (Wunsch Hauptnutzer; Entwurf fertig, **nicht in der App** – erst nach Freigabe der Vorschau) |
 | **Später** | AP-87 Datei-Erste-Hilfe · AP-88 Zeitreise für Dateien · AP-89 Vorlage aus eigener Datei · AP-90 Formatwandler mit Verlustanzeige ◐ · AP-91 Schriften-Notfall ◐ · AP-92 Formatierung aufräumen · AP-93 CSV-Lotse ◐ · AP-94 Formular aus Scan · AP-95 PDF-Tabellen nach Excel ◐ · AP-96 Diagramm zu Daten · AP-97 Druck-Lotse ◐ · AP-98 Passwortschutz für Dateien ◐ · AP-99 Archiv-Werkzeug ◐ · AP-100 Fotos vom Handy aufbereiten ◐ · AP-101 Bild-Werkstatt · AP-102 Umzug auf einen neuen PC |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
@@ -1085,6 +1086,30 @@ RAM-Einschätzung, danach Route `local-setup`; eigener Anbieter (Gemini) und Exp
 über Lora („Lora einrichten“, Landkarte `area.setup`), Strg+K, Willkommenskarte, *Einstellungen › Lora*. Test
 `SetupLookTest` (Bild je Schritt, Fensterbreite und Handy). **Offen – mit Nutzer:innen**: einmal mit jemandem ohne
 Vorwissen durchgehen (Hauptnutzer schaut zu); Texte nach Rückmeldung nachschärfen.
+
+### AP-121 ◐ Lora: neues Aussehen und lebendigere Animationen · M (neu, Wunsch Hauptnutzer 12.11.2026)
+**Ziel**: Lora ist Maskottchen und Aushängeschild der App – niedlich, aber noch etwas starr. Ihr Aussehen und alle 51
+bestehenden Animationen deutlich aufwerten, ohne dass sie ihren Charakter verliert; seriös bleiben und *Ruhigere
+Bewegungen* respektieren (Grundsatz *Lora*). **Erst nach Freigabe des Hauptnutzers in die App** – bis dahin gibt es nur
+eine Vorschau (Vorher/Nachher-Filme jeder Aktion), nichts wird veröffentlicht.
+**Fertig, wenn**: der Hauptnutzer die Vorschau freigegeben hat, der Entwurf in der App ist und die App-Symbole neu
+ausgegeben sind.
+◐ *Stand 13.11.2026 – Entwurf liegt auf dem Entwicklungszweig, wartet auf Freigabe*: alles in `ui/LoraFigure.kt`.
+**Aussehen**: Körper mit Volumen (Verlauf, weiches Licht von links oben, Glanz – aus der Stilfarbe abgeleitet, passt
+also zu jeder Akzentfarbe), Kopf als Kuppel (`bodyPath`, `drawBody`), Visier wie Glas (leicht eingelassen, Spiegelung;
+auf dunklem Glas leuchten die Augen), größere Augen mit Lichtpunkten, kleine Stiefel (`boot`), Arme und Beine verjüngt
+(`limb`) mit Schatten auf dem Körper, Stern mit Lichthof. Augen und Mund sind Formen, die ineinander übergehen
+(`EYE_SHAPES`, `MOUTH_SHAPES`, `faceOf`), dazu neue Blicke (`SOFT`, `SPARKLE`, `WINK`) und Münder (`OOH`, `TONGUE`).
+**Bewegung**: Lora „spürt“ ihre Bewegung der letzten 360 ms (`trailOf`, `jelly`) – Antenne, Arme und Körper schwingen
+nach, sie streckt sich im Sprung und federt bei der Landung; die Füße bleiben am Boden (Knie geben nach, Zehenspitzen),
+neu `sway` (Gewicht verlagern, Füße bleiben stehen) neben `dx`; bewegt sie sich fort, macht sie echte Schritte
+(`stepOffset`, `STRIDE`); Übergänge zwischen Aktionen beginnen sanfter; *Ruhigere Bewegungen* dämpft das Nachschwingen.
+**Choreografie** aller 51 Aktionen überarbeitet (`loraPose`: Ausholen, Gewichtsverlagerung, Mimik). Namen, Dauer
+(`periodMs`), Reihenfolge, Regie (`LoraDirector`) und alle Gegenstände sind unverändert – der Rest der App bleibt, wie er
+ist. Tests: `LoraFigureTest` unverändert (alles bleibt im Bild), `LogoTest` zählt helle statt rein weißer Pixel im
+Gesicht, neu `LoraPreviewTest` (Filme aller Aktionen nach `LORA_PREVIEW_DIR`, braucht ffmpeg; ohne die Variable tut er
+nichts). **Offen – nach der Freigabe**: App-Symbole neu ausgeben und kopieren (README › *Logo ändern*, auch `app.icns`),
+README-Abschnitte *Logo und Startanimation* und *Lora, das Maskottchen* anpassen, Paket abhaken.
 
 
 ---
