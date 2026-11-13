@@ -152,7 +152,7 @@ section { display: flex; flex-direction: column; gap: 20px; }
         <h3>Bewegung</h3>
         <ul>
           <li>Die Füße bleiben am Boden stehen. Lora gibt in den Knien nach, stellt sich auf die Zehen und verlagert ihr Gewicht.</li>
-          <li>Sobald sie sich fortbewegt, macht sie echte Schritte. Die Füße rutschen nicht mehr.</li>
+          <li>Sobald sie sich fortbewegt, dreht sie sich in Laufrichtung und setzt mit gleichmäßigen Schritten einen Fuß vor den anderen.</li>
           <li>Antenne, Arme und Körper schwingen nach, wenn sie anhält oder landet.</li>
           <li>Sie holt vor Sprüngen aus, streckt sich in der Luft und federt bei der Landung.</li>
           <li>Gesichtsausdrücke gehen ineinander über, statt umzuspringen. Das Blinzeln ist natürlicher.</li>
@@ -161,7 +161,8 @@ section { display: flex; flex-direction: column; gap: 20px; }
         </ul>
       </div>
     </div>
-    <p class="keep">Gleich geblieben sind die Namen, die Dauer und die Reihenfolge aller Aktionen sowie sämtliche Gegenstände. Der Rest der App muss für den Einbau nicht angepasst werden.</p>
+    <p class="keep">Neu in dieser Runde: Lora benutzt ihre Gegenstände richtig (Auge am Okular von Mikroskop und Teleskop, Lupe vor dem Auge, Tasse am Mund), kleine Dinge sind größer und klarer gezeichnet, stehende Dinge werfen einen Schatten, und das Laufen ist überarbeitet. Das Gesicht bleibt im dunklen Design weiß, die Figur im Logo ist größer.</p>
+    <p class="keep">Gleich geblieben sind die Namen, die Dauer und die Reihenfolge aller Aktionen. Der Rest der App muss für den Einbau nicht angepasst werden.</p>
   </section>
 
   <section id="aktionen">
@@ -224,28 +225,28 @@ section { display: flex; flex-direction: column; gap: 20px; }
 (function () {
   var GROUPS = [
     { id: "arbeit", title: "Bei der Arbeit", items: [
-      ["walk", "Spazieren", "Echte Schritte, die Füße rutschen nicht mehr. Sie watschelt leicht und lächelt dir unterwegs zu."],
-      ["read", "Lesen", "Staunt über eine Stelle, lugt über das Buch und zwinkert."],
-      ["type", "Tippen", "Tippt in Schüben mit Zungenspitze, hält zum Nachdenken inne, letzte Taste mit Schwung."],
+      ["walk", "Spazieren", "Geht im Profil mit gleichmäßigen Schritten, ein Fuß vor den anderen, der Arm schwingt gegen. Dreht am Rand um und lächelt dir unterwegs zu."],
+      ["read", "Lesen", "Schaut mit gesenkten Lidern ins Buch, staunt über eine Stelle, lugt darüber und zwinkert."],
+      ["type", "Tippen", "Die Hände tippen sichtbar links und rechts vom Bildschirm. Zungenspitze, Denkpause, letzte Taste mit Schwung."],
       ["juggle", "Jonglieren", "Verlagert das Gewicht von Fuß zu Fuß. Ein Ball geht fast daneben."],
-      ["search", "Suchen", "Geht mit Schritten auf die Suche, beugt sich prüfend vor, Fund mit Funkelaugen."],
+      ["search", "Suchen", "Geht mit der Lupe los, hebt sie vors Auge (es ist riesig hinter dem Glas), schaut sich um und findet etwas."],
       ["dance", "Tanzen", "Hüftschwung, in der zweiten Hälfte abwechselnd ein Arm hoch und einer runter."],
       ["think", "Nachdenken", "Der Kopf wandert zur anderen Seite, der Finger tippt ans Kinn, am Ende dämmert etwas."],
-      ["microscope", "Mikroskop", "Kneift ein Auge zu, lehnt sich mit festem Stand hinüber, staunt mit Funkelaugen."],
+      ["microscope", "Mikroskop", "Lehnt sich hinüber, bis das Auge am Okular liegt, kneift das andere zu, eine Hand am Tubus. Dann staunt sie."],
       ["flask", "Experiment", "Schaut den Blasen nach, erschrickt deutlicher und freut sich danach hüpfend."],
-      ["globe", "Globus", "Entdeckt einen Ort und freut sich mit einem kleinen Hüpfer."],
-      ["telescope", "Teleskop", "Ein Auge am Okular, dann zeigt sie mit Funkelaugen auf die Sternschnuppe."],
-      ["notes", "Notizen", "Schreibt mit Zungenspitze und wiegt leicht mit."],
-      ["dig", "Ausgraben", "Geht in die Knie, gräbt im Takt und stutzt beim Fund."],
+      ["globe", "Globus", "Wendet sich dem Globus zu, dreht ihn mit der Hand, entdeckt einen Ort und freut sich."],
+      ["telescope", "Teleskop", "Ein Auge direkt am Okular, eine Hand unter dem Rohr, dann zeigt sie auf die Sternschnuppe."],
+      ["notes", "Notizen", "Schreibt Zeile für Zeile aufs Klemmbrett, der Blick folgt dem Stift, am Ende ein Haken."],
+      ["dig", "Ausgraben", "Gräbt mit einem kleinen Spaten im Erdhügel und stutzt beim Fund."],
       ["eureka", "Geistesblitz", "Stutzt, holt Schwung und springt mit Funkelaugen."],
-      ["books", "Bücher tragen", "Trägt den Stapel mit echten Schritten und erschrickt, wenn er wackelt."],
-      ["chart", "Diagramm", "Der Zeiger steigt mit den Balken, der Trend bringt Funkelaugen."],
-      ["coffee", "Kaffeepause", "Pustet erst, nippt mit geschlossenen Augen und seufzt zufrieden."],
+      ["books", "Bücher tragen", "Trägt den Stapel im Profil mit gleichmäßigen Schritten und erschrickt, wenn er wackelt."],
+      ["chart", "Diagramm", "Die Tafel steht frei neben ihr, der Zeiger steigt mit den Balken, der Trend bringt Funkelaugen."],
+      ["coffee", "Kaffeepause", "Pustet, nippt mit geschlossenen Augen (der Tassenrand am Mund) und seufzt zufrieden."],
       ["radar", "Funksignal", "Lauscht mit halb geschlossenen Augen, der Stern pulsiert, beim Signal Funkelaugen."],
       ["binoculars", "Fernglas", "Schwenkt mit festem Stand über den Horizont."],
       ["cards", "Karteikarten", "Blättert mit Zungenspitze und lehnt sich mit festem Stand hinüber."],
       ["shelf", "Bücherregal", "Tritt mit einem Schritt ans Regal und wiegt das Buch im Arm."],
-      ["net", "Kescher", "Geht vor dem Schwung in die Knie und fängt im Sprung."],
+      ["net", "Kescher", "Größerer Kescher mit Netz. Geht vor dem Schwung in die Knie und fängt im Sprung."],
       ["puzzle", "Puzzle", "Zungenspitze beim Einpassen, Funkelaugen beim fertigen Bild."],
       ["plane", "Papierflieger", "Holt mit dem ganzen Körper aus und staunt dem Flieger nach."],
       ["headphones", "Musik hören", "Groovt von Fuß zu Fuß, statt zu rutschen."],
@@ -253,27 +254,27 @@ section { display: flex; flex-direction: column; gap: 20px; }
       ["twirl", "Pirouette", "Federt bei der Landung in den Knien nach."]
     ] },
     { id: "pdf", title: "PDF-Werkzeuge", items: [
-      ["scissors", "Schneiden", "Zungenspitze beim Schneiden, der Körper geht mit jedem Schnitt mit."],
+      ["scissors", "Schneiden", "Schere mit roten Griffen, Zungenspitze beim Schneiden, der Körper geht mit jedem Schnitt mit."],
       ["stapler", "Heften", "Drückt mit Körpereinsatz, das Gewicht geht in die Knie."],
       ["stamp", "Stempeln", "Holt sichtbar aus und federt beim Aufsetzen nach."]
     ] },
     { id: "werkzeuge", title: "Weitere Werkzeuge", items: [
       ["mail", "Brief", "Leckt den Umschlag an, bevor das Herz ihn verschließt."],
       ["calendar", "Kalender", "Kringelt den Tag mit Zungenspitze ein."],
-      ["paint", "Malen", "Malt mit Zungenspitze, tritt mit schiefem Kopf zurück und bewundert das Bild."],
-      ["lock", "Schloss", "Zuckt beim Klick kurz zusammen."],
+      ["paint", "Malen", "Palette und Pinsel sind gut zu sehen. Malt mit Zungenspitze, tritt zurück und bewundert das Bild."],
+      ["lock", "Schloss", "Größeres Schloss, goldener Schlüssel. Zuckt beim Klick kurz zusammen."],
       ["slides", "Präsentieren", "Spricht mit bewegtem Mund und schaut zwischendurch freundlich ins Publikum."],
       ["sheet", "Tabelle", "Füllt die Zellen mit Zungenspitze und holt vor dem Jubel Schwung."],
       ["translate", "Übersetzen", "Spricht sichtbar, wippt beim Reden und verlagert das Gewicht zur jeweiligen Seite."],
-      ["highlight", "Markieren", "Zungenspitze beim Markieren."],
-      ["folder", "Ordner", "Wiegt den Ordner im Arm hin und her."]
+      ["highlight", "Markieren", "Dicker gelber Marker, Zungenspitze beim Markieren."],
+      ["folder", "Ordner", "Gelber Ordner, gut zu erkennen. Sie wiegt ihn im Arm hin und her."]
     ] },
     { id: "start", title: "Startseite", items: [
       ["wave", "Winken", "Holt Schwung, hüpft, lehnt sich beim Winken zur Seite und zwinkert zum Schluss."],
       ["look", "Umschauen", "Das Gewicht geht mit dem Blick mit. Etwas fällt ihr auf, sie stutzt."],
       ["sleep", "Schlafen", "Atmet tief und langsam, der Kopf sinkt mit, leises Schnarchen."],
       ["stretch", "Strecken", "Steht wirklich auf den Zehenspitzen und schaut danach noch müde."],
-      ["water", "Gießen", "Lehnt sich zur Pflanze, Funkelaugen bei der Blüte."]
+      ["water", "Gießen", "Größere Gießkanne. Lehnt sich zur Pflanze, Funkelaugen bei der Blüte."]
     ] },
     { id: "stimmung", title: "Stimmungen und Reaktionen", items: [
       ["fly", "Fliegen", "Leichtes Schaukeln im Flug, die Beine hängen."],

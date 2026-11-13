@@ -1493,12 +1493,13 @@ private fun DrawScope.drawScene(action: LoraAction, p: Float, s: Float, a: Float
             if (p >= 0.58f) stampObject(g.at2(21.6f, sh + 2.6f), u, c, a)
         }
         LoraAction.CALENDAR -> {
+            groundShadow(g, c, a, -28.5f, -13.5f)
             val x0 = -27f
             val x1 = -15f
             val top = 23f
             val bot = 10f
-            drawLine(line, g.at2(x0 + 2f, bot), g.at2(x0 + 0.8f, 0.4f), 0.8f * u, StrokeCap.Round)
-            drawLine(line, g.at2(x1 - 2f, bot), g.at2(x1 - 0.8f, 0.4f), 0.8f * u, StrokeCap.Round)
+            bar(g.at2(x0 + 2f, bot), g.at2(x0 + 0.8f, 0.4f), 0.8f * u * 1.35f, line)
+            bar(g.at2(x1 - 2f, bot), g.at2(x1 - 0.8f, 0.4f), 0.8f * u * 1.35f, line)
             val flip = ramp(p, 0.12f, 0.3f)
             // The new month underneath, the old page flips up over the rings.
             calendarPage(g, c, a, x0, x1, top, bot, 1f, StampRed, grid = true)
@@ -1515,11 +1516,13 @@ private fun DrawScope.drawScene(action: LoraAction, p: Float, s: Float, a: Float
             if (p > 0.72f) star(Offset(day.x + 2.3f * u, day.y - 2.1f * u), 0.9f * u, c.spark.fade(a))
         }
         LoraAction.PAINT -> {
+            groundShadow(g, c, a, 12f, 26.5f)
             val l = 13f
             val r = 25f
-            drawLine(line, g.at2(l + 1.5f, 13f), g.at2(l + 0.3f, 0.4f), 0.8f * u, StrokeCap.Round)
-            drawLine(line, g.at2(r - 1.5f, 13f), g.at2(r - 0.3f, 0.4f), 0.8f * u, StrokeCap.Round)
+            bar(g.at2(l + 1.5f, 13f), g.at2(l + 0.3f, 0.4f), 0.8f * u * 1.35f, line)
+            bar(g.at2(r - 1.5f, 13f), g.at2(r - 0.3f, 0.4f), 0.8f * u * 1.35f, line)
             drawLine(c.line.fade(a * 0.5f), g.at2((l + r) / 2, 25f), g.at2((l + r) / 2 + 1f, 0.4f), 0.6f * u, StrokeCap.Round)
+            withTransform({ translate(0.6f * u, 0.8f * u) }) { drawRect(Color.Black.fade(a * 0.13f), g.at2(l, 25f), Size((r - l) * u, 12f * u)) }
             drawRect(Ivory.fade(a), g.at2(l, 25f), Size((r - l) * u, 12f * u))
             drawRect(line, g.at2(l, 25f), Size((r - l) * u, 12f * u), style = Stroke(0.35f * u))
             fun pt(o: Offset) = Offset(g.cx0 + o.x * u, g.ground - 5f * u + o.y * u)
@@ -1551,11 +1554,13 @@ private fun DrawScope.drawScene(action: LoraAction, p: Float, s: Float, a: Float
             if (p > 0.8f) star(g.at2(r + 1.4f, 26f), 1.0f * u, c.spark.fade(a))
         }
         LoraAction.SLIDES -> {
+            groundShadow(g, c, a, -28.5f, -18.5f)
             val l = -33f
             val r = -14f
             val m = (l + r) / 2
-            drawLine(line, g.at2(m, 13f), g.at2(m, 0.6f), 0.9f * u, StrokeCap.Round)
-            drawLine(line, g.at2(m - 3f, 0.4f), g.at2(m + 3f, 0.4f), 0.8f * u, StrokeCap.Round)
+            bar(g.at2(m, 13f), g.at2(m, 0.6f), 0.9f * u * 1.35f, line)
+            bar(g.at2(m - 3f, 0.4f), g.at2(m + 3f, 0.4f), 0.8f * u * 1.35f, line)
+            withTransform({ translate(0.6f * u, 0.8f * u) }) { drawRoundRect(Color.Black.fade(a * 0.13f), g.at2(l, 27f), Size((r - l) * u, 14f * u), CornerRadius(0.6f * u)) }
             drawRoundRect(Ivory.fade(a), g.at2(l, 27f), Size((r - l) * u, 14f * u), CornerRadius(0.6f * u))
             drawRoundRect(line, g.at2(l, 27f), Size((r - l) * u, 14f * u), CornerRadius(0.6f * u), style = Stroke(0.35f * u))
             val b = ramp(p, 0.46f, 0.54f)
@@ -1576,9 +1581,11 @@ private fun DrawScope.drawScene(action: LoraAction, p: Float, s: Float, a: Float
             }
         }
         LoraAction.SHEET -> {
+            groundShadow(g, c, a, 16f, 25f)
             val l = 13.5f
-            drawLine(line, g.at2(l + 7f, 13f), g.at2(l + 7f, 0.6f), 0.9f * u, StrokeCap.Round)
-            drawLine(line, g.at2(l + 4f, 0.4f), g.at2(l + 10f, 0.4f), 0.8f * u, StrokeCap.Round)
+            bar(g.at2(l + 7f, 13f), g.at2(l + 7f, 0.6f), 0.9f * u * 1.35f, line)
+            bar(g.at2(l + 4f, 0.4f), g.at2(l + 10f, 0.4f), 0.8f * u * 1.35f, line)
+            withTransform({ translate(0.6f * u, 0.8f * u) }) { drawRect(Color.Black.fade(a * 0.13f), g.at2(l, 25f), Size(14f * u, 12f * u)) }
             drawRect(Ivory.fade(a), g.at2(l, 25f), Size(14f * u, 12f * u))
             drawRect(c.body.fade(a * 0.25f), g.at2(l, 25f), Size(14f * u, 3f * u))
             for (i in 1..3) drawLine(c.line.fade(a * 0.35f), g.at2(l + i * 3.5f, 25f), g.at2(l + i * 3.5f, 13f), 0.18f * u)
@@ -1768,12 +1775,14 @@ private fun DrawScope.drawScene(action: LoraAction, p: Float, s: Float, a: Float
             }
         }
         LoraAction.CHART -> {
+            groundShadow(g, c, a, -35f, -15f)
             val bx0 = g.cx0 - 34 * u
             val bx1 = g.cx0 - 16 * u
             val by0 = ground - 22 * u
             val by1 = ground - 8 * u
-            drawLine(line, Offset(bx0 + 3 * u, by1), Offset(bx0 + 1.2f * u, ground), 1.2f * u, StrokeCap.Round)
-            drawLine(line, Offset(bx1 - 3 * u, by1), Offset(bx1 - 1.2f * u, ground), 1.2f * u, StrokeCap.Round)
+            bar(Offset(bx0 + 3 * u, by1), Offset(bx0 + 1.2f * u, ground), 1.2f * u * 1.35f, line)
+            bar(Offset(bx1 - 3 * u, by1), Offset(bx1 - 1.2f * u, ground), 1.2f * u * 1.35f, line)
+            withTransform({ translate(0.6f * u, 0.8f * u) }) { drawRoundRect(Color.Black.fade(a * 0.13f), Offset(bx0, by0), Size(bx1 - bx0, by1 - by0), CornerRadius(1.2f * u)) }
             drawRoundRect(c.visor.fade(a), Offset(bx0, by0), Size(bx1 - bx0, by1 - by0), CornerRadius(1.2f * u))
             drawRoundRect(line, Offset(bx0, by0), Size(bx1 - bx0, by1 - by0), CornerRadius(1.2f * u), style = Stroke(0.8f * u))
             val axis = Path().apply {
@@ -1809,6 +1818,7 @@ private fun DrawScope.drawScene(action: LoraAction, p: Float, s: Float, a: Float
             }
         }
         LoraAction.CARDS -> {
+            groundShadow(g, c, a, 15f, 27f)
             val bx = g.cx0 + 21 * u
             val boxTop = ground - 7 * u
             val found = ramp(p, 0.58f, 0.66f)
@@ -1828,6 +1838,7 @@ private fun DrawScope.drawScene(action: LoraAction, p: Float, s: Float, a: Float
             drawArc(line, 0f, 180f, useCenter = false, topLeft = Offset(bx - 1.2f * u, boxTop + 4.3f * u), size = Size(2.4f * u, 1.8f * u), style = Stroke(0.45f * u))
         }
         LoraAction.SHELF -> {
+            groundShadow(g, c, a, -35.5f, -15.5f)
             val x0 = g.cx0 - 34 * u
             val x1 = g.cx0 - 17 * u
             val topY = ground - 25 * u
@@ -1881,11 +1892,13 @@ private fun DrawScope.drawScene(action: LoraAction, p: Float, s: Float, a: Float
             }
         }
         LoraAction.PUZZLE -> {
+            groundShadow(g, c, a, 14.5f, 33f)
             val board = PuzzleBoard(g, c)
             val x1 = board.x0 + 18 * u
             val y1 = ground - 8 * u
-            drawLine(line, Offset(board.x0 + 3 * u, y1), Offset(board.x0 + 1.2f * u, ground), 1.2f * u, StrokeCap.Round)
-            drawLine(line, Offset(x1 - 3 * u, y1), Offset(x1 - 1.2f * u, ground), 1.2f * u, StrokeCap.Round)
+            bar(Offset(board.x0 + 3 * u, y1), Offset(board.x0 + 1.2f * u, ground), 1.2f * u * 1.35f, line)
+            bar(Offset(x1 - 3 * u, y1), Offset(x1 - 1.2f * u, ground), 1.2f * u * 1.35f, line)
+            withTransform({ translate(0.6f * u, 0.8f * u) }) { drawRoundRect(Color.Black.fade(a * 0.13f), Offset(board.x0, board.y0), Size(x1 - board.x0, y1 - board.y0), CornerRadius(1.2f * u)) }
             drawRoundRect(c.visor.fade(a), Offset(board.x0, board.y0), Size(x1 - board.x0, y1 - board.y0), CornerRadius(1.2f * u))
             drawRoundRect(line, Offset(board.x0, board.y0), Size(x1 - board.x0, y1 - board.y0), CornerRadius(1.2f * u), style = Stroke(0.8f * u))
             val placed = p >= 0.62f
@@ -1931,6 +1944,7 @@ private fun DrawScope.drawScene(action: LoraAction, p: Float, s: Float, a: Float
             }
         }
         LoraAction.WATER -> {
+            groundShadow(g, c, a, 21f, 29f)
             val px = g.cx0 + 25 * u
             val soil = ground - 4.5f * u
             val grow = ramp(p, 0.3f, 0.72f)
@@ -2280,7 +2294,7 @@ private fun DrawScope.drawHeld(
                 val k = (s * 0.7f + i / 3f) % 1f
                 val x = handL.x + (handR.x - handL.x) * k
                 val y = handL.y + (handR.y - handL.y) * k - sin(PI * k).toFloat() * (handL.y - peak)
-                drawCircle(colors[i].fade(a), 1.8f * u, Offset(x, y))
+                drawCircle(Brush.radialGradient(listOf(colors[i].shade(0.3f), colors[i], colors[i].shade(-0.3f)), Offset(x - 0.7f * u, y - 0.7f * u), 2.9f * u), 1.9f * u, Offset(x, y), alpha = a)
                 drawCircle(Color.White.fade(a * 0.5f), 0.55f * u, Offset(x - 0.6f * u, y - 0.6f * u))
             }
         }
@@ -2485,7 +2499,8 @@ private fun DrawScope.drawHeld(
             val dirX = handL.x - shoulderL.x
             val dirY = handL.y - shoulderL.y
             val len = sqrt(dirX * dirX + dirY * dirY).coerceAtLeast(0.01f)
-            val tip = Offset(handL.x + dirX / len * 7.5f * u, handL.y + dirY / len * 7.5f * u)
+            // The pointer never goes into the ground (on the way to another activity the arm may point down).
+            val tip = Offset(handL.x + dirX / len * 7.5f * u, min(handL.y + dirY / len * 7.5f * u, g.ground - 1.2f * u))
             drawLine(c.line.fade(a), handL, tip, 0.8f * u, StrokeCap.Round)
             drawCircle(c.spark.fade(a), 0.65f * u, tip)
         }
@@ -3426,10 +3441,15 @@ private fun DrawScope.sideDesk(g: LoraGeo, c: LoraColors, a: Float) {
     val r = g.cx0 + 31 * u
     val back = g.ground - 10f * u
     val front = g.ground - 8.6f * u
+    val line = c.line.fade(a)
+    groundShadow(g, c, a, 12f, 32f)
+    // Legs (the far ones darker), the top seen a little from above with light on it, its front edge.
+    for (x in listOf(l + 2.6f * u, r - 2.6f * u)) drawLine(line.shade(-0.3f), Offset(x, back + 1f * u), Offset(x, g.ground - 0.9f * u), 0.9f * u, StrokeCap.Round)
+    for (x in listOf(l + 1.4f * u, r - 1.4f * u)) bar(Offset(x, front + 1f * u), Offset(x, g.ground - 0.4f * u), 1.25f * u, line)
     val top = Path().apply { moveTo(l + 0.8f * u, back); lineTo(r - 0.8f * u, back); lineTo(r, front); lineTo(l, front); close() }
-    drawPath(top, c.line.fade(a * 0.3f))
-    drawRoundRect(c.line.fade(a * 0.85f), Offset(l, front), Size(r - l, 1.1f * u), CornerRadius(0.3f * u))
-    for (x in listOf(l + 1.4f * u, r - 1.4f * u)) drawLine(c.line.fade(a * 0.85f), Offset(x, front + 1f * u), Offset(x, g.ground - 0.3f * u), 0.9f * u, StrokeCap.Round)
+    drawPath(top, Brush.verticalGradient(listOf(Wood.shade(0.3f), Wood.shade(0.12f)), back, front), alpha = a)
+    drawRoundRect(Wood.shade(-0.28f).fade(a), Offset(l, front), Size(r - l, 1.3f * u), CornerRadius(0.4f * u))
+    drawLine(Color.White.fade(a * 0.35f), Offset(l + 0.6f * u, front + 0.1f * u), Offset(r - 0.6f * u, front + 0.1f * u), 0.25f * u, StrokeCap.Round)
 }
 
 /** A thin strip of paper (papers under the stapler's jaw). */

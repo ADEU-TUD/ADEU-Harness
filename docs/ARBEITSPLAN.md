@@ -1142,39 +1142,42 @@ Einheiten); `LogoTest` zählt helle statt rein weißer Pixel und gibt die Androi
 sie gleich groß bleiben. Neu `LoraPreviewTest` (Filme aller Aktionen, nur mit `LORA_PREVIEW_DIR`).
 **Vorschau**: private Seite <https://claude.ai/artifact/1BiJ6Nwn1GyU5mvZhS7f51>; Werkzeuge und Anleitung in
 `tools/lora-vorschau/`. Die Seite zeigt den Stand **vor** „Gesicht weiß im dunklen Design“ und „Logo größer“.
-**Rückmeldung des Hauptnutzers (13.11.2026)**: Aussehen und Animationen gefallen („deutlich besser“). **Offen**:
-1. **Gegenstände und wie Lora sie benutzt**: Die Gegenstände sehen teils noch nicht gut aus (flach neben der neuen Lora)
-   und die Interaktion hat Fehler – am Mikroskop schaut sie vorbei statt hinein, die Lupe beim Suchen wirkt wie ein Ring,
-   mit dem sie spielt, „solche Sachen“. Zuerst alle 51 Aktionen durchsehen und eine Mängelliste machen (**noch nicht
-   geschehen**), dann beheben: `drawScene` (steht am Boden), `drawHeld` (in der Hand), Posen in `loraPose`. Hände treffen
-   Dinge über `reachL`/`reachR`; für Blicke in ein Okular müssen Auge und Okular an derselben Stelle liegen.
-2. **Laufen** wirkt manchmal komisch (Spazieren, Bücher tragen, Suchen, Schritt zum Regal). Vermutung: das Überblenden
-   zwischen Stehen und Schritten bei langsamer Bewegung (`walk` in `drawLora`) und der Richtungswechsel. Mit dem
-   Hauptnutzer klären, wo genau.
-3. Vorschau danach neu rendern und unter derselben Adresse aktualisieren.
-4. Beim Ausgeben der Symbole prüfen, dass im Benachrichtigungssymbol (`ic_notification`) nichts den Rand berührt (der
+**Rückmeldung des Hauptnutzers (13.11.2026)**: Aussehen und Animationen gefallen („deutlich besser“); beanstandet
+waren die Gegenstände und ihr Gebrauch (Mikroskop, Lupe, „solche Sachen“) und das normale Laufen. **Beides ist am
+13.11.2026 überarbeitet** (Liste unten). **Offen**:
+1. Rückmeldung des Hauptnutzers zur neuen Vorschau (VORSCHAU_ADRESSE), dann Freigabe oder weitere Wünsche.
+2. Beim Ausgeben der Symbole prüfen, dass im Benachrichtigungssymbol (`ic_notification`) nichts den Rand berührt (der
    Lichthof des Sterns reicht höher als der alte Stern).
 **Mängelliste (Durchsicht aller 51 Aktionen am 13.11.2026, Bildstreifen je sechs Momente; ☐ offen, ☑ behoben)** –
 Arbeitszweig ab hier `ccr-3356efb4-jqscvr` (enthält `ccr-591efb5e-siqh68` vollständig):
-- *Benutzung falsch*: ☐ **MICROSCOPE** Auge liegt links neben dem Okular, Mikroskop klein und nur aus Strichen ·
-  ☐ **TELESCOPE** Auge trifft das Okular nicht, das Rohr läuft am Kopf vorbei, keine Hand am Rohr · ☐ **SEARCH** Lupe
-  ohne erkennbaren Griff und ohne Glas (ein Ring an der Hand), sie schaut nie hindurch · ☐ **COFFEE** Tasse liegt beim
-  Trinken auf Auge und Wange statt am Mund, Tasse winzig · ☐ **GLOBE** Globus halb hinter Lora, sie schaut weg statt
-  hin · ☐ **NOTES** Klemmbrett ist ein grauer Kasten, kein Stift zu sehen · ☐ **READ** schaut meist nach vorn statt ins
-  Buch · ☐ **TYPE** Hände nicht zu sehen, Laptop nur ein Rechteck.
-- *Kaum zu erkennen*: ☐ **FOLDER** Ordner in Körperfarbe vor dem Körper · ☐ **LOCK** Schloss und Schlüssel winzig ·
-  ☐ **DIG** Schaufel kaum sichtbar, Erdhügel grau wie ein Stein · ☐ **PAINT** Pinsel und Palette kaum sichtbar ·
-  ☐ **SCISSORS** Schere winzig und grau · ☐ **HIGHLIGHT** Marker winzig · ☐ **WATER** Gießkanne winzig · ☐ **NET**
-  Kescher klein · ☐ **CHART**, **CALENDAR** Tafel teils hinter Lora.
-- *Flach neben der neuen Lora* (kein Schatten am Boden, kein Licht und Schatten): ☐ Tische (STAPLER, STAMP), Tafeln und
-  Staffeleien (CHART, CALENDAR, PAINT, SLIDES, SHEET, PUZZLE), Regal (SHELF), Karteikasten (CARDS), Blumentopf (WATER),
-  Globus, Kolben (FLASK), Bälle (JUGGLE), Bücher (READ, BOOKS), Tasse, Laptop, Rechenrahmen (ABACUS), Umschlag (MAIL).
-- *Laufen* (WALK, auch BOOKS, SEARCH, SHELF): ☐ sie läuft seitwärts wie eine Krabbe (Körper nur 36° gedreht, Beine so
-  breit wie im Stand, Knie knicken nach außen statt in Laufrichtung) · ☐ viele winzige Schritte (Schrittlänge 9, Tempo
-  schwankt als Sinus, an den Wendepunkten rutschen die Füße) · ☐ beide Arme schwingen zur selben Seite.
+- *Benutzung falsch*: ☑ **MICROSCOPE** Auge lag neben dem Okular → richtiges Mikroskop (Fuß, Arm, Tisch mit Objektträger
+  und Lampe, schräger Tubus), das Auge liegt am Okular, das andere ist zugekniffen, eine Hand am Tubus · ☑ **TELESCOPE**
+  Auge am Okular, Hand unter dem Rohr, Stativ mit runden Beinen · ☑ **SEARCH** echte Lupe (Holzgriff, Fassung, Glas);
+  sie hebt sie vors Auge, das hinter dem Glas riesig erscheint, und geht so auf die Suche · ☑ **COFFEE** größere Tasse,
+  beim Trinken liegt der Rand am Mund · ☑ **GLOBE** Globus steht frei neben ihr (Kugel mit Licht und Schatten), sie
+  wendet sich ihm zu und dreht ihn mit der Hand · ☑ **NOTES** Klemmbrett zum Betrachter (Holz, Klemme, Blatt), die Zeilen
+  entstehen unter dem Stift, der Blick folgt · ☑ **READ** gesenkte Lider, Buch höher · ☑ **TYPE** die Hände tippen
+  sichtbar links und rechts vom Bildschirm, Deckel mit Licht und Schatten.
+- *Kaum zu erkennen*: ☑ **FOLDER** gelber Ordner mit Reiter · ☑ **LOCK** größeres Schloss, goldener Schlüssel ·
+  ☑ **DIG** kleiner Spaten (Holzgriff, Blatt), brauner Erdhügel · ☑ **PAINT** größere Palette, richtiger Pinsel ·
+  ☑ **SCISSORS** größer, rote Griffe · ☑ **HIGHLIGHT** dicker Marker · ☑ **WATER** größere Gießkanne · ☑ **NET**
+  größerer Kescher mit Netz · ☑ **CHART** Tafel steht frei (CALENDAR war bei genauem Hinsehen in Ordnung).
+- *Flach neben der neuen Lora*: ☑ Schatten am Boden, runde Beine und ein weicher Schatten hinter den Flächen für Tische
+  (STAPLER, STAMP, jetzt mit Holzplatte), Tafeln und Staffeleien (CHART, CALENDAR, PAINT, SLIDES, SHEET, PUZZLE), Regal,
+  Karteikasten, Blumentopf; Globus, Bälle, Tasse, Laptop mit Licht und Schatten. ☐ Noch wie zuvor (unauffällig, bei
+  Bedarf nachziehen): Kolben (FLASK), Bücher (READ, BOOKS), Rechenrahmen (ABACUS), Umschlag (MAIL).
+- *Laufen* (WALK, auch BOOKS, SEARCH): ☑ sie dreht sich in Laufrichtung (58°) und setzt einen Fuß vor den anderen
+  (Hüften und Schultern rücken im Profil zusammen, das Knie knickt nach vorn, Bein und hängender Arm der abgewandten
+  Seite liegen hinter dem Körper) · ☑ gleichmäßiges Tempo statt Sinus (`travel`), Schrittlänge 11 statt 9, Füße heben
+  höher, Schritte setzen schon bei langsamer Bewegung ein · ☑ die Arme schwingen gegeneinander und gegen die Beine.
 - *Ohne Befund*: JUGGLE, DANCE, THINK, EUREKA, RADAR, BINOCULARS, PUZZLE, PLANE, HEADPHONES, TWIRL, STAPLER, STAMP,
-  MAIL, SLIDES, SHEET, TRANSLATE, WAVE, LOOK, SLEEP, STRETCH, FLY, IDLE, NOD, CHEER, SHRUG, SCRATCH, POINT (Bewegung
-  und Benutzung stimmen; die Gegenstände darin fallen nur unter „flach“).
+  MAIL, SLIDES, SHEET, TRANSLATE, WAVE, LOOK, SLEEP, STRETCH, FLY, IDLE, NOD, CHEER, SHRUG, SCRATCH, POINT.
+- *Wie es gebaut ist* (alles in `ui/LoraFigure.kt`): `faceSpot`/`eyeSpot` rechnen aus, wo ein Punkt des Gesichts bei
+  einer Haltung auf der Bühne liegt – daraus stehen Okulare genau am Auge (`MICRO_EYE`, `TELE_EYE`); `reachFor` gibt die
+  Reichweite, die eine Hand an einen Punkt der Bühne bringt; `upright` malt Stehendes zwischen Körper und Händen (vor dem
+  Gesicht, ohne mit Lora zu kippen), `LoraGeo.onStage` rechnet eine Hand auf die Bühne um; `bar` (runder Stab mit Licht
+  und Schatten) und `groundShadow` geben Gegenständen Volumen; `travel` ist gleichmäßiges Gehen. Die Dauer, Namen und
+  Reihenfolge der Aktionen sind unverändert; `LoraFigureTest` (nichts ragt über den Rand) läuft durch.
 - *Werkzeug dafür*: `LORA_STRIP_DIR=/pfad ./gradlew -p desktop cleanTest test --tests '*LoraPreviewTest.strips*'`
   schreibt in Sekunden Bildstreifen statt Filme (siehe `tools/lora-vorschau/README.md`).
 **Nach der Freigabe**: Pull Request von diesem Zweig, App-Symbole neu ausgeben und kopieren (README › *Logo ändern*, auch
