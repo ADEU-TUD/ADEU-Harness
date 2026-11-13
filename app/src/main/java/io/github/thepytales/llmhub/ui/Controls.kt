@@ -148,12 +148,62 @@ fun Button(
     interactionSource: MutableInteractionSource? = null,
     content: @Composable RowScope.() -> Unit,
 ) {
+    val danger = colors.containerColor == MaterialTheme.colorScheme.error
+    FilledButton(onClick, modifier, enabled, shape, if (danger) dangerButtonColors() else colors, elevation, border, contentPadding, interactionSource, danger, content)
+}
+
+/** The filled button behind [Button], [DangerButton] and a dialog's main text button; tells the dialog what Enter does. */
+@Composable
+private fun FilledButton(
+    onClick: () -> Unit,
+    modifier: Modifier,
+    enabled: Boolean,
+    shape: Shape,
+    colors: ButtonColors,
+    elevation: ButtonElevation?,
+    border: BorderStroke?,
+    contentPadding: PaddingValues,
+    interactionSource: MutableInteractionSource?,
+    danger: Boolean,
+    content: @Composable RowScope.() -> Unit,
+) {
     val source = interactionSource ?: remember { MutableInteractionSource() }
-    DialogAction(onClick, enabled, danger = colors.containerColor == MaterialTheme.colorScheme.error)
+    DialogAction(onClick, enabled, danger)
     androidx.compose.material3.Button(
         onClick = onClick, modifier = modifier.pressFeel(source), enabled = enabled, shape = shape, colors = colors, elevation = elevation,
         border = border, contentPadding = contentPadding, interactionSource = source, content = content,
     )
+}
+
+internal fun contrast(a: Color, b: Color): Float {
+    val la = a.luminance() + 0.05f
+    val lb = b.luminance() + 0.05f
+    return maxOf(la, lb) / minOf(la, lb)
+}
+
+/**
+ * Red of a button that deletes, with readable text (WCAG 4.5:1): white on the style's red where that is enough, dark
+ * text on the light red of the dark designs, otherwise a slightly deeper red under white text.
+ */
+@Composable
+fun dangerButtonColors(): ButtonColors {
+    val (fill, text) = dangerFill(MaterialTheme.colorScheme.error)
+    return ButtonDefaults.buttonColors(containerColor = fill, contentColor = text)
+}
+
+/** Fill and text of a red button for the style's [red] (see [dangerButtonColors]). */
+internal fun dangerFill(red: Color): Pair<Color, Color> {
+    val ink = Color(0xFF1C0607)
+    return when {
+        contrast(Color.White, red) >= 4.5f -> red to Color.White
+        red.luminance() > 0.25f && contrast(ink, red) >= 4.5f -> red to ink
+        else -> {
+            var deeper = red
+            var step = 0
+            while (contrast(Color.White, deeper) < 4.5f && step < 10) deeper = lerp(red, Color.Black, ++step * 0.05f)
+            deeper to Color.White
+        }
+    }
 }
 
 /**
@@ -167,8 +217,10 @@ fun DangerButton(
     enabled: Boolean = true,
     content: @Composable RowScope.() -> Unit,
 ) {
-    val s = MaterialTheme.colorScheme
-    Button(onClick, modifier, enabled, colors = ButtonDefaults.buttonColors(containerColor = s.error, contentColor = s.onError), content = content)
+    FilledButton(
+        onClick, modifier, enabled, LocalChatLook.current.buttonShape, dangerButtonColors(), ButtonDefaults.buttonElevation(), null,
+        ButtonDefaults.ContentPadding, null, danger = true, content = content,
+    )
 }
 
 /**
@@ -191,13 +243,14 @@ fun TextButton(
     val plain = colors == ButtonDefaults.textButtonColors()
     when (LocalDialogSlot.current) {
         DialogSlot.CONFIRM -> {
-            val fill = if (plain) ButtonDefaults.buttonColors()
-            else ButtonDefaults.buttonColors(containerColor = colors.contentColor, contentColor = readableOn(colors.contentColor))
+            val danger = !plain && colors.contentColor == MaterialTheme.colorScheme.error
+            val fill = when {
+                plain -> ButtonDefaults.buttonColors()
+                danger -> dangerButtonColors()
+                else -> ButtonDefaults.buttonColors(containerColor = colors.contentColor, contentColor = readableOn(colors.contentColor))
+            }
             val padding = if (contentPadding == ButtonDefaults.TextButtonContentPadding) ButtonDefaults.ContentPadding else contentPadding
-            Button(
-                onClick = onClick, modifier = modifier, enabled = enabled, shape = shape, colors = fill, elevation = ButtonDefaults.buttonElevation(),
-                border = border, contentPadding = padding, interactionSource = interactionSource, content = content,
-            )
+            FilledButton(onClick, modifier, enabled, shape, fill, ButtonDefaults.buttonElevation(), border, padding, interactionSource, danger, content)
         }
         DialogSlot.DISMISS -> {
             val neutral = if (plain) ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurface) else colors

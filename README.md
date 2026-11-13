@@ -395,9 +395,10 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
 - **Bedienelemente aus einem Guss** (seit 1.0.71, AP-123): Knöpfe, Dialoge, Eingabefelder, Schalter und Menüs der
   ganzen App sind einheitlicher, ruhiger und schneller zu bedienen – ohne dass sich Wege ändern.
   - **Dialoge**: Die Hauptaktion ist immer der gefüllte Knopf, *Abbrechen* steht neutral daneben; was löscht, entfernt
-    oder zurücksetzt, ist **rot** (mit Papierkorb-Symbol). **Enter** bestätigt (auch aus einem einzeiligen Feld),
-    **Strg+Enter** auch aus einem längeren Text, **Esc** schließt. Enter löst nie etwas Rotes aus und wählt nie zwischen
-    zwei Hauptknöpfen. Am PC hat das erste Eingabefeld sofort den Cursor; beim **Umbenennen** ist der Name ohne Endung
+    oder zurücksetzt, ist **rot** (beim Löschen mit Papierkorb, sonst mit Warnzeichen). **Enter** bestätigt (auch aus
+    einem einzeiligen Feld), **Strg+Enter** auch aus einem längeren Text, **Esc** schließt. Enter löst nie etwas Rotes
+    aus und wählt nie zwischen zwei Hauptknöpfen. Passen die Knöpfe nicht nebeneinander, stehen sie untereinander, die
+    Hauptaktion oben. Am PC hat das erste Eingabefeld sofort den Cursor; beim **Umbenennen** ist der Name ohne Endung
     markiert („Bericht“ von „Bericht.docx“) – einfach lostippen, Enter.
   - **Knöpfe** passen zum Stil: rund in ADEU, Claude, ChatGPT, Gemini und Material You, mit kleinen Ecken in TU Dresden,
     Office und Hoher Kontrast; sie geben beim Drücken leicht nach. Umrandete Knöpfe stehen auf der Kartenfarbe.
@@ -414,6 +415,8 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   `ui/Dialogs.kt`, `ui/NoticeBar.kt`, `ui/Scrollbars.kt`), die Bildschirme nehmen sie ohne Import;
   `ControlsBehaviourTest` prüft Tasten, Tooltips, Bildlaufleisten und dass kein Bildschirm mehr die Bausteine von
   Material 3 direkt nimmt.
+  Weiter geht es mit **AP-124** (Arbeitsplan): Dem Hauptnutzer reicht das noch nicht – die App wird Bildschirm für
+  Bildschirm weiter verbessert.
 
   | Vorher | Nachher |
   | --- | --- |

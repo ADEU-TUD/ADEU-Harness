@@ -2,11 +2,8 @@ package io.github.thepytales.llmhub.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -14,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
@@ -53,6 +51,8 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
@@ -121,7 +121,7 @@ internal fun Modifier.dialogField(editable: Boolean, singleLine: Boolean, ownEnt
 private fun isEnter(key: Key) = key == Key.Enter || key == Key.NumPadEnter
 
 /** Dialog with title, text and buttons (Material's parameters, the app's look and keys). */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlertDialog(
     onDismissRequest: () -> Unit,
@@ -201,18 +201,52 @@ fun AlertDialog(
                             LocalTextStyle provides MaterialTheme.typography.bodyMedium,
                         ) { Box(Modifier.weight(1f, fill = false).padding(bottom = 24.dp)) { text() } }
                     }
-                    // Right-aligned and only as wide as the buttons, so a short question keeps a narrow dialog.
-                    FlowRow(
-                        Modifier.align(Alignment.End),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.primary, LocalTextStyle provides MaterialTheme.typography.labelLarge) {
-                            if (dismissButton != null) {
-                                CompositionLocalProvider(LocalDialogSlot provides DialogSlot.DISMISS) { Box(Modifier.align(Alignment.CenterVertically)) { dismissButton() } }
-                            }
-                            CompositionLocalProvider(LocalDialogSlot provides DialogSlot.CONFIRM) { Box(Modifier.align(Alignment.CenterVertically)) { confirmButton() } }
-                        }
+                    DialogButtons(dismissButton, confirmButton, Modifier.align(Alignment.End))
+                }
+            }
+        }
+    }
+}
+
+/**
+ * The buttons of a dialog: side by side at the right (the way out, then the main action) as long as they fit in one
+ * line – the dialog grows for that up to its largest width. Only when they do not fit even then (small window, phone,
+ * large text) they stand below each other in full width, the main action on top.
+ */
+@Composable
+private fun DialogButtons(dismiss: (@Composable () -> Unit)?, confirm: @Composable () -> Unit, modifier: Modifier) {
+    CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.primary, LocalTextStyle provides MaterialTheme.typography.labelLarge) {
+        Layout(
+            modifier = modifier,
+            content = {
+                // propagateMinConstraints: in the stacked form the button inside takes the full width.
+                Box(propagateMinConstraints = true) { CompositionLocalProvider(LocalDialogSlot provides DialogSlot.CONFIRM) { confirm() } }
+                if (dismiss != null) Box(propagateMinConstraints = true) { CompositionLocalProvider(LocalDialogSlot provides DialogSlot.DISMISS) { dismiss() } }
+            },
+        ) { measurables, constraints ->
+            val gap = 8.dp.roundToPx()
+            val wanted = measurables.sumOf { it.maxIntrinsicWidth(constraints.maxHeight) } + gap * (measurables.size - 1)
+            if (wanted <= constraints.maxWidth) {
+                // Side by side: the way out left of the main action.
+                val placed = measurables.map { it.measure(Constraints()) }.reversed()
+                val height = placed.maxOf { it.height }
+                val width = placed.sumOf { it.width } + gap * (placed.size - 1)
+                layout(width, height) {
+                    var x = 0
+                    placed.forEach {
+                        it.placeRelative(x, (height - it.height) / 2)
+                        x += it.width + gap
+                    }
+                }
+            } else {
+                val width = constraints.maxWidth
+                val placed = measurables.map { it.measure(Constraints.fixedWidth(width)) }
+                val height = placed.sumOf { it.height } + gap * (placed.size - 1)
+                layout(width, height) {
+                    var y = 0
+                    placed.forEach {
+                        it.placeRelative(0, y)
+                        y += it.height + gap
                     }
                 }
             }
@@ -225,6 +259,9 @@ private val DANGER_WORDS = listOf("lösch", "entfern", "zurücksetz", "verwerf",
 
 /** Whether [label] names an action that deletes or cannot be undone (red button, no Enter). */
 internal fun isDangerLabel(label: String): Boolean = label.lowercase().let { l -> DANGER_WORDS.any { it in l } }
+
+/** Whether [label] deletes something (the trash can; other red actions get a warning sign). */
+internal fun isDeleteLabel(label: String): Boolean = label.lowercase().let { l -> listOf("lösch", "papierkorb", "delete", "trash").any { it in l } }
 
 /**
  * Asks before an action. Deleting, removing, resetting and discarding get a red button and a symbol, and Enter does not
@@ -243,7 +280,14 @@ fun ConfirmDialog(
     val s = MaterialTheme.colorScheme
     AlertDialog(
         onDismissRequest = onDismiss,
-        icon = { Icon(if (danger) Icons.Outlined.DeleteOutline else Icons.AutoMirrored.Outlined.HelpOutline, contentDescription = null) },
+        icon = {
+            val symbol = when {
+                isDeleteLabel(confirm) -> Icons.Outlined.DeleteOutline
+                danger -> Icons.Outlined.WarningAmber
+                else -> Icons.AutoMirrored.Outlined.HelpOutline
+            }
+            Icon(symbol, contentDescription = null)
+        },
         iconContentColor = if (danger) s.error else s.primary,
         title = { Text(title) },
         text = text?.let { { Text(it) } },

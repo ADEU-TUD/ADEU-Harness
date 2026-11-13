@@ -251,6 +251,16 @@ class ControlsBehaviourTest {
         assertTrue(list.firstVisibleItemIndex > 40, "Liste gescrollt: ${list.firstVisibleItemIndex}")
     }
 
+    /** Red buttons stay readable (4.5:1) in every style, light and dark. */
+    @Test
+    fun redButtonsAreReadable() {
+        for (style in AppStyle.entries) for (dark in listOf(false, true)) {
+            val (fill, text) = dangerFill(stylePreview(style, dark).first.error)
+            val c = contrast(fill, text)
+            assertTrue(c >= 4.5f, "$style${if (dark) " dunkel" else ""}: Kontrast $c")
+        }
+    }
+
     /** Screens use the app's parts (ui/Controls.kt, ui/Dialogs.kt): Material's directly would lose looks and keys. */
     @Test
     fun screensUseTheAppsControls() {

@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 13.11.2026 (AP-123 Bedienelemente aus einem Guss in der App, für 1.0.71; Prüfung am Gerät offen) · 13.11.2026 (AP-122 Lora neu gezeichnet und lebendiger: vom Hauptnutzer freigegeben, in der App, für 1.0.70 zusammen mit AP-121; Prüfung am Gerät offen) · 13.11.2026 (AP-121 Videoeditor für Einsteiger in der App, für 1.0.70; Prüfung am Gerät offen) · 11.11.2026 (Sitzung Dateiwerkzeuge: AP-90 Rest, AP-91, AP-93, AP-97 bis AP-100, AP-107 Rest, neu AP-119 und AP-120 in der App, Prüfung am Gerät offen) · 11.11.2026 (AP-112 und AP-116 in der App, Messung am Gerät offen; AP-117 erledigt; AP-118 Server-Terminal in der App, am eigenen Server zu prüfen) · 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen; neu: AP-116 lokale Modelle auf dem Handy zu langsam, nicht abbrechbar, Gerät heiß) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 13.11.2026 (AP-123 Bedienelemente aus einem Guss freigegeben und in `main`, für 1.0.71; Prüfung am Gerät offen; neu AP-124: die ganze App weiter verbessern, als Nächstes) · 13.11.2026 (AP-122 Lora neu gezeichnet und lebendiger: vom Hauptnutzer freigegeben, in der App, für 1.0.70 zusammen mit AP-121; Prüfung am Gerät offen) · 13.11.2026 (AP-121 Videoeditor für Einsteiger in der App, für 1.0.70; Prüfung am Gerät offen) · 11.11.2026 (Sitzung Dateiwerkzeuge: AP-90 Rest, AP-91, AP-93, AP-97 bis AP-100, AP-107 Rest, neu AP-119 und AP-120 in der App, Prüfung am Gerät offen) · 11.11.2026 (AP-112 und AP-116 in der App, Messung am Gerät offen; AP-117 erledigt; AP-118 Server-Terminal in der App, am eigenen Server zu prüfen) · 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen; neu: AP-116 lokale Modelle auf dem Handy zu langsam, nicht abbrechbar, Gerät heiß) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -72,7 +72,7 @@ Fairlight).
 | ~~Lora im Alltag~~ ☑ | AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen (erledigt 10.11.2026, siehe *Erledigt*) |
 | **Danach** | ~~AP-86 Lokale Modelle auf dem Mac laden~~ ☑ (10.11.2026, 1.0.67) |
 | **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung ◐ · AP-106 Modellkatalog in feinen Stufen, nach Zweck ◐ · AP-107 Suche nach Bedeutung auf dem Gerät ◐ (Rest in der App) · AP-108 Lange Texte lokal ◐ · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal ◐ · AP-111 Sprachausgabe lokal ☑ · AP-112 Offline-Schiene in der Oberfläche ◐ · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 ☑ · **AP-116 Lokale Modelle: Tempo, Abbruch, Hitze ◐** (Fehler aus 1.0.67, vor AP-109) · ~~AP-117 Eigene Modelle aktualisieren, auf GitHub~~ ☑ (11.11.2026) |
-| **Neu (13.11.2026, Bedienung)** | **AP-123 Bedienelemente aus einem Guss ◐** (Knöpfe nach Stil, Dialoge mit Hauptknopf und Enter/Esc, rote Lösch-Knöpfe, Tooltips an Symbol-Knöpfen, Passwort-Auge, Hinweis-Banner, Bildlaufleisten am PC; Prüfung am Gerät offen) |
+| **Neu (13.11.2026, Bedienung)** | **AP-124 Die ganze App weiter verbessern ☐** (als Nächstes: AP-123 „ganz gut, reicht aber noch nicht“) · **AP-123 Bedienelemente aus einem Guss ◐** (Knöpfe nach Stil, Dialoge mit Hauptknopf und Enter/Esc, rote Lösch-Knöpfe, Tooltips an Symbol-Knöpfen, Passwort-Auge, Hinweis-Banner, Bildlaufleisten am PC; freigegeben, Prüfung am Gerät offen) |
 | **Neu (13.11.2026)** | **AP-121 Videoeditor für Einsteiger ◐** (Startseite, „So entsteht dein Video“, einfach schneiden, Rechtsklick, klarere Leisten; Prüfung am Gerät offen) |
 | **Neu (12.11.2026)** | **AP-122 Lora: neues Aussehen und lebendigere Animationen ☑** (Wunsch Hauptnutzer; am 13.11.2026 freigegeben, in der App, für 1.0.70) |
 | **Neu (11.11.2026)** | **AP-118 Server-Terminal mit Lora ◐** (SSH wie PuTTY, Lora schlägt Schritte vor, Ausführung nur nach Zustimmung; nur Desktop) · ~~AP-119 Anzeige, wohin die Daten gehen~~ ☑ (Wunsch des Kollegen) · **AP-120 Lora einrichten Schritt für Schritt ◐** (Wunsch Hauptnutzer) |
@@ -97,6 +97,9 @@ ebenfalls in einem eigenen Chat; auch dort kommt der Messkorpus vor jedem Traini
 ---
 
 ## Jetzt
+
+**Als Nächstes (13.11.2026): AP-124 – die ganze App weiter verbessern.** AP-123 (Bedienelemente aus einem Guss) ist
+freigegeben, reicht dem Hauptnutzer aber noch nicht; AP-124 steht direkt nach AP-123 unter *Danach*.
 
 Die dringenden Pakete vom 09.11.2026 (AP-68 bis AP-70) sind erledigt (siehe *Erledigt*). Jetzt laufen AP-67 und AP-71
 nebeneinander, je in einem eigenen Chat.
@@ -1213,8 +1216,10 @@ Bildschirme nehmen sie ohne Import.
   neutral; ein roter Knopf markiert Löschen. **Enter** startet die Hauptaktion (auch aus einem einzeiligen Feld),
   **Strg+Enter** auch aus einem längeren Text, **Esc** schließt – Enter startet nie etwas Rotes und wählt nie zwischen
   zwei Hauptknöpfen. Am PC hat das erste Feld sofort den Cursor. Karte, Rahmen und Ecken des Stils, Symbol im getönten
-  Kreis neben dem Titel. `ConfirmDialog` erkennt Löschen/Entfernen/Zurücksetzen/Verwerfen am Text (roter Knopf mit
-  Papierkorb) und kennt einen eigenen Text für den Ausweg; `TextInputDialog` markiert beim Umbenennen den Namen ohne
+  Kreis neben dem Titel. Passen die Knöpfe nicht in eine Zeile (kleines Fenster, Handy, große Schrift), stehen sie
+  untereinander in voller Breite, die Hauptaktion oben. Rote Knöpfe sind in jedem Stil lesbar (mindestens 4,5 : 1,
+  `dangerButtonColors`). `ConfirmDialog` erkennt Löschen/Entfernen/Zurücksetzen/Verwerfen am Text (roter Knopf; Papierkorb
+  nur beim Löschen, sonst Warnzeichen) und kennt einen eigenen Text für den Ausweg; `TextInputDialog` markiert beim Umbenennen den Namen ohne
   Endung („Bericht“ von „Bericht.docx“), Tippen ersetzt ihn, Enter speichert. Dialoge mit mehreren Aktionen: die
   Nebenaktionen sind umrandete Knöpfe (Export, Versionen, Archiv, Schriften, Bewerten, Exportwarteschlange); beim
   geänderten Server-Schlüssel bleibt *Abbrechen* der gefüllte Knopf, *Schlüssel ersetzen* ist rot umrandet.
@@ -1232,14 +1237,41 @@ Bildschirme nehmen sie ohne Import.
   Maus breiter, zum Ziehen. Passt alles, ist keine da; Android unverändert.
 **Fertig, wenn**: alle Dialoge den Hauptknopf zeigen und auf Enter/Esc reagieren, kein Bildschirm mehr die Bausteine
 von Material 3 direkt nimmt (Test) und Bilder vorher/nachher in der README stehen.
-◐ *Stand 13.11.2026 (für 1.0.71)*: alles oben in der App; 138 Dateien nehmen die Bausteine ohne Import, 75 die Bildlauf-
+◐ *Stand 13.11.2026 (für 1.0.71)*: **vom Hauptnutzer freigegeben** (Vorher/Nachher-Seite
+<https://claude.ai/artifact/6gAswrVKK8iBWYJR4mXKZK>), über einen Pull Request in `main`. Rückmeldung dazu: „Alles ganz
+gut“ – **reicht aber noch nicht**, die App soll insgesamt noch deutlich besser werden → **AP-124**. Alles oben in der App; 138 Dateien nehmen die Bausteine ohne Import, 75 die Bildlauf-
 Bausteine (nur die Import-Zeilen fielen weg). Tests `ui/ControlsBehaviourTest` (Enter, Esc, Strg+Enter, Löschen nie per Enter, zwei
-Hauptknöpfe, Umbenennen, Tooltip, Bildlaufleiste sichtbar und ziehbar, Hinweis-Banner, kein Material-Import mehr in
-`ui`) und `ui/ControlsLookTest` (Bilder in
+Hauptknöpfe, Umbenennen, Tooltip, Bildlaufleiste sichtbar und ziehbar, Hinweis-Banner, Kontrast roter Knöpfe, kein
+Material-Import mehr in `ui`), `ui/BedienungReviewTest` (echte Bildschirme für den Vergleich: Einstellungsseite,
+Export-Dialog, Transkription abbrechen, Tooltip) und `ui/ControlsLookTest` (Bilder in
 `build/bedienung`; dieselbe Datei auf dem alten Stand zeigt Material 3 – so entstanden die Bilder „vorher“). Bilder vorher/nachher in
 `docs/bilder/bedienung-*.png` und in der README. **Offen – am Gerät**: Android bauen (die Android-Fassungen von `AppRoot`, `GamePlatform`,
 `LoraFolderUi`, `TaskDelivery`, `PhoneBrowser` kompilieren nur dort); am PC Tooltips und Enter in echten Dialogen
 (Strg+K, Umbenennen in *Dateien*, Löschen im Chat) und Hoher Kontrast mit Screenreader prüfen.
+
+### AP-124 ☐ Die ganze App weiter verbessern (Bedienung, Runde 2) · L–XL (neu, Wunsch Hauptnutzer 13.11.2026)
+**Befund**: AP-123 hat die Bausteine vereinheitlicht (Knöpfe, Dialoge, Eingaben, Menüs, Tooltips, Hinweise,
+Bildlaufleisten) – der Hauptnutzer findet das „ganz gut“, **es reicht ihm aber noch nicht**: Die App soll insgesamt
+deutlich schöner und leichter zu bedienen werden, nicht nur in den Bausteinen.
+**Ziel**: Bildschirm für Bildschirm durchgehen und verbessern – mit Vorher/Nachher-Bildern zur Freigabe wie bei AP-123
+(Test `ui/BedienungReviewTest` erweitern, Vergleichsseite), ohne neue Einfach-/Expertenansicht (Grundsatz
+*Übersichtlichkeit*).
+**Kandidaten** (Reihenfolge mit dem Hauptnutzer festlegen, je Stufe eine Freigabe):
+- **Hauptbildschirme einzeln**: Startseite und Chat (Eingabefeld, Antworten, Kopfzeile), Seitenleiste, *Dateien*,
+  *Erstellen*, Einstellungen-Übersicht, Literatur, Transkription, PDF-Werkzeugkasten, Lora-Panel – je Bildschirm
+  Anordnung, Abstände, Hierarchie, Klartext der Beschriftungen.
+- **Einheitliche Seitenköpfe** (Titel, Zurück, Aktionen an derselben Stelle) und eine feste Abstands- und
+  Schriftgrößen-Skala für alle Bildschirme.
+- **Leere Zustände und Laden**: statt leerer Flächen oder bloßer Drehkreisel ein Satz, was hier erscheint, und der
+  nächste Schritt als Knopf.
+- **Formulare**: Fehler direkt am Feld statt als Banner, Pflichtfelder erkennbar, Zahlen mit Einheit, sinnvolle
+  Vorbelegung.
+- **Tastatur sichtbar machen**: Tastenkürzel in Tooltips und Menüs (z. B. „Umbenennen F2“), Fokus-Reihenfolge prüfen.
+- **Bildlaufleisten auch waagerecht** und in Rastern (rund 65 Stellen mit `LazyRow`, `LazyVerticalGrid`,
+  `horizontalScroll`).
+- **Übergänge**: dezente Animationen zwischen Seiten und beim Auf-/Zuklappen (respektiert *Ruhigere Bewegungen*).
+- **Android**: schmale Bildschirme, große Schrift, Touch-Ziele.
+**Fertig, wenn**: der Hauptnutzer jede Stufe anhand der Vorher/Nachher-Bilder freigegeben hat.
 
 ---
 
