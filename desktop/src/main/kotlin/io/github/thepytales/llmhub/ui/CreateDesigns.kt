@@ -19,15 +19,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.MoreVert
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -182,7 +176,7 @@ private fun MyDesignCard(c: AppContainer, d: Design) {
                         DropdownMenuItem(text = { Text(tr("Bearbeiten")) }, onClick = { menu = false; openDesign(d.id) })
                         DropdownMenuItem(text = { Text(tr("Umbenennen")) }, onClick = { menu = false; rename = true })
                         DropdownMenuItem(text = { Text(tr("Verdoppeln")) }, onClick = { menu = false; c.designs.duplicate(d.id) })
-                        DropdownMenuItem(text = { Text(tr("Löschen")) }, onClick = {
+                        DropdownMenuItem(colors = dangerMenuColors(), text = { Text(tr("Löschen")) }, onClick = {
                             menu = false
                             val folder = c.designs.folder(d.id)
                             val backup = kotlin.io.path.createTempDirectory("design").toFile()

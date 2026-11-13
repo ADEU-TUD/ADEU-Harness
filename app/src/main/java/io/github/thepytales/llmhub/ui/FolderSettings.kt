@@ -10,12 +10,8 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.FolderOpen
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -172,7 +168,7 @@ internal fun chatFolderName(existing: List<LocalFolder>, path: String): String {
 @Composable
 internal fun ChatFolderDialog(folder: LocalFolder, isNew: Boolean, onDismiss: () -> Unit, onRemove: () -> Unit, onSave: (LocalFolder) -> Unit) {
     var write by remember(folder.id) { mutableStateOf(folder.write) }
-    androidx.compose.material3.AlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
         icon = { Icon(Icons.Outlined.FolderOpen, contentDescription = null) },
         title = { Text(if (isNew) tr("Ordner an den Chat anhängen") else tr("Ordner „{0}“", folder.name)) },
@@ -198,14 +194,14 @@ internal fun ChatFolderDialog(folder: LocalFolder, isNew: Boolean, onDismiss: ()
                 Text(tr("Gilt nur für diesen Chat und lässt sich jederzeit über den Ordner-Chip über dem Eingabefeld ändern."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
-        confirmButton = { androidx.compose.material3.TextButton(onClick = { onSave(folder.copy(write = write)) }) { Text(tr(if (isNew) "Anhängen" else "Übernehmen")) } },
+        confirmButton = { TextButton(onClick = { onSave(folder.copy(write = write)) }) { Text(tr(if (isNew) "Anhängen" else "Übernehmen")) } },
         dismissButton = {
             Row {
                 if (!isNew) {
-                    androidx.compose.material3.TextButton(onClick = { FolderAccess.open(folder.path) }) { Text(tr("Im Explorer öffnen")) }
-                    androidx.compose.material3.TextButton(onClick = { onRemove(); onDismiss() }) { Text(tr("Vom Chat lösen")) }
+                    TextButton(onClick = { FolderAccess.open(folder.path) }) { Text(tr("Im Explorer öffnen")) }
+                    TextButton(onClick = { onRemove(); onDismiss() }) { Text(tr("Vom Chat lösen")) }
                 }
-                androidx.compose.material3.TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) }
+                TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) }
             }
         },
     )

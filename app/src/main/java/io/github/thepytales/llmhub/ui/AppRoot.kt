@@ -21,20 +21,15 @@ import androidx.navigation.NavBackStackEntry
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.TextButton
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -224,10 +219,7 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
         c.events.collect { e ->
             snackbar.currentSnackbarData?.dismiss()
             val result = snackbar.showSnackbar(
-                message = "${e.title}: ${e.message}",
-                actionLabel = tr("Ansehen"),
-                withDismissAction = true,
-                duration = SnackbarDuration.Long,
+                NoticeVisuals("${e.title}: ${e.message}", actionLabel = tr("Ansehen"), duration = SnackbarDuration.Long, tone = NoticeTone.DONE),
             )
             if (result == SnackbarResult.ActionPerformed) nav.openChat(chatRoute(e.chatId))
         }
@@ -236,12 +228,7 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
     LaunchedEffect(Unit) {
         Notices.flow.collect { n ->
             launch {
-                val result = snackbar.showSnackbar(
-                    message = n.text,
-                    actionLabel = n.action,
-                    withDismissAction = true,
-                    duration = if (n.error || n.action != null) SnackbarDuration.Long else SnackbarDuration.Short,
-                )
+                val result = snackbar.showSnackbar(n.visuals())
                 if (result == SnackbarResult.ActionPerformed) n.onAction?.invoke() else n.onTimeout?.invoke()
             }
         }
@@ -423,16 +410,7 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
                 .align(Alignment.TopCenter)
                 .statusBarsPadding()
                 .padding(top = 56.dp),
-        ) { data ->
-            Snackbar(
-                data,
-                shape = RoundedCornerShape(16.dp),
-                containerColor = LocalChatLook.current.card,
-                contentColor = MaterialTheme.colorScheme.onSurface,
-                actionColor = MaterialTheme.colorScheme.primary,
-                dismissActionContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+        ) { data -> NoticeBar(data) }
     }
     }
 }

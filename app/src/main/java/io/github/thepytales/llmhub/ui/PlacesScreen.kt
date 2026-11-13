@@ -25,13 +25,9 @@ import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.automirrored.outlined.VolumeUp
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -274,7 +270,7 @@ fun UniFallbackDialog(c: AppContainer, go: (String) -> Unit) {
     if (!gone || !s.hasApiKey || s.uniFallbackAsked < 0 || now - s.uniFallbackAsked < FALLBACK_LATER_MS || Places.allLocal(c)) return
     val since = java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.GERMANY).format(java.util.Date(c.uniWatch.since))
     fun answer(at: Long) = c.settings.update { it.copy(uniFallbackAsked = at) }
-    androidx.compose.material3.AlertDialog(
+    AlertDialog(
         onDismissRequest = { answer(now) },
         icon = { Icon(Icons.Outlined.Language, contentDescription = null) },
         title = { Text(tr("Der Uni-Server antwortet nicht mehr")) },

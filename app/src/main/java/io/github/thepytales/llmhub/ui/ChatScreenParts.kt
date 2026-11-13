@@ -39,10 +39,8 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.VerifiedUser
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.runtime.Composable
@@ -250,7 +248,7 @@ private fun StartExamples(action: StartAction, onClose: () -> Unit, onPick: (Sta
                 Icon(action.icon, contentDescription = null, tint = look.brand, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(10.dp))
                 Text(tr(action.label), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-                androidx.compose.material3.IconButton(onClick = onClose) {
+                IconButton(onClick = onClose) {
                     Icon(Icons.Outlined.Close, contentDescription = tr("Schließen"), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }

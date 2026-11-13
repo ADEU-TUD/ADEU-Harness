@@ -20,27 +20,20 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Warning
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -371,7 +364,9 @@ private fun HostKeyDialog(result: KnownHosts.Result, host: String, port: Int, on
     var compared by remember { mutableStateOf(false) }
     AlertDialog(
         onDismissRequest = onCancel,
-        icon = { Icon(if (changed != null) Icons.Outlined.Warning else Icons.Outlined.Lock, null, tint = if (changed != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary) },
+        icon = { Icon(if (changed != null) Icons.Outlined.Warning else Icons.Outlined.Lock, null) },
+        // The circle behind the symbol in the same colour (AP-123): red when the server's key changed.
+        iconContentColor = if (changed != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
         title = { Text(if (changed != null) tr("Achtung: Der Server-Schlüssel hat sich geändert") else tr("Diesem Server vertrauen?")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -392,7 +387,7 @@ private fun HostKeyDialog(result: KnownHosts.Result, host: String, port: Int, on
             }
         },
         confirmButton = {
-            if (changed != null) TextButton(enabled = compared, onClick = { onTrust(true) }) { Text(tr("Schlüssel ersetzen"), color = MaterialTheme.colorScheme.error) }
+            if (changed != null) OutlinedButton(enabled = compared, onClick = { onTrust(true) }) { Text(tr("Schlüssel ersetzen"), color = if (compared) MaterialTheme.colorScheme.error else androidx.compose.ui.graphics.Color.Unspecified) }
             else Button(onClick = { onTrust(false) }) { Text(tr("Vertrauen und verbinden")) }
         },
         dismissButton = { if (changed != null) Button(onClick = onCancel) { Text(tr("Abbrechen")) } else TextButton(onClick = onCancel) { Text(tr("Abbrechen")) } },

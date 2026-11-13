@@ -34,7 +34,7 @@ const val DRAG_TO_MOVE = true
 @Composable
 fun FileDragHandle(files: () -> List<File>) {
     val current by rememberUpdatedState(files)
-    androidx.compose.material3.Icon(
+    Icon(
         androidx.compose.material.icons.Icons.Outlined.DragIndicator,
         contentDescription = tr("In den Explorer oder eine Mail ziehen"),
         tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,

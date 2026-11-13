@@ -156,17 +156,17 @@ fun TitleBlock(title: String, subtitle: String?, modifier: Modifier = Modifier) 
 fun <T> ChoiceField(label: String, options: List<Pair<T, String>>, selected: T, onSelect: (T) -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
     var open by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
     Box(modifier) {
-        androidx.compose.material3.OutlinedTextField(
+        OutlinedTextField(
             value = tr(options.firstOrNull { it.first == selected }?.second ?: ""),
             onValueChange = {},
             readOnly = true,
             enabled = enabled,
             label = { Text(label) },
-            trailingIcon = { androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Outlined.ArrowDropDown, contentDescription = null) },
+            trailingIcon = { Icon(androidx.compose.material.icons.Icons.Outlined.ArrowDropDown, contentDescription = null) },
             modifier = Modifier.fillMaxWidth(),
         )
         Box(Modifier.matchParentSize().clickable(enabled = enabled) { open = true })
-        androidx.compose.material3.DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             options.forEach { (v, l) ->
                 androidx.compose.material3.DropdownMenuItem(text = { Text(tr(l)) }, onClick = { onSelect(v); open = false })
             }
@@ -226,6 +226,6 @@ fun IconTile(icon: androidx.compose.ui.graphics.vector.ImageVector, color: Color
             .background(color.copy(alpha = 0.12f)),
         contentAlignment = Alignment.Center,
     ) {
-        androidx.compose.material3.Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(size * 0.56f))
+        Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(size * 0.56f))
     }
 }

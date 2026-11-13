@@ -18,15 +18,11 @@ import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.PictureAsPdf
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.outlined.AccessibilityNew
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -252,9 +248,9 @@ fun ExportDialog(
             }
         },
         confirmButton = {
-            Row {
-                TextButton(enabled = !busy, onClick = { withFile { openDocument(context, it) } }) { Text(tr("Öffnen")) }
-                if (ShareDoc.inExport) TextButton(enabled = !busy, onClick = { withFile { shareDocument(context, it) } }) { Text(ShareDoc.label) }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(enabled = !busy, onClick = { withFile { openDocument(context, it) } }) { Text(tr("Öffnen")) }
+                if (ShareDoc.inExport) OutlinedButton(enabled = !busy, onClick = { withFile { shareDocument(context, it) } }) { Text(ShareDoc.label) }
                 TextButton(enabled = !busy, onClick = { withFile(saveAs) }) { Text(SAVE_AS_LABEL) }
             }
         },

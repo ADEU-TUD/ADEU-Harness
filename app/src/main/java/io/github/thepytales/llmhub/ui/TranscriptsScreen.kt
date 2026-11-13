@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -35,15 +34,10 @@ import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.TaskAlt
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBar
@@ -376,7 +370,8 @@ private fun JobCard(c: AppContainer, j: SpeechJob, lastText: String?, modifier: 
             j.notice?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = look.warning, modifier = Modifier.padding(top = 6.dp, end = 10.dp)) }
             if (confirmCancel) ConfirmDialog(
                 tr("Transkription abbrechen?"), tr("„{0}“ ist zu {1} % fertig. Der bisherige Fortschritt geht verloren.", j.name, (j.progress * 100).toInt()),
-                tr("Abbrechen"), onConfirm = { t.cancel(j.id) }, onDismiss = { confirmCancel = false },
+                tr("Transkription abbrechen"), onConfirm = { t.cancel(j.id) }, onDismiss = { confirmCancel = false },
+                dismiss = tr("Weiterlaufen lassen"), danger = true,
             )
             if (j.status == "running") {
                 LinearProgressIndicator(

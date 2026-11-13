@@ -90,6 +90,8 @@ data class ChatLook(
     val speakers: List<Color> = AdeuColors.speakersLight,
     /** Shape of cards and grouped lists. */
     val cardShape: Shape = RoundedCornerShape(20.dp),
+    /** Corners of buttons (AP-123): round in the friendly looks, small in the businesslike ones. */
+    val buttonShape: Shape = RoundedCornerShape(50),
 )
 
 val LocalChatLook = staticCompositionLocalOf {
@@ -431,6 +433,7 @@ private fun chatLook(style: AppStyle, scheme: ColorScheme, dark: Boolean, amoled
             onAction = scheme.onPrimary,
             cardBorder = BorderStroke(1.dp, scheme.surfaceContainerHighest),
             cardShape = RoundedCornerShape(10.dp),
+            buttonShape = RoundedCornerShape(8.dp),
         )
         AppStyle.OFFICE -> ChatLook(
             userBubble = scheme.primaryContainer,
@@ -446,6 +449,7 @@ private fun chatLook(style: AppStyle, scheme: ColorScheme, dark: Boolean, amoled
             onAction = scheme.onPrimary,
             cardBorder = BorderStroke(1.dp, scheme.surfaceContainerHighest),
             cardShape = RoundedCornerShape(6.dp),
+            buttonShape = RoundedCornerShape(4.dp),
         )
         AppStyle.CONTRAST -> ChatLook(
             userBubble = scheme.primaryContainer,
@@ -463,6 +467,7 @@ private fun chatLook(style: AppStyle, scheme: ColorScheme, dark: Boolean, amoled
             success = if (dark) Color(0xFF7CFF8A) else Color(0xFF006B1F),
             warning = if (dark) Color(0xFFFFC94D) else Color(0xFF8A4B00),
             cardShape = RoundedCornerShape(8.dp),
+            buttonShape = RoundedCornerShape(6.dp),
         )
         AppStyle.STANDARD -> ChatLook(
             userBubble = scheme.primaryContainer,

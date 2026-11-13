@@ -14,8 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
@@ -26,7 +24,6 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -238,10 +235,7 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
         c.events.collect { e ->
             snackbar.currentSnackbarData?.dismiss()
             val result = snackbar.showSnackbar(
-                message = "${e.title}: ${e.message}",
-                actionLabel = tr("Ansehen"),
-                withDismissAction = true,
-                duration = SnackbarDuration.Long,
+                NoticeVisuals("${e.title}: ${e.message}", actionLabel = tr("Ansehen"), duration = SnackbarDuration.Long, tone = NoticeTone.DONE),
             )
             if (result == SnackbarResult.ActionPerformed) nav.openChat(chatRoute(e.chatId))
         }
@@ -262,12 +256,7 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
     LaunchedEffect(Unit) {
         Notices.flow.collect { n ->
             launch {
-                val result = toasts.showSnackbar(
-                    message = n.text,
-                    actionLabel = n.action,
-                    withDismissAction = n.error || n.action != null,
-                    duration = if (n.error || n.action != null) SnackbarDuration.Long else SnackbarDuration.Short,
-                )
+                val result = toasts.showSnackbar(n.visuals())
                 if (result == SnackbarResult.ActionPerformed) n.onAction?.invoke() else n.onTimeout?.invoke()
             }
         }
@@ -353,23 +342,14 @@ fun AppRoot(c: AppContainer, openChat: MutableStateFlow<String?>, openRoute: Mut
                 .align(Alignment.TopCenter)
                 .padding(top = 56.dp)
                 .widthIn(max = 640.dp),
-        ) { data ->
-            Snackbar(
-                data,
-                shape = RoundedCornerShape(16.dp),
-                containerColor = LocalChatLook.current.card,
-                contentColor = MaterialTheme.colorScheme.onSurface,
-                actionColor = MaterialTheme.colorScheme.primary,
-                dismissActionContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+        ) { data -> NoticeBar(data) }
         SnackbarHost(
             toasts,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 120.dp)
                 .widthIn(max = 640.dp),
-        ) { data -> Snackbar(data, shape = RoundedCornerShape(14.dp)) }
+        ) { data -> if (data.visuals is NoticeVisuals) NoticeBar(data) else Snackbar(data, shape = RoundedCornerShape(14.dp)) }
     }
     }
 }
@@ -473,8 +453,8 @@ private fun ChatInOtherWindow(id: String) {
         androidx.compose.foundation.layout.Column(horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally, verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp)) {
             Text(tr("Dieser Chat ist in einem eigenen Fenster offen."), style = MaterialTheme.typography.titleMedium)
             androidx.compose.foundation.layout.Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
-                androidx.compose.material3.Button(onClick = { WindowHooks.focusChat(id) }) { Text(tr("Zum Fenster")) }
-                androidx.compose.material3.OutlinedButton(onClick = { WindowHooks.closeChat(id) }) { Text(tr("Hierher holen")) }
+                Button(onClick = { WindowHooks.focusChat(id) }) { Text(tr("Zum Fenster")) }
+                OutlinedButton(onClick = { WindowHooks.closeChat(id) }) { Text(tr("Hierher holen")) }
             }
         }
     }

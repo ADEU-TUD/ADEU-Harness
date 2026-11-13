@@ -19,7 +19,9 @@ import io.github.thepytales.llmhub.data.ModelType
 /** A settings card like the other sections (shared by Android and Windows). */
 @Composable
 fun SettingsCard(title: String, content: @Composable () -> Unit) {
-    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = LocalChatLook.current.card)) {
+    // Corners and frame of the style like every other card (AP-123).
+    val look = LocalChatLook.current
+    Card(Modifier.fillMaxWidth(), shape = look.cardShape, colors = CardDefaults.cardColors(containerColor = look.card), border = look.cardBorder) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(title, style = MaterialTheme.typography.titleMedium)
             content()

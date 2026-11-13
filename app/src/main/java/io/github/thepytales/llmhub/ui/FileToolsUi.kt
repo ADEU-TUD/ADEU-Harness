@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.Description
@@ -27,16 +26,11 @@ import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.outlined.Print
 import androidx.compose.material.icons.outlined.TableChart
 import androidx.compose.material.icons.outlined.WarningAmber
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -357,8 +351,8 @@ private fun ArchiveDialog(file: File, onDismiss: () -> Unit, onDone: () -> Unit,
             }
         },
         confirmButton = {
-            Row {
-                if (onAsk != null) TextButton(enabled = !busy && entries != null, onClick = {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (onAsk != null) OutlinedButton(enabled = !busy && entries != null, onClick = {
                     launchWork(scope, { busy = it }) {
                         val dir = File(context.cacheDir, "archiv-frag/" + file.nameWithoutExtension)
                         withContext(Dispatchers.IO) { dir.deleteRecursively(); Archives.extract(file, dir, password = pw()) }
@@ -582,9 +576,9 @@ private fun FontsDialog(file: File, onDismiss: () -> Unit, onDone: () -> Unit) {
             }
         },
         confirmButton = {
-            Row {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 val rep = report?.getOrNull()
-                if (office && rep != null && rep.missing.any { it.replacement != null }) TextButton(enabled = !busy, onClick = {
+                if (office && rep != null && rep.missing.any { it.replacement != null }) OutlinedButton(enabled = !busy, onClick = {
                     launchWork(scope, { busy = it }) {
                         val out = FileProtect.outFile(file, "Schriften ersetzt")
                         withContext(Dispatchers.IO) { FontRescue.replace(file, rep.missing.mapNotNull { f -> f.replacement?.let { f.name to it } }.toMap(), out) }

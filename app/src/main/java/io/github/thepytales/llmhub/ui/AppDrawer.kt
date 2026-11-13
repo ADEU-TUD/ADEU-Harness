@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -62,11 +61,8 @@ import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material.icons.outlined.Terminal
 import io.github.thepytales.llmhub.data.withTool
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.Surface
@@ -625,7 +621,7 @@ private fun FolderRow(folder: Folder, count: Int, open: Boolean, onToggle: () ->
                     onClick = { menu = false; openProjectFolder(context, folder.workDir) },
                 )
             }
-            DropdownMenuItem(text = { Text(tr("Löschen")) }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = { menu = false; onDelete() })
+            DropdownMenuItem(colors = dangerMenuColors(), text = { Text(tr("Löschen")) }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = { menu = false; onDelete() })
         }
     }
 }
@@ -711,7 +707,7 @@ private fun ChatRow(
             DropdownMenuItem(text = { Text(tr("Umbenennen")) }, leadingIcon = { Icon(Icons.Outlined.Edit, null) }, onClick = { menu = false; onRename() })
             DropdownMenuItem(text = { Text(if (conv.archived) tr("Aus dem Archiv holen") else tr("Archivieren")) }, leadingIcon = { Icon(Icons.Outlined.Archive, null) }, onClick = { menu = false; onArchive() })
             DropdownMenuItem(text = { Text(tr("Auswählen")) }, leadingIcon = { Icon(Icons.Outlined.CheckBox, null) }, onClick = { menu = false; onSelect() })
-            DropdownMenuItem(text = { Text(tr("Löschen")) }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = { menu = false; onDelete() })
+            DropdownMenuItem(colors = dangerMenuColors(), text = { Text(tr("Löschen")) }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = { menu = false; onDelete() })
         }
     }
 }
@@ -729,7 +725,7 @@ private fun ChatFilterRow(filter: io.github.thepytales.llmhub.data.ChatFilter, f
     ) {
         Box {
             FilterChip(filter.days > 0, { period = true }, label = { Text(when (filter.days) { 7 -> tr("7 Tage"); 30 -> tr("30 Tage"); 365 -> tr("1 Jahr"); else -> tr("Zeitraum") }) })
-            androidx.compose.material3.DropdownMenu(period, { period = false }) {
+            DropdownMenu(period, { period = false }) {
                 listOf(0 to tr("Immer"), 7 to tr("Letzte 7 Tage"), 30 to tr("Letzte 30 Tage"), 365 to tr("Letztes Jahr")).forEach { (d, label) ->
                     androidx.compose.material3.DropdownMenuItem(text = { Text(label) }, onClick = { period = false; onChange(filter.copy(days = d)) })
                 }
@@ -739,7 +735,7 @@ private fun ChatFilterRow(filter: io.github.thepytales.llmhub.data.ChatFilter, f
             FilterChip(filter.project != null, { project = true }, label = {
                 Text(filter.project?.let { id -> if (id.isEmpty()) tr("Ohne Projekt") else folders.firstOrNull { it.id == id }?.name ?: tr("Projekt") } ?: tr("Projekt"), maxLines = 1)
             })
-            androidx.compose.material3.DropdownMenu(project, { project = false }) {
+            DropdownMenu(project, { project = false }) {
                 androidx.compose.material3.DropdownMenuItem(text = { Text(tr("Alle")) }, onClick = { project = false; onChange(filter.copy(project = null)) })
                 androidx.compose.material3.DropdownMenuItem(text = { Text(tr("Ohne Projekt")) }, onClick = { project = false; onChange(filter.copy(project = "")) })
                 folders.forEach { f -> androidx.compose.material3.DropdownMenuItem(text = { Text(f.name) }, onClick = { project = false; onChange(filter.copy(project = f.id)) }) }
@@ -750,7 +746,7 @@ private fun ChatFilterRow(filter: io.github.thepytales.llmhub.data.ChatFilter, f
             FilterChip(filter.model != null, { model = true }, label = {
                 Text(filter.model?.let { io.github.thepytales.llmhub.data.ModelCatalog.info(it).displayName } ?: tr("Modell"), maxLines = 1)
             })
-            androidx.compose.material3.DropdownMenu(model, { model = false }) {
+            DropdownMenu(model, { model = false }) {
                 androidx.compose.material3.DropdownMenuItem(text = { Text(tr("Alle")) }, onClick = { model = false; onChange(filter.copy(model = null)) })
                 models.forEach { m -> androidx.compose.material3.DropdownMenuItem(text = { Text(io.github.thepytales.llmhub.data.ModelCatalog.info(m).displayName) }, onClick = { model = false; onChange(filter.copy(model = m)) }) }
             }
@@ -758,6 +754,6 @@ private fun ChatFilterRow(filter: io.github.thepytales.llmhub.data.ChatFilter, f
         FilterChip(filter.withAttachments, { onChange(filter.copy(withAttachments = !filter.withAttachments)) }, label = { Text(tr("Mit Anhängen")) })
         FilterChip(filter.withFiles, { onChange(filter.copy(withFiles = !filter.withFiles)) }, label = { Text(tr("Mit erstellten Dateien")) })
         FilterChip(filter.archive, { onChange(filter.copy(archive = !filter.archive)) }, label = { Text(tr("Archiv")) })
-        if (filter.active) androidx.compose.material3.TextButton(onClick = { onChange(io.github.thepytales.llmhub.data.ChatFilter()) }) { Text(tr("Zurücksetzen")) }
+        if (filter.active) TextButton(onClick = { onChange(io.github.thepytales.llmhub.data.ChatFilter()) }) { Text(tr("Zurücksetzen")) }
     }
 }

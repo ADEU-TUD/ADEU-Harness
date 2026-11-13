@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -75,21 +74,15 @@ import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material.icons.outlined.ViewList
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationDrawerItem
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -1103,7 +1096,7 @@ private fun ItemMenu(c: AppContainer, item: DriveItem, actions: DriveActions, op
         item.doc?.takeIf { it.versions.size > 1 }?.let { d -> DropdownMenuItem(text = { Text(tr("Versionen vergleichen")) }, leadingIcon = { Icon(Icons.Outlined.History, null) }, onClick = { act { actions.versions(d) } }) }
         if (LORA_FOLDER_OPENS) DropdownMenuItem(text = { Text(tr("Im Explorer zeigen")) }, onClick = { act { actions.reveal(item) } })
         HorizontalDivider()
-        DropdownMenuItem(text = { Text(tr("In den Papierkorb")) }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = { act { actions.delete(item) } })
+        DropdownMenuItem(colors = dangerMenuColors(), text = { Text(tr("In den Papierkorb")) }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = { act { actions.delete(item) } })
     }
 }
 
@@ -1370,7 +1363,7 @@ private fun TrashList(drive: LoraDrive, trash: List<TrashEntry>) {
         onDismissRequest = { confirmEmpty = false },
         title = { Text(tr("Papierkorb leeren?")) },
         text = { Text(tr("{0} Einträge werden endgültig gelöscht.", trash.size)) },
-        confirmButton = { TextButton(onClick = { confirmEmpty = false; drive.emptyTrash() }) { Text(tr("Endgültig löschen")) } },
+        confirmButton = { DangerButton(onClick = { confirmEmpty = false; drive.emptyTrash() }) { Text(tr("Endgültig löschen")) } },
         dismissButton = { TextButton(onClick = { confirmEmpty = false }) { Text(tr("Abbrechen")) } },
     )
 }
