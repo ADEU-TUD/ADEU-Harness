@@ -14,6 +14,10 @@
   Als Nächstes kommt dort das erste offene Paket unter *Jetzt*; Grundsätze und Prüfmaßstab der Datei gelten. Neue
   Design-Pakete bekommen die nächste freie APD-Nummer und stehen nur dort; Status (☐/◐/☑) dort pflegen. Jede
   Design-Stufe zeigt dem Hauptnutzer vor PR und Merge Vorher/Nachher-Bilder aus Tests auf einer Vergleichsseite.
+- **TU Dresden Corporate Design ist unveränderlich:** Die Vorlagen im CD der TU Dresden und alles, was die App im
+  TUD-Stil erzeugt (TU Vorlagen, Briefe, Dokumente, Folien, Designs; `docs/TudBrand.kt`, `DocStyle.TUD`,
+  `creative/TudAssets.kt`, `data/BuiltInTemplates.kt`, `resources/tud/`), werden **nie** verändert – auch nicht bei
+  Design-Arbeiten. Veränderbar ist nur die Oberfläche der App drumherum.
 - **Kotlin-Schalter `-Xskip-metadata-version-check`** (seit AP-118, `desktop/build.gradle.kts` im Block `kotlin { … }`):
   nötig, weil JediTerm 3.76 (Terminal des Server-Terminals) mit Kotlin 2.4 gebaut ist, die App aber mit Kotlin 2.0.21
   baut; ohne ihn bricht der Desktop-Build mit „Module was compiled with an incompatible version of Kotlin. The binary

@@ -1,6 +1,6 @@
 # Design-Arbeitsplan Lora (APD)
 
-Stand: 13.11.2026 (angelegt; APD-01 *Umfassendes UI-Review* als Erstes; Anspruch des Hauptnutzers: super aussehen, gut bedienbar, rundes Gesamtprodukt mit einheitlichem Stil auf dem Niveau der neuen Lora) · Lebendes Dokument: Status hier pflegen,
+Stand: 13.11.2026 (angelegt; APD-01 *Umfassendes UI-Review* als Erstes; Anspruch des Hauptnutzers: super aussehen, gut bedienbar, rundes Gesamtprodukt mit einheitlichem Stil auf dem Niveau der neuen Lora, ohne wie Lora auszusehen; TU-Dresden-CD-Vorlagen unveränderlich) · Lebendes Dokument: Status hier pflegen,
 erledigte Pakete abhaken und in der README beschreiben.
 
 **Was hier steht**: alle Arbeitspakete zu **Aussehen, Bedienbarkeit und Nutzerfreundlichkeit** der App – Oberfläche,
@@ -32,7 +32,8 @@ uneinheitlich, wirkt unfertig), **gering** (Feinschliff).
 | --- | --- |
 | Anspruch | **Es muss super aussehen und gut bedienbar sein** (Hauptnutzer, 13.11.2026). Die App sieht **seriös und modern** aus – klar, aufgeräumt, hochwertig, passend für Forschung, Lehre und Verwaltung an der TU Dresden. „Geht so“ reicht nicht: Viele Bereiche wirken noch **unübersichtlich oder langweilig** – genau das wird gesucht und behoben. Kein Effekt um seiner selbst willen. |
 | Ein Gesamtprodukt | Ein **rundes Gesamtprodukt mit einheitlichem Stil**: dieselbe Formensprache (Ecken, Karten, Schatten, Abstände), dieselbe Bildsprache (Symbole, Illustrationen), dieselben Muster für Seitenköpfe, Listen, Karten, leere Zustände und Hinweise – in jedem Bereich, vom Chat bis zum Videoeditor. Wer einen Bereich kennt, kennt alle. |
-| Lora als Maßstab | Lora wurde mit AP-122 neu gezeichnet (Volumen, weiches Licht, lebendige Bewegung). **Die Oberfläche soll dasselbe Niveau erreichen** und zu ihr passen: ihre Farben und ihre weiche, freundliche Formensprache prägen den Stil mit; Lora selbst erscheint dort, wo sie hilft (Einrichtung, leere Zustände, Erfolg, Hilfe), seriös und nicht überall. |
+| Lora als Maßstab | Lora wurde mit AP-122 neu gezeichnet (Volumen, weiches Licht, lebendige Bewegung). **Die Figur selbst ist bewusst poppig und soll es bleiben.** Die Oberfläche wird auf **dasselbe Qualitätsniveau** gehoben, soll aber **nicht so aussehen wie Lora**: kein Comic- oder Pop-Stil für die App, sondern eine ruhige, seriöse, moderne Oberfläche, vor der Lora als farbige Figur zur Geltung kommt. Lora erscheint dort, wo sie hilft (Einrichtung, leere Zustände, Erfolg, Hilfe), und nicht überall. |
+| **TU Dresden: Corporate Design unveränderlich** | Die **Vorlagen im Corporate Design der TU Dresden sind zu jeder Zeit unveränderlich** und gehören nicht zum Design-Arbeitsplan: was die App im TUD-Stil **erzeugt** – TU Vorlagen, Briefe mit Anschriftfeld, Dokumente, Folien, Poster und Designs im Stil „TU Dresden“ –, mit Farben, Hausschrift Noto Sans, Logo, Satzspiegel und Aufbau aus dem offiziellen CD-Paket. Im Code: `docs/TudBrand.kt`, `DocStyle.TUD` in `docs/DocTheme.kt`, `creative/TudAssets.kt`, die eingebauten Vorlagen (`data/BuiltInTemplates.kt`), Logos und Schrift in `resources/tud/`. **Veränderbar** ist nur die App drumherum: die Oberfläche, mit der man Vorlagen auswählt, bearbeitet und erstellt (Listen, Editoren, Leisten, Dialoge, Vorschauen). Der App-Stil „TU Dresden“ (`AppStyle.TUD`) darf als Oberfläche verbessert werden, nimmt die CD-Farben aber unverändert. Ein Design-Paket, das eine dieser Vorlagen oder ihre Ausgabe ändern würde, ist falsch geschnitten. |
 | Priorität | **Nutzerfreundlichkeit vor Schmuck.** Eine Änderung zählt, wenn etwas schneller gefunden, klarer verstanden oder mit weniger Schritten erledigt wird; Verschönerung folgt daraus. |
 | Ein Baukasten | Bildschirme bauen aus gemeinsamen Bausteinen: `ui/Controls.kt` (Knöpfe, Symbol-Knöpfe mit Tooltip, Felder, Schalter, Menüs), `ui/Dialogs.kt` (Dialoge mit Hauptknopf, Enter/Esc), `ui/NoticeBar.kt` (Hinweise), `ui/Scrollbars.kt` (Bildlaufleisten), `ui/Design.kt` (Karten, Gruppenüberschriften, Marken, Segmente), `ui/Theme.kt` (`ChatLook` je Stil), `ui/Chips.kt`, `ui/TextI18n.kt`. Fehlt ein Baustein, kommt er dorthin – keine Einzellösung in einem Bildschirm. |
 | Alle Stile | Jede Änderung gilt für alle 8 Stile (ADEU, TU Dresden, Office, Hoher Kontrast, Claude, Material You, ChatGPT, Gemini), hell und dunkel; Hoher Kontrast bleibt WCAG AAA, sonst mindestens AA (Text 4,5 : 1, Bedienelemente 3 : 1). |
@@ -69,7 +70,7 @@ Gilt für das Review (APD-01) und als Abnahme jedes Pakets. Je Bildschirm:
     Touch-Ziele mindestens 48 dp (Android).
 12. **Eindruck** – Wirkt der Bildschirm seriös, modern, hochwertig und fertig? Ist er **übersichtlich** (Gruppierung,
     wenig gleichzeitig, klarer Einstieg) oder überladen? Ist er **ansprechend** oder **langweilig** (graue Listen,
-    Textwüsten, keine visuellen Anker, alles gleich laut)? Passt er zum Rest der App und zu Lora? Was würde eine
+    Textwüsten, keine visuellen Anker, alles gleich laut)? Passt er zum Rest der App, und steht Lora davor gut da (ohne dass die App selbst poppig wird)? Was würde eine
     Designerin als Erstes ändern?
 
 ---
@@ -92,7 +93,9 @@ Gilt für das Review (APD-01) und als Abnahme jedes Pakets. Je Bildschirm:
 und daraus einen geordneten Plan machen, mit dem wir das Design Stück für Stück verbessern, bis die App ein **rundes
 Gesamtprodukt mit einheitlichem Stil** ist, das **super aussieht und sich leicht bedienen lässt** (Grundsätze
 *Anspruch*, *Ein Gesamtprodukt*, *Lora als Maßstab*). Ausdrücklich gesucht: was **unübersichtlich** und was
-**langweilig** wirkt. **In diesem Paket wird nichts
+**langweilig** wirkt. Die Vorlagen im Corporate Design der
+TU Dresden und alles, was die App im TUD-Stil erzeugt, sind **nicht Gegenstand** des Reviews (Grundsatz *TU Dresden*);
+geprüft wird die Oberfläche, mit der man sie auswählt, bearbeitet und erstellt. **In diesem Paket wird nichts
 an der Oberfläche umgebaut** (höchstens Werkzeuge für Bilder und Tests); offensichtliche Fehler werden als Befund mit
 Schweregrad *hoch* erfasst.
 
@@ -111,8 +114,8 @@ Schweregrad *hoch* erfasst.
 4. **Pakete bilden**: Befunde zu Paketen APD-02 ff. bündeln (eher nach Thema oder Bildschirm als nach Einzelbefund),
    unter *Danach* eintragen – je Paket Befund, Ziel, Vorschläge, *Fertig, wenn*, Größe – und nach Nutzen ordnen:
    zuerst, was im Alltag am meisten stört oder am häufigsten gesehen wird (Chat, Seitenleiste, Dateien, Einstellungen).
-5. **Stilrichtung für das Gesamtprodukt**: aus dem Review eine einheitliche Gestaltung ableiten, die zur neuen Lora
-   passt – Formensprache, Farbeinsatz, Schrift und Abstände, Symbole und Illustrationen, Muster für Seitenköpfe, Listen,
+5. **Stilrichtung für das Gesamtprodukt**: aus dem Review eine einheitliche Gestaltung ableiten, die das Niveau der
+   neuen Lora erreicht, ohne wie sie auszusehen (seriös und modern, Lora als farbige Figur davor) – Formensprache, Farbeinsatz, Schrift und Abstände, Symbole und Illustrationen, Muster für Seitenköpfe, Listen,
    Karten, leere Zustände – und für **2–3 Schlüsselbildschirme** (z. B. Chat-Startseite, Seitenleiste, Dateien) zeigen,
    wie sie damit aussehen würden (Entwurf als Bild oder HTML, noch nicht in der App). Die Richtung wird die Grundlage der
    Pakete APD-02 ff. (Baukasten zuerst, dann die Bildschirme).
@@ -145,7 +148,7 @@ nächstem Schritt · Fehler direkt am Eingabefeld · Tastenkürzel in Tooltips u
 und in Rastern (rund 65 Stellen mit `LazyRow`, `LazyVerticalGrid`, `horizontalScroll`) · dezente Übergänge · Android mit
 schmalen Bildschirmen und großer Schrift · am Gerät offen aus AP-123: Tooltips, Enter/Esc in echten Dialogen,
 Bildlaufleisten, Hoher Kontrast mit Screenreader · **einheitlicher Stil über alle Bereiche** (Wunsch Hauptnutzer) ·
-**Lora (AP-122) als Teil der Identität** – passende Illustrationen und leere Zustände · **visuelle Anker** statt
+**Lora (AP-122) als Figur vor einer ruhigen Oberfläche** – passende leere Zustände, ohne die App poppig zu machen · **visuelle Anker** statt
 grauer Listen und Textwüsten (Symbole, Farbe, Bilder, Vorschauen).
 
 **Fertig, wenn**: Bilder aller Bereiche vorliegen, `docs/design/review-2026-11.md` jeden Bereich mit Befunden und
