@@ -4,8 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.TooltipBox
@@ -34,7 +32,12 @@ fun Tip(text: String, modifier: Modifier = Modifier, content: @Composable () -> 
         tooltip = { PlainTooltip { Text(text) } },
         state = rememberTooltipState(),
         modifier = modifier,
-    ) { content() }
+        // The tooltip takes no keyboard focus: typing in a field beside it goes on (AP-123).
+        focusable = false,
+    ) {
+        // The symbol button inside shows this tip, not one of its own (ui/Controls.kt).
+        androidx.compose.runtime.CompositionLocalProvider(LocalInTip provides true) { content() }
+    }
 }
 
 /**

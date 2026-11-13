@@ -11,11 +11,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.VpnKey
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,7 +41,7 @@ fun WelcomeCard(onApiKey: () -> Unit, onNavigate: (String) -> Unit) {
             // AP-112: the second way – everything on this device, without a key and without the Uni-Server.
             Text(tr("Oder ganz ohne Schlüssel: alles auf diesem Gerät"), style = MaterialTheme.typography.titleSmall)
             HintText(tr("Lora lädt Schritt für Schritt Modelle, die zu diesem Gerät passen – für Chat, Lora, Postfach, Suche, Diktat und Vorlesen. Nichts verlässt das Gerät; nur Bilder erzeugen geht ohne Schlüssel nicht."))
-            androidx.compose.material3.OutlinedButton(onClick = { onNavigate("local-setup") }, modifier = Modifier.fillMaxWidth()) {
+            OutlinedButton(onClick = { onNavigate("local-setup") }, modifier = Modifier.fillMaxWidth()) {
                 Text(tr("Alles auf diesem Gerät einrichten"))
             }
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {

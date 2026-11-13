@@ -29,7 +29,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.FormatAlignLeft
 import androidx.compose.material.icons.automirrored.outlined.FormatAlignRight
@@ -61,18 +60,12 @@ import androidx.compose.material.icons.outlined.FormatUnderlined
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -1205,7 +1198,7 @@ private fun AppMapNorm(s: String) = io.github.thepytales.llmhub.data.AppMap.norm
 private fun PromptDialog(title: String, hint: String, initial: String = "", onDismiss: () -> Unit, onDone: (String) -> Unit) {
     var text by remember { mutableStateOf(initial) }
     val focus = remember { FocusRequester() }
-    androidx.compose.material3.AlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
@@ -1616,7 +1609,7 @@ private fun insertFootnote(state: FlowState) {
 @Composable
 private fun TablePickDialog(onDismiss: () -> Unit, onPick: (Int, Int) -> Unit) {
     var hover by remember { mutableStateOf(3 to 3) }
-    androidx.compose.material3.AlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(tr("Tabelle einfügen")) },
         text = {
@@ -1646,7 +1639,7 @@ private fun TablePickDialog(onDismiss: () -> Unit, onPick: (Int, Int) -> Unit) {
 @Composable
 private fun SpecialCharsDialog(onDismiss: () -> Unit, onPick: (String) -> Unit) {
     val chars = listOf("–", "—", "„", "“", "‚", "‘", "»", "«", "…", "§", "€", "°", "±", "×", "÷", "≈", "≠", "≤", "≥", "→", "←", "↔", "⇒", "•", "©", "®", "™", "½", "¼", "²", "³", "α", "β", "γ", "δ", "μ", "π", "σ", "Σ", "Ω", "∞", "√", "∑", "✓", "✗")
-    androidx.compose.material3.AlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(tr("Sonderzeichen")) },
         text = {
@@ -2008,7 +2001,7 @@ private fun SectionDialog(initial: DocMarkup.Section, onDismiss: () -> Unit, onD
     var header by remember { mutableStateOf(initial.header.orEmpty()) }
     var ownFooter by remember { mutableStateOf(initial.footer != null) }
     var footer by remember { mutableStateOf(initial.footer.orEmpty()) }
-    androidx.compose.material3.AlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(tr("Abschnittsumbruch")) },
         text = {
@@ -2018,12 +2011,12 @@ private fun SectionDialog(initial: DocMarkup.Section, onDismiss: () -> Unit, onD
                     androidx.compose.material3.Checkbox(ownHeader, { ownHeader = it })
                     Text(tr("Eigene Kopfzeile"))
                 }
-                if (ownHeader) androidx.compose.material3.OutlinedTextField(header, { header = it.replace("\n", " ") }, singleLine = true, label = { Text(tr("Kopfzeile (leer: keine)")) }, modifier = Modifier.fillMaxWidth())
+                if (ownHeader) OutlinedTextField(header, { header = it.replace("\n", " ") }, singleLine = true, label = { Text(tr("Kopfzeile (leer: keine)")) }, modifier = Modifier.fillMaxWidth())
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     androidx.compose.material3.Checkbox(ownFooter, { ownFooter = it })
                     Text(tr("Eigene Fußzeile"))
                 }
-                if (ownFooter) androidx.compose.material3.OutlinedTextField(footer, { footer = it.replace("\n", " ") }, singleLine = true, label = { Text(tr("Fußzeile (leer: keine)")) }, modifier = Modifier.fillMaxWidth())
+                if (ownFooter) OutlinedTextField(footer, { footer = it.replace("\n", " ") }, singleLine = true, label = { Text(tr("Fußzeile (leer: keine)")) }, modifier = Modifier.fillMaxWidth())
             }
         },
         confirmButton = { TextButton(onClick = { onDone(DocMarkup.Section(header.takeIf { ownHeader }, footer.takeIf { ownFooter })) }) { Text(tr("Übernehmen")) } },

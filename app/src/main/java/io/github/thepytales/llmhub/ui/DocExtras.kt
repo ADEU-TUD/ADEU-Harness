@@ -2,7 +2,6 @@ package io.github.thepytales.llmhub.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,17 +11,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -182,7 +177,7 @@ fun CitationDialog(c: AppContainer, initialStyle: CitationStyle, onDismiss: () -
                     Text(tr("Zitierstil: "), style = MaterialTheme.typography.labelLarge)
                     Box {
                         TextButton(onClick = { styles = true }) { Text(style.label) }
-                        androidx.compose.material3.DropdownMenu(expanded = styles, onDismissRequest = { styles = false }) {
+                        DropdownMenu(expanded = styles, onDismissRequest = { styles = false }) {
                             CitationStyle.entries.forEach { st ->
                                 androidx.compose.material3.DropdownMenuItem(text = { Text(st.label) }, onClick = { style = st; styles = false })
                             }
@@ -310,8 +305,8 @@ fun HandoutDialog(c: AppContainer, doc: LiveDoc, markdown: String, onDismiss: ()
             }
         },
         confirmButton = {
-            Row {
-                TextButton(enabled = !busy, onClick = { make { openDocument(context, it) } }) { Text(tr("Öffnen")) }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(enabled = !busy, onClick = { make { openDocument(context, it) } }) { Text(tr("Öffnen")) }
                 TextButton(enabled = !busy, onClick = { make(saveAs) }) { Text(SAVE_AS_LABEL) }
             }
         },
@@ -357,7 +352,7 @@ fun SpellCheckDialog(blocks: List<String>, onReplace: (Int, String) -> Unit, onD
                     none -> HintText(tr("Für diese Sprache ist auf dem Gerät kein Wörterbuch eingerichtet (Windows: Einstellungen › Zeit und Sprache › Sprache). Die Prüfung mit der KI geht trotzdem."))
                     shown == null -> HintText(tr("Prüfe …"))
                     shown.isEmpty() -> HintText(tr("Keine Fehler gefunden."))
-                    else -> androidx.compose.foundation.lazy.LazyColumn(Modifier.weight(1f, fill = false), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    else -> LazyColumn(Modifier.weight(1f, fill = false), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         items(shown.size) { k ->
                             val (i, e) = shown[k]
                             val plain = io.github.thepytales.llmhub.docs.DocBlocks.plainOf(blocks.getOrNull(i).orEmpty())

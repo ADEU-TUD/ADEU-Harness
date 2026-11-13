@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Switch
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.runtime.Composable
@@ -104,12 +102,12 @@ fun ToolSuggestion(c: AppContainer, input: String, fileNames: List<String>) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(1f, fill = false),
         )
-        androidx.compose.material3.TextButton(onClick = {
+        TextButton(onClick = {
             c.settings.update { it.withTool(tool, true) }
             Notices.info("„${tool.label}“ " + tr("ist eingeschaltet – in der Seitenleiste unter „Mehr“."))
         }) { Text(tr("Einschalten")) }
-        androidx.compose.material3.IconButton(onClick = { dismissedTools += tool.id }) {
-            androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Outlined.Close, contentDescription = tr("Nicht jetzt"))
+        IconButton(onClick = { dismissedTools += tool.id }) {
+            Icon(androidx.compose.material.icons.Icons.Outlined.Close, contentDescription = tr("Nicht jetzt"))
         }
     }
 }

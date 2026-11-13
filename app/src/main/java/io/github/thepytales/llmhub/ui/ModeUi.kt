@@ -20,7 +20,6 @@ import androidx.compose.material.icons.outlined.Mail
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.ManageSearch
 import androidx.compose.material.icons.outlined.TipsAndUpdates
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable

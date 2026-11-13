@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Forward10
@@ -30,15 +29,10 @@ import androidx.compose.material.icons.outlined.RepeatOne
 import androidx.compose.material.icons.outlined.Replay10
 import androidx.compose.material.icons.outlined.Replay30
 import androidx.compose.material.icons.outlined.Replay5
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -228,7 +222,7 @@ internal fun SegmentDialog(
     fun edited(): Transcript = t.copy(segments = t.segments.mapIndexed { i, x ->
         if (i == index) TranscriptEdit.withText(x, text.text).copy(speaker = speaker, comment = comment.trim().ifBlank { null }) else x
     })
-    androidx.compose.material3.AlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
         modifier = Modifier.onPreviewKeyEvent { e -> transcriptKey(e, control, playing, onLoop) },
         title = { Text(tr("Abschnitt bei {0}–{1}", TranscriptExport.clock(s.start), TranscriptExport.clock(s.end))) },

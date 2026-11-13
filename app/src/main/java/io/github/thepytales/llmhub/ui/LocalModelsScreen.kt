@@ -16,18 +16,13 @@ import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Memory
 import androidx.compose.material.icons.outlined.PlayArrow
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -318,7 +313,7 @@ private fun LocalModelRow(c: AppContainer, m: LocalModel, fit: Fit, state: Local
     val progress = state.downloads[m.id]
     var card by remember { mutableStateOf(false) }
     if (card) {
-        androidx.compose.material3.AlertDialog(
+        AlertDialog(
             onDismissRequest = { card = false },
             title = { Text(tr("Modellkarte")) },
             text = { Text(LocalCatalog.card(m), style = MaterialTheme.typography.bodySmall) },

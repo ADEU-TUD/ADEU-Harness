@@ -19,14 +19,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.FormatListBulleted
 import androidx.compose.material.icons.outlined.Add
@@ -49,15 +47,10 @@ import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.TableChart
 import androidx.compose.material.icons.outlined.Today
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -913,7 +906,7 @@ internal fun TableGrid(
     fun cells(r: Int, row: List<String>, readOnly: Boolean) {
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
             (0 until cols).forEach { col ->
-                androidx.compose.material3.OutlinedTextField(
+                OutlinedTextField(
                     row.getOrElse(col) { "" },
                     { v -> onChange(rows.mapIndexed { i, rr -> if (i == r) (0 until cols).map { k -> if (k == col) v else rr.getOrElse(k) { "" } } else rr }) },
                     modifier = Modifier.width(150.dp),
@@ -1044,7 +1037,7 @@ private fun RemovedCard(r: AiReview.Removed, onReview: (ReviewAction) -> Unit, t
 private fun ImageBlockEditor(img: DocMarkup.Image, onChange: (DocMarkup.Image) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         DocImageView(img)
-        androidx.compose.material3.OutlinedTextField(
+        OutlinedTextField(
             img.alt, { onChange(img.copy(alt = it.replace("\n", " "))) }, label = { Text(tr("Bildunterschrift (auch Alternativtext)")) },
             singleLine = true, modifier = Modifier.fillMaxWidth(),
         )
@@ -1080,12 +1073,12 @@ internal fun WordDiff(old: String, new: String) {
 private fun FormulaDialog(onDismiss: () -> Unit, onInsert: (String, Boolean) -> Unit) {
     var tex by remember { mutableStateOf("\\frac{a}{b}") }
     var display by remember { mutableStateOf(true) }
-    androidx.compose.material3.AlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(tr("Formel einfügen")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                androidx.compose.material3.OutlinedTextField(tex, { tex = it }, label = { Text("LaTeX") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(tex, { tex = it }, label = { Text("LaTeX") }, modifier = Modifier.fillMaxWidth())
                 androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("\\frac{a}{b}", "x^{2}", "x_{i}", "\\sqrt{x}", "\\sum_{i=1}^{n} x_i", "\\int_{a}^{b} f(x)\\,dx", "\\bar{x}", "\\alpha", "\\leq", "\\cdot").forEach { s ->
                         AssistChip(onClick = { tex = if (tex.isBlank()) s else "$tex $s" }, label = { Text(io.github.thepytales.llmhub.docs.MathText.inText("$$s$")) })

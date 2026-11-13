@@ -392,6 +392,38 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   Frage?“. Auf Android wartet Lora, wenn das System das Gerät als warm meldet, und hält an, bevor es heiß wird; der
   Modell-Server rechnet dort nur auf den großen Kernen (höchstens die Hälfte). Die Arbeitskarte zeigt „Liest die Anfrage
   ein … 40 %“. Test `LocalLimitsTest`; Messung am Gerät: Arbeitsplan AP-116.
+- **Bedienelemente aus einem Guss** (seit 1.0.71, AP-123): Knöpfe, Dialoge, Eingabefelder, Schalter und Menüs der
+  ganzen App sind einheitlicher, ruhiger und schneller zu bedienen – ohne dass sich Wege ändern.
+  - **Dialoge**: Die Hauptaktion ist immer der gefüllte Knopf, *Abbrechen* steht neutral daneben; was löscht, entfernt
+    oder zurücksetzt, ist **rot** (mit Papierkorb-Symbol). **Enter** bestätigt (auch aus einem einzeiligen Feld),
+    **Strg+Enter** auch aus einem längeren Text, **Esc** schließt. Enter löst nie etwas Rotes aus und wählt nie zwischen
+    zwei Hauptknöpfen. Am PC hat das erste Eingabefeld sofort den Cursor; beim **Umbenennen** ist der Name ohne Endung
+    markiert („Bericht“ von „Bericht.docx“) – einfach lostippen, Enter.
+  - **Knöpfe** passen zum Stil: rund in ADEU, Claude, ChatGPT, Gemini und Material You, mit kleinen Ecken in TU Dresden,
+    Office und Hoher Kontrast; sie geben beim Drücken leicht nach. Umrandete Knöpfe stehen auf der Kartenfarbe.
+  - **Symbol-Knöpfe** zeigen am PC ihren Namen als Tooltip, wenn die Maus kurz darauf ruht (vorher nur an wenigen Stellen).
+  - **Eingaben**: Felder auf der Kartenfarbe, Passwortfelder mit Auge zum Anzeigen, Schalter mit Haken, wenn sie an sind.
+  - **Menüs** mit Ecken, Rahmen und Schatten des Stils; *Löschen* und *In den Papierkorb* sind rot.
+  - **Hinweis-Banner** (Fehler, *Rückgängig*, fertige Ergebnisse) mit Symbol und farbigem Rand: rot für Fehler, grün für
+    Ergebnisse; Screenreader lesen sie vor.
+  - **Bildlaufleisten am PC**: Lange Seiten und Listen zeigen rechts eine schmale Leiste – man sieht, dass es weitergeht
+    und wo man ist; unter der Maus wird sie breiter und lässt sich ziehen.
+  - Nebenbei: „Transkription abbrechen?“ hatte zwei Knöpfe namens *Abbrechen* – jetzt *Weiterlaufen lassen* und
+    *Transkription abbrechen*.
+  Technisch: eigene Bausteine mit denselben Namen und Parametern wie Material 3 bzw. Foundation (`ui/Controls.kt`,
+  `ui/Dialogs.kt`, `ui/NoticeBar.kt`, `ui/Scrollbars.kt`), die Bildschirme nehmen sie ohne Import;
+  `ControlsBehaviourTest` prüft Tasten, Tooltips, Bildlaufleisten und dass kein Bildschirm mehr die Bausteine von
+  Material 3 direkt nimmt.
+
+  | Vorher | Nachher |
+  | --- | --- |
+  | ![Löschen vorher](docs/bilder/bedienung-loeschen-vorher.png) | ![Löschen nachher](docs/bilder/bedienung-loeschen-nachher.png) |
+  | ![Dialog vorher](docs/bilder/bedienung-dialog-vorher.png) | ![Dialog nachher](docs/bilder/bedienung-dialog-nachher.png) |
+  | ![Umbenennen vorher](docs/bilder/bedienung-umbenennen-vorher.png) | ![Umbenennen nachher](docs/bilder/bedienung-umbenennen-nachher.png) |
+  | ![Menü vorher](docs/bilder/bedienung-menue-vorher.png) | ![Menü nachher](docs/bilder/bedienung-menue-nachher.png) |
+  | ![Bedienelemente vorher](docs/bilder/bedienung-elemente-vorher.png) | ![Bedienelemente nachher](docs/bilder/bedienung-elemente-nachher.png) |
+
+  ![Hinweis-Banner: Fehler, Rückgängig, Ergebnis](docs/bilder/bedienung-hinweise.png)
 - **Videoeditor für Einsteiger** (seit 1.0.70, AP-121): Der Editor erklärt sich jetzt selbst – für alle, die noch nie ein
   Video geschnitten haben, ohne eigene „Einfach-Ansicht“. **Startseite** mit zwei großen Karten (*Video schneiden*,
   *Bildschirm aufnehmen*), die vier Schritte darunter, Projekte mit *Öffnen*, *Umbenennen*, *Kopie anlegen*, *Löschen*;

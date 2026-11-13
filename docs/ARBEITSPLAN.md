@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 13.11.2026 (AP-122 Lora neu gezeichnet und lebendiger: vom Hauptnutzer freigegeben, in der App, für 1.0.70 zusammen mit AP-121; Prüfung am Gerät offen) · 13.11.2026 (AP-121 Videoeditor für Einsteiger in der App, für 1.0.70; Prüfung am Gerät offen) · 11.11.2026 (Sitzung Dateiwerkzeuge: AP-90 Rest, AP-91, AP-93, AP-97 bis AP-100, AP-107 Rest, neu AP-119 und AP-120 in der App, Prüfung am Gerät offen) · 11.11.2026 (AP-112 und AP-116 in der App, Messung am Gerät offen; AP-117 erledigt; AP-118 Server-Terminal in der App, am eigenen Server zu prüfen) · 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen; neu: AP-116 lokale Modelle auf dem Handy zu langsam, nicht abbrechbar, Gerät heiß) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 13.11.2026 (AP-123 Bedienelemente aus einem Guss in der App, für 1.0.71; Prüfung am Gerät offen) · 13.11.2026 (AP-122 Lora neu gezeichnet und lebendiger: vom Hauptnutzer freigegeben, in der App, für 1.0.70 zusammen mit AP-121; Prüfung am Gerät offen) · 13.11.2026 (AP-121 Videoeditor für Einsteiger in der App, für 1.0.70; Prüfung am Gerät offen) · 11.11.2026 (Sitzung Dateiwerkzeuge: AP-90 Rest, AP-91, AP-93, AP-97 bis AP-100, AP-107 Rest, neu AP-119 und AP-120 in der App, Prüfung am Gerät offen) · 11.11.2026 (AP-112 und AP-116 in der App, Messung am Gerät offen; AP-117 erledigt; AP-118 Server-Terminal in der App, am eigenen Server zu prüfen) · 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen; neu: AP-116 lokale Modelle auf dem Handy zu langsam, nicht abbrechbar, Gerät heiß) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -72,6 +72,7 @@ Fairlight).
 | ~~Lora im Alltag~~ ☑ | AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen (erledigt 10.11.2026, siehe *Erledigt*) |
 | **Danach** | ~~AP-86 Lokale Modelle auf dem Mac laden~~ ☑ (10.11.2026, 1.0.67) |
 | **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung ◐ · AP-106 Modellkatalog in feinen Stufen, nach Zweck ◐ · AP-107 Suche nach Bedeutung auf dem Gerät ◐ (Rest in der App) · AP-108 Lange Texte lokal ◐ · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal ◐ · AP-111 Sprachausgabe lokal ☑ · AP-112 Offline-Schiene in der Oberfläche ◐ · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 ☑ · **AP-116 Lokale Modelle: Tempo, Abbruch, Hitze ◐** (Fehler aus 1.0.67, vor AP-109) · ~~AP-117 Eigene Modelle aktualisieren, auf GitHub~~ ☑ (11.11.2026) |
+| **Neu (13.11.2026, Bedienung)** | **AP-123 Bedienelemente aus einem Guss ◐** (Knöpfe nach Stil, Dialoge mit Hauptknopf und Enter/Esc, rote Lösch-Knöpfe, Tooltips an Symbol-Knöpfen, Passwort-Auge, Hinweis-Banner, Bildlaufleisten am PC; Prüfung am Gerät offen) |
 | **Neu (13.11.2026)** | **AP-121 Videoeditor für Einsteiger ◐** (Startseite, „So entsteht dein Video“, einfach schneiden, Rechtsklick, klarere Leisten; Prüfung am Gerät offen) |
 | **Neu (12.11.2026)** | **AP-122 Lora: neues Aussehen und lebendigere Animationen ☑** (Wunsch Hauptnutzer; am 13.11.2026 freigegeben, in der App, für 1.0.70) |
 | **Neu (11.11.2026)** | **AP-118 Server-Terminal mit Lora ◐** (SSH wie PuTTY, Lora schlägt Schritte vor, Ausführung nur nach Zustimmung; nur Desktop) · ~~AP-119 Anzeige, wohin die Daten gehen~~ ☑ (Wunsch des Kollegen) · **AP-120 Lora einrichten Schritt für Schritt ◐** (Wunsch Hauptnutzer) |
@@ -1192,6 +1193,53 @@ Arbeitszweig ab hier `ccr-3356efb4-jqscvr` (enthält `ccr-591efb5e-siqh68` volls
   schreibt in Sekunden Bildstreifen statt Filme (siehe `tools/lora-vorschau/README.md`).
 **Vorschau-Werkzeuge bleiben** (`tools/lora-vorschau/`, `LoraPreviewTest`): für künftige Änderungen an Lora erst
 Bildstreifen oder Filme ansehen, dann einbauen.
+
+
+### AP-123 ◐ Bedienelemente aus einem Guss: Knöpfe, Dialoge, Eingaben · M (neu, Wunsch Hauptnutzer 13.11.2026)
+**Befund**: Die App ist über viele Pakete gewachsen; ihre Bedienelemente sind fast überall die Bausteine von Material 3,
+so wie sie kommen – rund 1 000 Knöpfe, 170 Dialoge, 280 Eingabefelder. Folgen: In den meisten Dialogen sind *Speichern*
+und *Abbrechen* zwei gleich aussehende Textknöpfe, die Hauptaktion fällt nicht auf, und *Löschen* sieht aus wie
+*Speichern*; Enter tut in Dialogen nichts, das Feld eines Umbenennen-Dialogs hat keinen Cursor; Knöpfe sind auch im
+nüchternen Office- und TU-Stil runde Pillen; die rund 270 Symbol-Knöpfe ohne Text erklären sich am PC nicht (Tooltips
+nur an 17 Stellen); Passwortfelder zeigen nie, was getippt wurde; „Transkription abbrechen?“ hatte zwei Knöpfe namens
+*Abbrechen*.
+**Ziel**: Die ganze App wird ruhiger, klarer und schneller zu bedienen – **ohne die Bildschirme einzeln umzubauen**: die
+App bekommt eigene Bausteine mit denselben Namen und Parametern wie Material 3 (wie schon `Text` und die Chips), die
+Bildschirme nehmen sie ohne Import.
+- **Knöpfe** (`ui/Controls.kt`): Ecken nach Stil (`ChatLook.buttonShape`: rund in ADEU, Claude, ChatGPT, Gemini,
+  Material; 8 dp TU Dresden, 4 dp Office, 6 dp Hoher Kontrast), geben beim Drücken leicht nach; der umrandete Knopf steht
+  auf der Kartenfarbe mit ruhigerem Rahmen (2 dp kräftig in Hoher Kontrast). Neu `DangerButton` (rot).
+- **Dialoge** (`ui/Dialogs.kt`, `AlertDialog`): der Bestätigen-Knopf ist immer der gefüllte Hauptknopf, *Abbrechen*
+  neutral; ein roter Knopf markiert Löschen. **Enter** startet die Hauptaktion (auch aus einem einzeiligen Feld),
+  **Strg+Enter** auch aus einem längeren Text, **Esc** schließt – Enter startet nie etwas Rotes und wählt nie zwischen
+  zwei Hauptknöpfen. Am PC hat das erste Feld sofort den Cursor. Karte, Rahmen und Ecken des Stils, Symbol im getönten
+  Kreis neben dem Titel. `ConfirmDialog` erkennt Löschen/Entfernen/Zurücksetzen/Verwerfen am Text (roter Knopf mit
+  Papierkorb) und kennt einen eigenen Text für den Ausweg; `TextInputDialog` markiert beim Umbenennen den Namen ohne
+  Endung („Bericht“ von „Bericht.docx“), Tippen ersetzt ihn, Enter speichert. Dialoge mit mehreren Aktionen: die
+  Nebenaktionen sind umrandete Knöpfe (Export, Versionen, Archiv, Schriften, Bewerten, Exportwarteschlange); beim
+  geänderten Server-Schlüssel bleibt *Abbrechen* der gefüllte Knopf, *Schlüssel ersetzen* ist rot umrandet.
+- **Symbol-Knöpfe**: zeigen am PC die Beschreibung ihres Symbols als Tooltip, wenn die Maus eine halbe Sekunde darauf
+  ruht (nicht mehr nach einem Klick, bis die Maus weg war). `Tip` nimmt keinen Tastaturfokus mehr.
+- **Eingaben**: Felder auf der Kartenfarbe; Passwortfelder ohne eigenes Symbol bekommen ein Auge (*Anzeigen/Verbergen*);
+  Schalter zeigen eingeschaltet einen Haken (an/aus auch ohne Farbe erkennbar).
+- **Menüs**: Ecken, Kartenfarbe, Rahmen des Stils, weicher Schatten; *Löschen* und *In den Papierkorb* sind rot
+  (`dangerMenuColors`, 11 Menüs).
+- **Hinweis-Banner** (`ui/NoticeBar.kt`): Fehler, *Rückgängig* und Ergebnisse mit Symbol im getönten Kreis und farbigem
+  Rand (rot Fehler, grün Ergebnis), Aktion als Knopf, ✕; Screenreader lesen sie vor.
+- `SettingsCard` mit Ecken und Rahmen des Stils wie alle anderen Karten.
+- **Bildlaufleisten am PC** (`ui/Scrollbars.kt`): Compose zeigt auf dem Desktop keine; lange Seiten und Listen
+  (`verticalScroll`, `LazyColumn`, gleiche Namen wie in Foundation) haben jetzt rechts eine schmale Leiste, unter der
+  Maus breiter, zum Ziehen. Passt alles, ist keine da; Android unverändert.
+**Fertig, wenn**: alle Dialoge den Hauptknopf zeigen und auf Enter/Esc reagieren, kein Bildschirm mehr die Bausteine
+von Material 3 direkt nimmt (Test) und Bilder vorher/nachher in der README stehen.
+◐ *Stand 13.11.2026 (für 1.0.71)*: alles oben in der App; 138 Dateien nehmen die Bausteine ohne Import, 75 die Bildlauf-
+Bausteine (nur die Import-Zeilen fielen weg). Tests `ui/ControlsBehaviourTest` (Enter, Esc, Strg+Enter, Löschen nie per Enter, zwei
+Hauptknöpfe, Umbenennen, Tooltip, Bildlaufleiste sichtbar und ziehbar, Hinweis-Banner, kein Material-Import mehr in
+`ui`) und `ui/ControlsLookTest` (Bilder in
+`build/bedienung`; dieselbe Datei auf dem alten Stand zeigt Material 3 – so entstanden die Bilder „vorher“). Bilder vorher/nachher in
+`docs/bilder/bedienung-*.png` und in der README. **Offen – am Gerät**: Android bauen (die Android-Fassungen von `AppRoot`, `GamePlatform`,
+`LoraFolderUi`, `TaskDelivery`, `PhoneBrowser` kompilieren nur dort); am PC Tooltips und Enter in echten Dialogen
+(Strg+K, Umbenennen in *Dateien*, Löschen im Chat) und Hoher Kontrast mit Screenreader prüfen.
 
 ---
 

@@ -22,14 +22,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Redo
@@ -57,24 +55,18 @@ import androidx.compose.material.icons.outlined.Slideshow
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material.icons.outlined.Toc
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -568,7 +560,7 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                             doc.chatId?.takeIf { onOpenChat != null && !inSidePanel }?.let { cid ->
                                 DropdownMenuItem(text = { Text(tr("Chat zum {0} öffnen", kind.label)) }, onClick = { more = false; onOpenChat?.invoke(cid) })
                             }
-                            DropdownMenuItem(text = { Text(tr("Löschen"), color = MaterialTheme.colorScheme.error) }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = {
+                            DropdownMenuItem(colors = dangerMenuColors(), text = { Text(tr("Löschen")) }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = {
                                 more = false
                                 val copy = doc
                                 c.docs.delete(doc.id)
@@ -598,7 +590,7 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                                     save { d -> d.copy(tabs = d.tabs.toMutableList().apply { add(indexOfFirst { it.id == t.id } + 1, copy) }) }
                                     tabId = copy.id
                                 })
-                                if (doc.tabs.size > 1) DropdownMenuItem(text = { Text(tr("Löschen")) }, onClick = {
+                                if (doc.tabs.size > 1) DropdownMenuItem(colors = dangerMenuColors(), text = { Text(tr("Löschen")) }, onClick = {
                                     tabMenu = false
                                     save { d -> d.copy(tabs = d.tabs.filterNot { it.id == t.id }) }
                                     tabId = doc.tabs.firstOrNull { it.id != t.id }?.id
@@ -1224,8 +1216,8 @@ private fun VersionHistory(c: AppContainer, doc: LiveDoc, tabId: String?, onDism
         confirmButton = {
             val sel = selected
             if (sel == null) TextButton(onClick = onDismiss) { Text(tr("Schließen")) }
-            else Row {
-                TextButton(onClick = {
+            else Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = {
                     busy = true
                     scope.launch {
                         val file = runCatching {
