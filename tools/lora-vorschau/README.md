@@ -2,7 +2,8 @@
 
 Werkzeuge, um Loras Aussehen und Animationen vor einer Freigabe als Filme anzuschauen: jede der 51 Aktionen im
 Vergleich (links alt, rechts neu), dazu Startseite, Arbeit, Nahaufnahme, kleine Größe und Logo. Die Vorschau ist eine
-private Seite: <https://claude.ai/artifact/1BiJ6Nwn1GyU5mvZhS7f51> (nur für den Hauptnutzer sichtbar).
+private Seite: <https://claude.ai/artifact/SQbVtroPNFVWHrrFfE8TdR> (nur für den Hauptnutzer sichtbar; Kennung
+`cdbfd55d-f7a9-4b94-9943-2fe94d9e9390`).
 
 ## Ablauf
 
@@ -14,9 +15,13 @@ private Seite: <https://claude.ai/artifact/1BiJ6Nwn1GyU5mvZhS7f51> (nur für den
 3. **Schneiden**: `tools/lora-vorschau/schnitt.sh /pfad/alt /pfad/neu /pfad/seite` (etwa 3 Minuten, rund 34 MB).
 4. **Logo**: `./gradlew -p desktop test --tests '*LogoTest*'` schreibt `desktop/build/icons/app.png` – als
    `logo-new.png` neben die Seite legen; `logo-old.png` ist `desktop/icons/app.png` von `main`.
-5. **Seite aktualisieren**: `seite.html` mit den Dateien `light/*.mp4`, `dark/*.mp4`, `logo-old.png`, `logo-new.png`
-   unter der Adresse oben neu veröffentlichen (Artifact mit `url`; vorher einmal lesen). Dateien, die gleich geblieben
-   sind, kann man weglassen. Die Texte je Aktion stehen in `seite.html` (Liste `GROUPS`).
+5. **Seite aktualisieren**: `seite.html` ist nur der Inhalt. Als `index.html` braucht sie davor `<!DOCTYPE html>`,
+   `<html lang="de"><head>` mit `<meta charset>` und `<meta name="viewport">`, dann alles bis `</style>`, `</head><body>`,
+   den Rest und `</body></html>`. Zusammen mit `light/*.mp4`, `dark/*.mp4`, `logo-old.png`, `logo-new.png` (113 Dateien,
+   rund 34 MB) mit dem Werkzeug zum Veröffentlichen aus Dateien unter der Kennung oben neu veröffentlichen (vorher den
+   Stand der Seite abfragen, dessen Versionsnummer mitgeben). Dateien, die gleich geblieben sind, kann man weglassen.
+   Findet eine Sitzung die Seite nicht, bleibt nur eine neue Seite – dann die Adresse hier und im Arbeitsplan ändern.
+   Die Texte je Aktion stehen in `seite.html` (Liste `GROUPS`).
 
 ## Prüfen ohne Filme
 

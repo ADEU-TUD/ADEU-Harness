@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 13.11.2026 (AP-122 Lora-Aussehen und -Animationen: Entwurf auf eigenem Zweig, nicht in der App; Gegenstände offen) · 13.11.2026 (AP-121 Videoeditor für Einsteiger in der App, für 1.0.70; Prüfung am Gerät offen) · 11.11.2026 (Sitzung Dateiwerkzeuge: AP-90 Rest, AP-91, AP-93, AP-97 bis AP-100, AP-107 Rest, neu AP-119 und AP-120 in der App, Prüfung am Gerät offen) · 11.11.2026 (AP-112 und AP-116 in der App, Messung am Gerät offen; AP-117 erledigt; AP-118 Server-Terminal in der App, am eigenen Server zu prüfen) · 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen; neu: AP-116 lokale Modelle auf dem Handy zu langsam, nicht abbrechbar, Gerät heiß) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 13.11.2026 (AP-122 Lora-Aussehen und -Animationen: Entwurf auf eigenem Zweig, nicht in der App; Gegenstände und Laufen überarbeitet, neue Vorschau wartet auf Freigabe) · 13.11.2026 (AP-121 Videoeditor für Einsteiger in der App, für 1.0.70; Prüfung am Gerät offen) · 11.11.2026 (Sitzung Dateiwerkzeuge: AP-90 Rest, AP-91, AP-93, AP-97 bis AP-100, AP-107 Rest, neu AP-119 und AP-120 in der App, Prüfung am Gerät offen) · 11.11.2026 (AP-112 und AP-116 in der App, Messung am Gerät offen; AP-117 erledigt; AP-118 Server-Terminal in der App, am eigenen Server zu prüfen) · 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen; neu: AP-116 lokale Modelle auf dem Handy zu langsam, nicht abbrechbar, Gerät heiß) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -73,7 +73,7 @@ Fairlight).
 | **Danach** | ~~AP-86 Lokale Modelle auf dem Mac laden~~ ☑ (10.11.2026, 1.0.67) |
 | **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung ◐ · AP-106 Modellkatalog in feinen Stufen, nach Zweck ◐ · AP-107 Suche nach Bedeutung auf dem Gerät ◐ (Rest in der App) · AP-108 Lange Texte lokal ◐ · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal ◐ · AP-111 Sprachausgabe lokal ☑ · AP-112 Offline-Schiene in der Oberfläche ◐ · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 ☑ · **AP-116 Lokale Modelle: Tempo, Abbruch, Hitze ◐** (Fehler aus 1.0.67, vor AP-109) · ~~AP-117 Eigene Modelle aktualisieren, auf GitHub~~ ☑ (11.11.2026) |
 | **Neu (13.11.2026)** | **AP-121 Videoeditor für Einsteiger ◐** (Startseite, „So entsteht dein Video“, einfach schneiden, Rechtsklick, klarere Leisten; Prüfung am Gerät offen) |
-| **Neu (12.11.2026)** | **AP-122 Lora: neues Aussehen und lebendigere Animationen ◐** (Wunsch Hauptnutzer; Entwurf auf dem Zweig `ccr-591efb5e-siqh68`, **nicht in der App** – Gegenstände und ihr Gebrauch noch offen, Einbau erst nach Freigabe) |
+| **Neu (12.11.2026)** | **AP-122 Lora: neues Aussehen und lebendigere Animationen ◐** (Wunsch Hauptnutzer; Entwurf auf dem Zweig `ccr-3356efb4-jqscvr`, **nicht in der App** – Gegenstände und Laufen überarbeitet, Vorschau wartet auf Freigabe, Einbau erst danach) |
 | **Neu (11.11.2026)** | **AP-118 Server-Terminal mit Lora ◐** (SSH wie PuTTY, Lora schlägt Schritte vor, Ausführung nur nach Zustimmung; nur Desktop) · ~~AP-119 Anzeige, wohin die Daten gehen~~ ☑ (Wunsch des Kollegen) · **AP-120 Lora einrichten Schritt für Schritt ◐** (Wunsch Hauptnutzer) |
 | **Später** | AP-87 Datei-Erste-Hilfe · AP-88 Zeitreise für Dateien · AP-89 Vorlage aus eigener Datei · AP-90 Formatwandler mit Verlustanzeige ◐ · AP-91 Schriften-Notfall ◐ · AP-92 Formatierung aufräumen · AP-93 CSV-Lotse ◐ · AP-94 Formular aus Scan · AP-95 PDF-Tabellen nach Excel ◐ · AP-96 Diagramm zu Daten · AP-97 Druck-Lotse ◐ · AP-98 Passwortschutz für Dateien ◐ · AP-99 Archiv-Werkzeug ◐ · AP-100 Fotos vom Handy aufbereiten ◐ · AP-101 Bild-Werkstatt · AP-102 Umzug auf einen neuen PC |
 
@@ -1140,12 +1140,15 @@ sie Schritte (`stepOffset`, `STRIDE`); Übergänge beginnen sanfter; *Ruhigere B
 (`LoraDirector`) und alle Gegenstände sind unverändert. **Logo**: Figur etwas größer (`ui/Logo.kt`, 2,4 statt 2,15
 Einheiten); `LogoTest` zählt helle statt rein weißer Pixel und gibt die Android-Symbole mit kleinerem Maßstab aus, damit
 sie gleich groß bleiben. Neu `LoraPreviewTest` (Filme aller Aktionen, nur mit `LORA_PREVIEW_DIR`).
-**Vorschau**: private Seite <https://claude.ai/artifact/1BiJ6Nwn1GyU5mvZhS7f51>; Werkzeuge und Anleitung in
-`tools/lora-vorschau/`. Die Seite zeigt den Stand **vor** „Gesicht weiß im dunklen Design“ und „Logo größer“.
+**Vorschau**: private Seite <https://claude.ai/artifact/SQbVtroPNFVWHrrFfE8TdR> (Stand 13.11.2026 mit überarbeiteten
+Gegenständen, neuem Laufen, weißem Gesicht im dunklen Design und größerem Logo; links jeweils der Stand von `main`).
+Die erste Seite <https://claude.ai/artifact/1BiJ6Nwn1GyU5mvZhS7f51> zeigt den älteren Entwurf und ließ sich aus der
+zweiten Sitzung nicht aktualisieren (dort nicht auffindbar) – sie kann gelöscht werden. Werkzeuge und Anleitung in
+`tools/lora-vorschau/`.
 **Rückmeldung des Hauptnutzers (13.11.2026)**: Aussehen und Animationen gefallen („deutlich besser“); beanstandet
 waren die Gegenstände und ihr Gebrauch (Mikroskop, Lupe, „solche Sachen“) und das normale Laufen. **Beides ist am
 13.11.2026 überarbeitet** (Liste unten). **Offen**:
-1. Rückmeldung des Hauptnutzers zur neuen Vorschau (VORSCHAU_ADRESSE), dann Freigabe oder weitere Wünsche.
+1. Rückmeldung des Hauptnutzers zur neuen Vorschau, dann Freigabe oder weitere Wünsche.
 2. Beim Ausgeben der Symbole prüfen, dass im Benachrichtigungssymbol (`ic_notification`) nichts den Rand berührt (der
    Lichthof des Sterns reicht höher als der alte Stern).
 **Mängelliste (Durchsicht aller 51 Aktionen am 13.11.2026, Bildstreifen je sechs Momente; ☐ offen, ☑ behoben)** –
