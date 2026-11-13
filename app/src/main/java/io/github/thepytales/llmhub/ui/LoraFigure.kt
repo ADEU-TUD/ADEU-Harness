@@ -380,9 +380,6 @@ private fun lerp(a: LoraPose, b: LoraPose, t: Float, tArms: Float = t) = LoraPos
     reachRW = mix(a.reachRW, b.reachRW, tArms),
 )
 
-/** How far the clipboard of [LoraAction.NOTES] shows its front (1) or its back (0): turned to write, turned back to show. */
-private fun notesShow(p: Float) = 1 - ramp(p, 0f, 0.08f) + ramp(p, 0.76f, 0.86f)
-
 /** Stapler: three presses, then the stack is picked up. */
 private fun staplerPress(p: Float) = maxOf(bump(p, 0.12f, 0.16f, 0.2f, 0.24f), bump(p, 0.28f, 0.32f, 0.36f, 0.4f), bump(p, 0.44f, 0.48f, 0.52f, 0.56f))
 
@@ -535,18 +532,20 @@ private fun talk(s: Float): LoraMouth = when ((s * 6.5f).toInt() % 4) {
 /** Lora's posture during [a] at phase [p] (0..1) and [s] seconds. */
 internal fun loraPose(a: LoraAction, p: Float, s: Float): LoraPose = when (a) {
     LoraAction.WALK -> {
-        // Strolls to one side, turns round, across to the other side and home – at an even pace, turned the way she
-        // goes. Her feet take the steps (drawLora), her arms swing against them; passing the middle on the way back she
-        // smiles at the viewer.
+        // Strolls to one side, turns round, across to the other side and home – at an even pace, seen from three
+        // quarters (her face stays broad). Her feet take the steps (drawLora), her arms swing against them: the near
+        // one in front of her body, the far one behind it. Passing the middle on the way back she smiles at the viewer.
         val x = 13 * (travel(p, 0.02f, 0.22f) - 2 * travel(p, 0.3f, 0.7f) + travel(p, 0.78f, 0.98f))
         val heading = ramp(p, 0f, 0.05f) - 2 * ramp(p, 0.2f, 0.32f) + 2 * ramp(p, 0.68f, 0.8f) - ramp(p, 0.95f, 1f)
         val going = 1 - bump(p, 0.2f, 0.24f, 0.28f, 0.32f) - bump(p, 0.68f, 0.72f, 0.76f, 0.8f) - ramp(p, 0.96f, 1f) - (1 - ramp(p, 0f, 0.04f))
         val step = (2 * PI * x / STRIDE).toFloat()
         val hello = bump(p, 0.44f, 0.49f, 0.55f, 0.6f)
-        val swing = 6 + 22 * cos(step) * going
+        val near = 8 + 20 * cos(step) * going
+        val far = 8 + (6 + 26 * cos(step)) * going
+        val right = (heading * 3).coerceIn(-1f, 1f) * 0.5f + 0.5f
         LoraPose(
-            dx = x, lookX = 0.8f * heading * (1 - hello), lookY = -0.15f * hello, turn = 58 * heading * (1 - 0.55f * hello),
-            tilt = 2.5f * heading * going - 1.2f * sin(step) * going, armL = swing, armR = swing,
+            dx = x, lookX = 0.7f * heading * (1 - hello), lookY = -0.15f * hello, turn = 40 * heading * (1 - 0.5f * hello),
+            tilt = 2f * heading * going + 1.6f * sin(step) * going, armL = mix(far, near, right), armR = mix(near, far, right),
             eyes = if (hello > 0.5f) LoraEyes.HAPPY else LoraEyes.OPEN, mouth = if (hello > 0.5f) LoraMouth.GRIN else LoraMouth.SMILE,
         )
     }
@@ -983,12 +982,14 @@ internal fun loraPose(a: LoraAction, p: Float, s: Float): LoraPose = when (a) {
         )
     }
     LoraAction.BOOKS -> {
-        // Carries a pile of books to one side and back at an even pace; it sways, and she keeps an eye on it.
+        // Carries a pile of books to one side and back at an even pace, seen from three quarters, both hands under
+        // the pile; it sways, and she keeps an eye on it.
         val x = 8 * (travel(p, 0.02f, 0.2f) - 2 * travel(p, 0.3f, 0.66f) + travel(p, 0.76f, 0.94f))
         val heading = ramp(p, 0f, 0.05f) - 2 * ramp(p, 0.2f, 0.3f) + 2 * ramp(p, 0.66f, 0.76f) - ramp(p, 0.93f, 1f)
         val wobble = wave(s, 0.9f)
         LoraPose(
-            dx = x, tilt = 3 * wobble, lookX = 0.35f * heading, lookY = -0.6f, armL = -15f, armR = -15f, turn = 34 * heading,
+            dx = x, tilt = 2.5f * wobble, lookX = 0.35f * heading, lookY = -0.6f, turn = 34 * heading,
+            reachL = Offset(-7.6f, 0.7f), reachLW = 1f, reachR = Offset(7.6f, 0.7f), reachRW = 1f,
             eyes = if (abs(wobble) > 0.85f) LoraEyes.WIDE else LoraEyes.OPEN, mouth = if (abs(wobble) > 0.85f) LoraMouth.OOH else LoraMouth.SMILE,
         )
     }
@@ -1054,14 +1055,16 @@ internal fun loraPose(a: LoraAction, p: Float, s: Float): LoraPose = when (a) {
         )
     }
     LoraAction.SHELF -> {
-        // Steps to the shelf, runs a hand along the books, pulls one out and hugs it.
+        // Steps to the shelf, runs her hand along the backs of the books, pulls one out and hugs it.
         val toShelf = ramp(p, 0.02f, 0.12f) * (1 - ramp(p, 0.56f, 0.66f))
         val pull = ramp(p, 0.42f, 0.5f)
         val hug = ramp(p, 0.6f, 0.7f)
+        val tilt = -5 * toShelf + 3 * hug * wave(s, 0.7f)
         LoraPose(
-            dx = -3.5f * toShelf, tilt = -5 * toShelf + 3 * hug * wave(s, 0.7f), turn = -32 * toShelf, sway = 0.9f * hug * wave(s, 0.7f),
+            dx = -4.5f * toShelf, tilt = tilt, turn = -32 * toShelf, sway = 0.9f * hug * wave(s, 0.7f),
             lookX = -0.9f * toShelf, lookY = -0.7f * toShelf + 0.3f * hug, hop = hug * abs(wave(s, 1.2f)) * 0.8f,
-            armL = mix(mix(14f, 132 + 8 * wave(s, 1.1f) * (1 - pull), toShelf), -62f, hug), armR = mix(14f, -62f, hug),
+            armL = mix(14f, -62f, hug), armR = mix(14f, -62f, hug),
+            reachL = reachFor(-4.5f * toShelf, tilt, shelfHand(p, s)), reachLW = ramp(p, 0.04f, 0.12f) * (1 - ramp(p, 0.54f, 0.64f)),
             eyes = when { hug > 0.5f -> LoraEyes.HAPPY; toShelf > 0.5f -> LoraEyes.FOCUS; else -> LoraEyes.OPEN },
             mouth = when { hug > 0.5f -> LoraMouth.GRIN; pull > 0.2f && pull < 1f -> LoraMouth.OOH; else -> LoraMouth.SMILE },
         )
@@ -1358,6 +1361,15 @@ private fun lockKey(p: Float) = mixO(Offset(10f, -4.6f), Offset(LOCK_AT.x + 2.3f
 
 /** Earth of the mound Lora digs in. */
 private val Earth = Color(0xFFA9795A)
+
+/**
+ * SHELF: where Lora's hand is on the stage (units from the middle, above the ground): it runs along the backs of the
+ * books on the upper board, stops at the one she takes and goes with it as it tips out.
+ */
+private fun shelfHand(p: Float, s: Float): Offset {
+    val browse = Offset(mix(-18.8f, -22f, bump(p, 0.12f, 0.24f, 0.26f, 0.38f)) - 1.6f * ramp(p, 0.34f, 0.4f), 18.4f + 0.3f * wave(s, 1.1f))
+    return mixO(browse, Offset(-18.4f, 19.8f), ramp(p, 0.42f, 0.5f))
+}
 
 /** A manila folder and its darker back. */
 private val Manila = Color(0xFFF4C96B)
@@ -2595,10 +2607,15 @@ private fun DrawScope.drawHeld(
             if (p >= 0.5f) {
                 // The book: first its spine (as on the shelf), then its cover once Lora holds it to the chest.
                 val hug = ramp(p, 0.6f, 0.7f)
-                val center = Offset(mix(handL.x + 0.6f * u, cx, hug), mix(handL.y - 3.5f * u, top + 17.4f * u, hug))
+                // In her hand it is still tipped as it came out of the shelf, then she turns it upright.
+                val carry = ramp(p, 0.5f, 0.6f)
+                val inHand = Offset(handL.x + mix(-1.4f, 0.6f, carry) * u, handL.y + mix(0.65f, -2.6f, carry) * u)
+                val center = Offset(mix(inHand.x, cx, hug), mix(inHand.y, top + 17.4f * u, hug))
                 val w = mix(2.6f * u, 7.4f * u, hug)
                 val h = mix(10.2f * u, 9.4f * u, hug)
-                drawRoundRect(Ocean.fade(a), Offset(center.x - w / 2, center.y - h / 2), Size(w, h), CornerRadius(0.6f * u))
+                rotate(23f * (1 - carry), center) {
+                    drawRoundRect(Ocean.fade(a), Offset(center.x - w / 2, center.y - h / 2), Size(w, h), CornerRadius(0.6f * u))
+                }
                 if (hug > 0.4f) {
                     val f = a * ramp(hug, 0.4f, 1f)
                     drawRoundRect(Ivory.fade(f), Offset(center.x - w * 0.32f, center.y - h * 0.32f), Size(w * 0.64f, h * 0.22f), CornerRadius(0.3f * u))
@@ -3081,10 +3098,10 @@ internal fun DrawScope.drawLora(frame: LoraFrame, timeMs: Long, c: LoraColors, g
     val turnRad = Math.toRadians(pose.turn.toDouble())
     val facing = cos(turnRad).toFloat()
     val sideways = sin(turnRad).toFloat()
-    // Walking turned to the side, hips and shoulders come together: she puts one foot in front of the other, and the
-    // arm and the leg of her far side are behind her.
-    val profile = walk * ((abs(sideways) - 0.3f) / 0.45f).coerceIn(0f, 1f)
-    val spread = (0.6f + 0.4f * abs(facing)) * (1 - 0.55f * profile)
+    // Walking she is seen from three quarters: hips and shoulders come a little together, the leg of her far side is
+    // behind the near one and the arm of her far side swings behind her body (its hand shows in front when it swings on).
+    val profile = walk * ((abs(sideways) - 0.25f) / 0.3f).coerceIn(0f, 1f)
+    val spread = (0.6f + 0.4f * abs(facing)) * (1 - 0.15f * profile)
     val far = if (sideways > 0f) 1 else -1
     val g = LoraGeo(u, cx0, oy, ground, cx, top, bottom, bw, bh, sideways * 7 * u, pose.tilt)
 
@@ -3178,7 +3195,7 @@ internal fun DrawScope.drawLora(frame: LoraFrame, timeMs: Long, c: LoraColors, g
         val (elbowR, handR) = arm(1, pose.armR, pose.reachR, pose.reachRW)
         val shoulderL = shoulder(-1)
         val shoulderR = shoulder(1)
-        // Walking in profile, a hanging arm of the far side is behind the body.
+        // Walking, a free arm of the far side is behind the body.
         fun hidden(side: Int, degrees: Float, weight: Float) =
             if (side != far) 0f else profile * (1 - weight) * (1 - ((abs(degrees) - 40f) / 30f).coerceIn(0f, 1f))
         val hiddenL = hidden(-1, pose.armL, pose.reachLW)
