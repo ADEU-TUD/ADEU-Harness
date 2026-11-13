@@ -7098,3 +7098,99 @@ Für randlosen Druck in der Druckerei „Beschnitt und Schnittmarken“ wählen;
 Seitenzahl	Page count
 {0} Seiten – für eine Broschüre werden leere Seiten bis {1} ergänzt.	{0} pages – blank pages up to {1} are added for a booklet.
 Noch offen	Still open
+Abspielkopf an die Stelle ziehen, „Teilen“, das Stück anklicken und Entf drücken. Für ein Stück aus der Mitte: Anfang (I) und Ende (O) markieren, dann „Herausschneiden“.	Drag the playhead to the spot, “Split”, click the piece and press Delete. For a piece from the middle: mark its start (I) and end (O), then “Cut out”.
+Titel und Untertitel	Titles and subtitles
+Ein Titel am Anfang, Namen als Bauchbinde, Untertitel aus der Transkription.	A title at the start, names as lower thirds, subtitles from the transcription.
+Musik und Ton	Music and sound
+Musik unterlegen oder Rauschen mindern. Gleichmäßig laut macht der Export von selbst.	Add music or reduce noise. The export evens out the loudness by itself.
+Als MP4 für OPAL oder YouTube speichern – im Hintergrund, du kannst weiterarbeiten.	Save as MP4 for OPAL or YouTube – in the background, you can keep working.
+So entsteht dein Video	How your video comes together
+Hilfe ausblenden – über „?“ kommt sie wieder	Hide the help – “?” brings it back
+wenn du willst	if you like
+Pausen entfernen …	Remove pauses …
+Name einblenden	Show a name
+Untertitel …	Subtitles …
+Musik …	Music …
+Rauschen mindern	Reduce noise
+Rauschminderung an (leicht).	Noise reduction on (light).
+Jede Änderung wird von selbst gespeichert.	Every change is saved automatically.
+Hilfe	Help
+Tour durch den Videoeditor	Tour of the video editor
+Hier teilen	Split here
+Anfang bis hier entfernen	Remove the start up to here
+Ende ab hier entfernen	Remove the end from here
+Ton wieder an	Sound back on
+Notiz ändern	Edit note
+Bei {0}	At {0}
+Markiertes Stück herausschneiden	Cut out the marked piece
+Name hier einblenden	Show a name here
+Marker hier setzen	Set a marker here
+Musik hier einfügen …	Insert music here …
+offen	open
+Speichert …	Saving …
+Anfang entfernt – mit Strg+Z rückgängig.	Start removed – undo with Ctrl+Z.
+Ende entfernt – mit Strg+Z rückgängig.	End removed – undo with Ctrl+Z.
+Zuerst Anfang (I) und Ende (O) des Stücks markieren, dann herausschneiden.	First mark the start (I) and end (O) of the piece, then cut it out.
+Zwischen {0} und {1} lässt sich nichts herausschneiden.	Nothing can be cut out between {0} and {1}.
+{0} herausgeschnitten – mit Strg+Z rückgängig.	{0} cut out – undo with Ctrl+Z.
+Diese Dateien kann der Videoeditor nicht verwenden.	The video editor cannot use these files.
+{0} Datei(en) im Medienpool.	{0} file(s) in the media pool.
+{0} Datei(en) eingefügt – mit Strg+Z rückgängig.	{0} file(s) inserted – undo with Ctrl+Z.
+Noch keine Clips.	No clips yet.
+Hier lässt sich nichts kürzen – den Abspielkopf mitten in einen Clip setzen.	Nothing to shorten here – put the playhead inside a clip.
+Video schneiden	Edit a video
+Videos auswählen – oder einfach hierher ziehen	Choose videos – or just drag them here
+Screencast mit Webcam, Mikrofon und Systemton	Screencast with webcam, microphone and system sound
+Deine Projekte	Your projects
+(Kopie)	(copy)
+Kopie „{0}“ angelegt.	Copy “{0}” created.
+Projekt umbenennen	Rename project
+{0} Clips	{0} clips
+Geändert {0}	Changed {0}
+Kopie anlegen	Make a copy
+Hier lässt sich nicht teilen – zu nah an einem Schnitt.	Cannot split here – too close to a cut.
+Noch keine Clips	No clips yet
+Videos hinzufügen	Add videos
+oder Dateien aus dem Explorer hierher ziehen	or drag files here from the Explorer
+Anfang des Stücks markieren	Mark the start of the piece
+Ende des Stücks markieren	Mark the end of the piece
+Markiertes Stück herausschneiden – der Rest rückt nach (Entf)	Cut out the marked piece – the rest moves up (Del)
+Erst Anfang (I) und Ende (O) des Stücks markieren	First mark the start (I) and end (O) of the piece
+Rohschnitt: Pausen und Füllwörter, mit Lora kürzen	Rough cut: pauses and filler words, shorten with Lora
+Ganze Zeitleiste zeigen	Show the whole timeline
+Umschalt+Z	Shift+Z
+Clip gewählt: Ränder ziehen kürzt · S teilt · Entf löscht · Rechtsklick für mehr	Clip selected: drag the edges to trim · S splits · Del deletes · right-click for more
+Titel gewählt: Text rechts ändern · Ränder ziehen ändert die Dauer · Entf löscht	Title selected: edit the text on the right · drag the edges to change its length · Del deletes
+Bild-in-Bild gewählt: Ecke und Größe rechts · Entf löscht	Picture-in-picture selected: corner and size on the right · Del deletes
+Ton gewählt: Lautstärke rechts · S teilt · Entf löscht	Sound selected: volume on the right · S splits · Del deletes
+Marker gewählt: Notiz rechts · ziehen verschiebt · Entf löscht	Marker selected: note on the right · drag to move · Del deletes
+Stück markiert: Entf schneidet es heraus · Alt+X hebt die Markierung auf	Piece marked: Del cuts it out · Alt+X clears the marks
+Videos aus dem Medienpool oder dem Explorer in die Zeitleiste ziehen	Drag videos from the media pool or the Explorer into the timeline
+Klick setzt den Abspielkopf · Rechtsklick zeigt, was geht	Click sets the playhead · right-click shows what you can do
+Alles vor dem Abspielkopf aus diesem Clip entfernen	Remove everything before the playhead from this clip
+Anfang kürzen	Trim start
+Alles ab dem Abspielkopf aus diesem Clip entfernen	Remove everything from the playhead on from this clip
+Ende kürzen	Trim end
+Zum Kürzen den Abspielkopf in diesen Clip setzen.	To trim, put the playhead inside this clip.
+Zum Einfügen in die Zeitleiste ziehen.	Drag into the timeline to insert.
+Löschen (mit Magnet: Lücke schließen); ohne Auswahl: das Stück zwischen In und Out herausschneiden	Delete (with the magnet: close the gap); with nothing selected: cut out the piece between In and Out
+Was mit dem Clip, Titel oder Ton an dieser Stelle geht	What you can do with the clip, title or sound at that spot
+Strg+Mausrad	Ctrl+mouse wheel
+Zeitleiste vergrößern · verkleinern	Zoom the timeline in · out
+Videos aus dem Medienpool oder dem Explorer hierher ziehen	Drag videos here from the media pool or the Explorer
+Stück herausschneiden	Cut out a piece
+Von wo bis wo? Zum Beispiel „von 1:20 bis 1:45“.	From where to where? For example “from 1:20 to 1:45”.
+Schneidet {0} bis {1} heraus …	Cutting out {0} to {1} …
+{0} bis {1} ({2})	{0} to {1} ({2})
+herausgeschnitten, der Rest rückt nach	cut out, the rest moves up
+{0} bis {1} herausgeschnitten.	{0} to {1} cut out.
+Ein neues Projekt beginnt mit „Video schneiden“: Videos auswählen oder einfach hierher ziehen.	A new project starts with “Edit a video”: choose videos or just drag them here.
+Rechts zeigt dir „So entsteht dein Video“ den nächsten Schritt – mit Knöpfen, die ihn gleich ausführen.	On the right, “How your video comes together” shows the next step – with buttons that do it right away.
+Zum Schneiden: „Teilen“ am Abspielkopf – oder Anfang und Ende eines Stücks markieren und „Herausschneiden“. Ein Rechtsklick auf einen Clip zeigt, was noch geht.	To cut: “Split” at the playhead – or mark the start and end of a piece and “Cut out”. Right-click a clip to see what else you can do.
+Erste Schritte	First steps
+Die Schritte zum fertigen Video – Schneiden, Titel und Untertitel, Musik, Exportieren – mit Knöpfen, die sie ausführen.	The steps to a finished video – cutting, titles and subtitles, music, export – with buttons that do them.
+Am Abspielkopf teilen, Anfang und Ende eines Stücks markieren und herausschneiden, Anfang oder Ende eines Clips kürzen.	Split at the playhead, mark the start and end of a piece and cut it out, trim the start or end of a clip.
+Hilfe im Videoeditor	Help in the video editor
+Erste Schritte, Tour, Tastenkürzel und Lora fragen.	First steps, tour, keyboard shortcuts and asking Lora.
+1 Clip	1 clip
+ (Strg+L)	 (Ctrl+L)

@@ -4,6 +4,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
+import androidx.compose.ui.draganddrop.awtTransferable
 import androidx.compose.foundation.focusable
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -38,7 +40,12 @@ import androidx.compose.material.icons.automirrored.outlined.CallSplit
 import androidx.compose.material.icons.automirrored.outlined.Input
 import androidx.compose.material.icons.automirrored.outlined.Redo
 import androidx.compose.material.icons.automirrored.outlined.Undo
+import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.ZoomOutMap
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.CloseFullscreen
@@ -63,7 +70,6 @@ import androidx.compose.material.icons.outlined.PictureInPicture
 import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material.icons.outlined.ContentCut
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.FiberManualRecord
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material.icons.outlined.MusicNote
@@ -130,6 +136,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -172,9 +179,6 @@ object VideoHub {
     val store: VideoStore by lazy { VideoStore(io.github.thepytales.llmhub.App.container.appContext.filesDir) }
 }
 
-private val VIDEO_MEDIA = listOf("mp4", "mov", "mkv", "avi", "wmv", "m4v", "webm", "mpg", "mpeg", "3gp", "png", "jpg", "jpeg")
-private val AUDIO_MEDIA = listOf("mp3", "m4a", "wav", "ogg", "opus", "flac", "aac", "wma", "mp4", "mov", "webm")
-
 internal fun clock(sec: Double, tenths: Boolean = false): String {
     val s = sec.coerceAtLeast(0.0)
     val m = (s / 60).toInt()
@@ -186,7 +190,7 @@ internal fun clock(sec: Double, tenths: Boolean = false): String {
  * Videoeditor (AP-25): the projects, and the editor of one. On the first visit it offers to set up the
  * Videoeditor-Paket (an extension, AP-25); it also works without it with the app's ffmpeg.
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class, androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 fun VideoScreen(c: AppContainer, onBack: () -> Unit) {
     val prefs = remember { c.appContext.getSharedPreferences("ui_state", 0) }
@@ -208,27 +212,31 @@ fun VideoScreen(c: AppContainer, onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
     var recordDialog by remember { mutableStateOf(false) }
     if (recordDialog) ScreenRecordDialog(c, onDismiss = { recordDialog = false })
+    fun projectOf(files: List<File>) = scope.launch {
+        if (files.isEmpty()) return@launch
+        val p = withContext(Dispatchers.IO) { projectFrom(files.filter { it.extension.lowercase() in VIDEO_MEDIA }) }
+        if (p == null) Notices.error(tr("Die Dateien ließen sich nicht lesen – sind es Videos?")) else open = VideoHub.store.save(p).id
+    }
     fun newProject() = scope.launch {
         val files = withContext(Dispatchers.IO) { DesktopActions.pickFiles(tr("Videos auswählen"), multiple = true, extensions = VIDEO_MEDIA) }
-        if (files.isEmpty()) return@launch
-        val p = withContext(Dispatchers.IO) { projectFrom(files) }
-        if (p == null) Notices.error(tr("Die Dateien ließen sich nicht lesen – sind es Videos?")) else open = VideoHub.store.save(p).id
+        projectOf(files)
+    }
+    // Videos dragged from the Explorer onto the list become a new project (AP-121).
+    val drop = remember { fileDrop { files -> projectOf(files) } }
+    var renaming by remember { mutableStateOf<VideoProject?>(null) }
+    renaming?.let { r ->
+        RenameDialog(r.title, onDismiss = { renaming = null }) { t -> VideoHub.store.save(r.copy(title = t)); renaming = null }
     }
     Scaffold(
         topBar = {
             TopAppBar(
                 navigationIcon = { BackButton(onBack) },
                 title = { Text(tr("Videoeditor")) },
-                actions = {
-                    // Bildschirmaufnahme (AP-56): the result comes back as a project.
-                    Spot("video.record") { TextButton(onClick = { recordDialog = true }) { Icon(Icons.Outlined.FiberManualRecord, null, tint = androidx.compose.ui.graphics.Color(0xFFE53935)); Spacer(Modifier.size(4.dp)); Text(tr("Bildschirm aufnehmen")) } }
-                    ExportQueueChip()
-                    Spot("video.new") { TextButton(onClick = { newProject() }) { Icon(Icons.Outlined.Add, null); Spacer(Modifier.size(4.dp)); Text(tr("Neues Projekt")) } }
-                },
+                actions = { ExportQueueChip() },
             )
         },
     ) { pad ->
-        Box(Modifier.fillMaxSize().padding(pad), contentAlignment = Alignment.TopCenter) {
+        Box(Modifier.fillMaxSize().padding(pad).dragAndDropTarget(shouldStartDragAndDrop = { true }, target = drop), contentAlignment = Alignment.TopCenter) {
             LazyColumn(Modifier.widthIn(max = 900.dp).fillMaxWidth(), contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (!setupSeen) item {
                     ExtensionSetupCard(c, Extensions.VIDEO) {
@@ -236,25 +244,76 @@ fun VideoScreen(c: AppContainer, onBack: () -> Unit) {
                         setupSeen = true
                     }
                 }
+                // Two ways to begin, always at the top (AP-121): before, they were two small words in the top bar.
+                item {
+                    BoxWithConstraints(Modifier.fillMaxWidth()) {
+                        val cards: @Composable (Modifier) -> Unit = { m ->
+                            Spot("video.new", m) { StartCard(Icons.Outlined.Movie, LocalChatLook.current.brand, tr("Video schneiden"), tr("Videos auswählen – oder einfach hierher ziehen"), { newProject() }) }
+                        }
+                        val record: @Composable (Modifier) -> Unit = { m ->
+                            Spot("video.record", m) { StartCard(Icons.Filled.FiberManualRecord, Color(0xFFE53935), tr("Bildschirm aufnehmen"), tr("Screencast mit Webcam, Mikrofon und Systemton"), { recordDialog = true }) }
+                        }
+                        if (maxWidth >= 600.dp) Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) { cards(Modifier.weight(1f)); record(Modifier.weight(1f)) }
+                        else Column(verticalArrangement = Arrangement.spacedBy(10.dp)) { cards(Modifier.fillMaxWidth()); record(Modifier.fillMaxWidth()) }
+                    }
+                }
+                item { StepsLine(Modifier.padding(horizontal = 4.dp, vertical = 2.dp)) }
                 if (projects.isEmpty()) item {
                     Column(Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         LoraFigure(Modifier.size(width = 120.dp, height = 84.dp), label = "Lora", director = rememberLoraDirector(listOf(LoraAction.SCISSORS, LoraAction.HEADPHONES, LoraAction.LOOK), LoraAction.SCISSORS))
                         Text(tr("Noch keine Videoprojekte"), style = MaterialTheme.typography.titleMedium)
                         HintText(tr("Lehrvideos schneiden, Titel und Bauchbinden im TUD-Design einblenden, Untertitel aus der Transkription, Pausen und Füllwörter automatisch herausschneiden – und als MP4 für OPAL oder YouTube speichern. Die Videos bleiben, wo sie sind."))
-                        Button(onClick = { newProject() }) { Text(tr("Videos auswählen")) }
                     }
+                } else item {
+                    Text(tr("Deine Projekte"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 10.dp, start = 4.dp).semantics { heading() })
                 }
-                items(projects, key = { it.id }) { p -> ProjectRow(p, onOpen = { open = p.id }, onDelete = {
-                    VideoHub.store.delete(p.id)
-                    Notices.undo("„${p.title}“ " + tr("gelöscht"), restore = { VideoHub.store.save(p, touch = false) })
-                }) }
+                items(projects.sortedByDescending { it.updatedAt }, key = { it.id }) { p ->
+                    ProjectRow(
+                        p, onOpen = { open = p.id },
+                        onRename = { renaming = p },
+                        onDuplicate = {
+                            val copy = VideoHub.store.save(VideoEdit.duplicate(p, tr("(Kopie)")))
+                            Notices.info(tr("Kopie „{0}“ angelegt.", copy.title))
+                        },
+                        onDelete = {
+                            VideoHub.store.delete(p.id)
+                            Notices.undo("„${p.title}“ " + tr("gelöscht"), restore = { VideoHub.store.save(p, touch = false) })
+                        },
+                    )
+                }
             }
         }
     }
 }
 
+/** A drop target for files from the Explorer (AP-121): [onFiles] gets the dropped files. */
+@OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
+internal fun fileDrop(onFiles: (List<File>) -> Unit) = object : androidx.compose.ui.draganddrop.DragAndDropTarget {
+    override fun onDrop(event: androidx.compose.ui.draganddrop.DragAndDropEvent): Boolean {
+        val t = event.awtTransferable
+        if (!t.isDataFlavorSupported(java.awt.datatransfer.DataFlavor.javaFileListFlavor)) return false
+        @Suppress("UNCHECKED_CAST")
+        val files = runCatching { t.getTransferData(java.awt.datatransfer.DataFlavor.javaFileListFlavor) as List<File> }.getOrDefault(emptyList()).filter { it.isFile }
+        if (files.isEmpty()) return false
+        onFiles(files)
+        return true
+    }
+}
+
+@Composable
+private fun RenameDialog(title: String, onDismiss: () -> Unit, onDone: (String) -> Unit) {
+    var name by remember { mutableStateOf(title) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(tr("Projekt umbenennen")) },
+        text = { OutlinedTextField(name, { name = it }, singleLine = true, label = { Text(tr("Name")) }, modifier = Modifier.width(420.dp)) },
+        confirmButton = { Button(enabled = name.isNotBlank(), onClick = { onDone(name.trim()) }) { Text(tr("Umbenennen")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
+    )
+}
+
 /** Places of the map that are in the editor, not in the list of projects. */
-private val EDITOR_SPOTS = setOf("video.titles", "video.subtitles", "video.roughcut", "video.pip", "video.export", "video.transcript", "video.layout", "video.tools")
+private val EDITOR_SPOTS = setOf("video.titles", "video.subtitles", "video.roughcut", "video.pip", "video.export", "video.transcript", "video.layout", "video.tools", "video.guide", "video.cut", "video.help")
 
 /** A new project of [files]: every file a clip at full length; size from the first video (at most Full HD). */
 internal fun projectFrom(files: List<File>): VideoProject? {
@@ -274,24 +333,39 @@ internal fun projectFrom(files: List<File>): VideoProject? {
 private val DATE = SimpleDateFormat("dd.MM.yyyy, HH:mm", Locale.GERMANY)
 
 @Composable
-private fun ProjectRow(p: VideoProject, onOpen: () -> Unit, onDelete: () -> Unit) {
+private fun ProjectRow(p: VideoProject, onOpen: () -> Unit, onRename: () -> Unit, onDuplicate: () -> Unit, onDelete: () -> Unit) {
     val thumb by produceState<ImageBitmap?>(null, p.id) {
         value = withContext(Dispatchers.IO) { p.clips.firstOrNull()?.let { Media.thumbnail(File(it.path), it.inSec + 0.5) } }
     }
+    var menu by remember { mutableStateOf(false) }
     Surface(shape = RoundedCornerShape(12.dp), color = LocalChatLook.current.card, border = boxBorder(), modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable(onClick = onOpen)) {
         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.width(128.dp).aspectRatio(16f / 9f).background(Color.Black, RoundedCornerShape(6.dp)), contentAlignment = Alignment.Center) {
                 thumb?.let { Image(it, null, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize()) } ?: Icon(Icons.Outlined.Movie, null, tint = Color.White)
+                Text(clock(p.duration), color = Color.White, style = MaterialTheme.typography.labelSmall, modifier = Modifier.align(Alignment.BottomEnd).padding(4.dp).background(Color(0xAA000000), RoundedCornerShape(4.dp)).padding(horizontal = 4.dp, vertical = 1.dp))
             }
             Spacer(Modifier.size(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(p.title, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(
-                    listOf(clock(p.duration), "${p.clips.size} " + tr("Clips"), "${p.width} × ${p.height}", DATE.format(Date(p.updatedAt))).joinToString(" · "),
-                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    listOfNotNull(
+                        if (p.clips.size == 1) tr("1 Clip") else tr("{0} Clips", p.clips.size), "${p.width} × ${p.height}",
+                        if (p.overlays.isNotEmpty()) tr("Titel") else null, if (p.subtitles.isNotEmpty()) tr("Untertitel") else null,
+                    ).joinToString(" · "),
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
+                Text(tr("Geändert {0}", DATE.format(Date(p.updatedAt))), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
             }
-            IconButton(onClick = onDelete) { Icon(Icons.Outlined.Delete, contentDescription = tr("Löschen")) }
+            OutlinedButton(onClick = onOpen) { Text(tr("Öffnen"), maxLines = 1, softWrap = false) }
+            Box {
+                TipIconButton(Icons.Outlined.MoreVert, tr("Mehr"), { menu = true })
+                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                    DropdownMenuItem(text = { Text(tr("Umbenennen …")) }, leadingIcon = { Icon(Icons.Outlined.Edit, null) }, onClick = { menu = false; onRename() })
+                    DropdownMenuItem(text = { Text(tr("Kopie anlegen")) }, leadingIcon = { Icon(Icons.Outlined.ContentCopy, null) }, onClick = { menu = false; onDuplicate() })
+                    HorizontalDivider()
+                    DropdownMenuItem(text = { Text(tr("Löschen")) }, leadingIcon = { Icon(Icons.Outlined.Delete, null) }, onClick = { menu = false; onDelete() })
+                }
+            }
         }
     }
 }
@@ -343,6 +417,7 @@ internal class History(initial: VideoProject) {
     fun redo() { forward.removeLastOrNull()?.let { back.addLast(project); project = it; version++ }; lastKey = null; canUndo = back.isNotEmpty(); canRedo = forward.isNotEmpty() }
 }
 
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
     // Projects from before AP-53 get their files into the media pool.
@@ -410,8 +485,9 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
     }
     // A pause in editing shows the picture at the playhead again (the clip under it may have changed).
     LaunchedEffect(h.version) { delay(250); if (!player.playing.value) player.seek(h.project, player.position.value) }
-    var export by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    // What buttons, menus, the step card and dropped files do (AP-121) – the same functions everywhere.
+    val actions = remember(id) { VideoActions(c, h, player, scope) { sel = it } }
     val focus = remember { androidx.compose.ui.focus.FocusRequester() }
     val typing = remember { TypingState() }
     val showSource = sourceView && sourceProject != null
@@ -471,6 +547,14 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
             sel = when (target) { is VideoEdit.Layer -> Sel.Layer(nid); is VideoEdit.Sound -> Sel.Sound(nid); else -> Sel.Clip(nid) }
         }
     }
+    /** Splits what was right-clicked at [t] (not at the playhead): a clip, a picture or a sound; nothing → V1. */
+    fun splitAt(s: Sel, t: Double) {
+        val item: VideoEdit.Item? = when (s) { is Sel.Clip -> VideoEdit.Clip(s.id); is Sel.Layer -> VideoEdit.Layer(s.id); is Sel.Sound -> VideoEdit.Sound(s.id); else -> null }
+        val result = if (item != null) VideoEdit.split(h.project, item, t) else VideoEdit.splitV1(h.project, t)
+        if (result == null) { Notices.info(tr("Hier lässt sich nicht teilen – zu nah an einem Schnitt.")); return }
+        h.edit { result.first }
+        sel = when (item) { is VideoEdit.Layer -> Sel.Layer(result.second); is VideoEdit.Sound -> Sel.Sound(result.second); else -> Sel.Clip(result.second) }
+    }
     fun deleteSelected(closeGap: Boolean = false) {
         fun magnet(f: (VideoProject) -> VideoProject): (VideoProject) -> VideoProject = { pp -> if (closeGap && !pp.magnet) f(pp.copy(magnet = true)).copy(magnet = false) else f(pp) }
         when (val s = sel) {
@@ -518,6 +602,8 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
     LaunchedEffect(spot) {
         if (spot?.startsWith("video.") == true) layout.full = false
         if (spot == "video.transcript") { leftTab = "text"; if (!layout.poolOpen || layout.bigPreview) layout.togglePool(false) }
+        // „So entsteht dein Video“ shows while nothing is selected, in the properties (AP-121).
+        if (spot == "video.guide") { layout.guide = true; sel = Sel.None; if (!layout.propsOpen || layout.bigPreview) layout.toggleProps(false) }
     }
     fun refocus() { runCatching { focus.requestFocus() } }
     fun addMarker() { val (q, mid) = VideoEdit.addMarker(p, player.position.value); h.edit { q }; sel = Sel.Mark(mid) }
@@ -528,9 +614,13 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
         val item = sourceItem!!
         SourceTransport(sourceProject!!, item, source, srcPos, srcPlaying, dark, onUse = { how -> use(item, how) })
     }
+    // Files from the Explorer (AP-121): onto the media pool they go into the pool, anywhere else also into the video.
+    val dropToVideo = remember(id) { fileDrop { actions.dropFiles(it, toTimeline = true) } }
+    val dropToPool = remember(id) { fileDrop { actions.dropFiles(it, toTimeline = false) } }
     androidx.compose.runtime.CompositionLocalProvider(LocalTyping provides typing, LocalVideoLayout provides layout) {
     BoxWithConstraints(
-        Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).focusRequester(focus).focusable().onPreviewKeyEvent { ev ->
+        Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).dragAndDropTarget(shouldStartDragAndDrop = { true }, target = dropToVideo)
+            .focusRequester(focus).focusable().onPreviewKeyEvent { ev ->
             if (ev.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
             // In a text field S, Leertaste, Entf and the arrows are typing: before, they also split the clip, started
             // the playback or deleted the selected title while its text was being edited.
@@ -554,6 +644,8 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
                     true
                 }
                 ev.isCmd || ev.isAltPressed -> false
+                // Umschalt+Z: the whole timeline in view again (AP-121, as in Resolve).
+                ev.isShiftPressed && ev.key == Key.Z -> { view.zoom = 1f; view.scroll = 0f; true }
                 ev.key == Key.Spacebar -> { if (showSource) source.toggle(pr) else player.toggle(p, loopRange()); true }
                 ev.key == Key.K -> { pl.stop(); true }
                 ev.key == Key.L -> { pl.forward(pr, if (showSource) null else loopRange()); true }
@@ -579,7 +671,12 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
                 ev.key == Key.M -> { val (q, mid) = VideoEdit.addMarker(p, player.position.value); h.edit { q }; sel = Sel.Mark(mid); true }
                 ev.key == Key.S -> { split(); true }
                 ev.key == Key.Delete || ev.key == Key.Backspace -> {
-                    if (leftTab == "text" && textCut.hasSelection) textCut.deleteSelection(h) else deleteSelected(closeGap = ev.isShiftPressed)
+                    when {
+                        leftTab == "text" && textCut.hasSelection -> textCut.deleteSelection(h)
+                        // Nothing selected, a piece marked: Entf cuts it out (AP-121).
+                        sel == Sel.None && !showSource && actions.canCutRange -> actions.cutRange()
+                        else -> deleteSelected(closeGap = ev.isShiftPressed)
+                    }
                     true
                 }
                 ev.key == Key.DirectionLeft -> { pl.seek(pr, at - 1.0 / pr.fps); true }
@@ -597,7 +694,7 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
             Box(Modifier.fillMaxSize().background(Color.Black)) {
                 Column(Modifier.fillMaxSize()) {
                     if (showSource) SourceViewer(sourceProject!!, sourceItem!!, source, srcPos, Modifier.weight(1f).fillMaxWidth())
-                    else Preview(p, player, pos, Modifier.weight(1f).fillMaxWidth())
+                    else Preview(p, player, pos, Modifier.weight(1f).fillMaxWidth(), onToggle = { player.toggle(h.project, loopRange()) })
                     if (showSource) sourceTransport(true) else timelineTransport(true)
                 }
                 TipIconButton(Icons.Outlined.FullscreenExit, tr("Vollbild beenden") + " (Esc)", { layout.full = false; refocus() }, tint = Color.White, modifier = Modifier.align(Alignment.TopEnd).padding(8.dp))
@@ -623,13 +720,14 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
         }
         Column(Modifier.fillMaxSize()) {
             EditorHeader(
-                p, h, layout, menuShown, poolShown = fit.pool != null, propsShown = fit.props != null,
-                onClose = onClose, onKeys = { keys = true }, onExport = { player.stop(); export = true }, onFocus = ::refocus,
+                p, h, layout, menuShown, poolShown = fit.pool != null, propsShown = fit.props != null, saved = saved == h.version, wide = width >= 1150.dp,
+                onClose = onClose, onKeys = { keys = true }, onExport = { player.stop(); actions.export = true }, onFocus = ::refocus,
+                onGuide = { layout.guide = true; sel = Sel.None; if (fit.props == null) layout.toggleProps(false); refocus() },
             )
             HorizontalDivider()
             Row(Modifier.weight(1f).fillMaxWidth()) {
                 fit.pool?.let { w ->
-                    Column(Modifier.width(w).fillMaxHeight()) {
+                    Column(Modifier.width(w).fillMaxHeight().dragAndDropTarget(shouldStartDragAndDrop = { true }, target = dropToPool)) {
                         PanelHead("pool", tr("Medienpool einklappen"), foldLeft = true, onFold = { layout.togglePool(true); refocus() }) {
                             FilterChip(selected = leftTab == "media", onClick = { leftTab = "media"; refocus() }, label = { Text(tr("Medien"), maxLines = 1) })
                             Spacer(Modifier.width(4.dp))
@@ -664,7 +762,7 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
                     }
                     Box(Modifier.weight(1f).fillMaxWidth().padding(horizontal = 8.dp)) {
                         if (showSource) SourceViewer(sourceProject!!, sourceItem!!, source, srcPos, Modifier.fillMaxSize())
-                        else Preview(p, player, pos, Modifier.fillMaxSize())
+                        else Preview(p, player, pos, Modifier.fillMaxSize(), onToggle = { player.toggle(h.project, loopRange()); refocus() }, onAdd = { actions.addClips() })
                     }
                     if (showSource) sourceTransport(false) else timelineTransport(false)
                 }
@@ -674,7 +772,9 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
                         PanelHead("props", tr("Eigenschaften einklappen"), foldLeft = false, onFold = { layout.toggleProps(true); refocus() }) {
                             Text(tr("Eigenschaften"), style = MaterialTheme.typography.titleSmall, maxLines = 1, modifier = Modifier.padding(start = 6.dp))
                         }
-                        Box(Modifier.weight(1f).fillMaxWidth()) { Properties(c, h, sel, pos, onSelect = { sel = it }, onSplit = ::split, onDelete = { deleteSelected() }, onSeek = { player.seek(h.project, it) }) }
+                        Box(Modifier.weight(1f).fillMaxWidth()) {
+                            Properties(c, h, sel, pos, actions, onSelect = { sel = it }, onSplit = ::split, onDelete = { deleteSelected() }, onSeek = { player.seek(h.project, it) })
+                        }
                     }
                 }
             }
@@ -682,8 +782,8 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
             PanelResizer(layout.timeline, panelLeft = false, label = tr("Höhe der Zeitleiste ändern"), vertical = true)
             Column(Modifier.height(timelineHeight).fillMaxWidth()) {
                 TimelineBar(
-                    c, h, player, tool, layout, view,
-                    onTool = { tool = it; refocus() }, onSplit = { split(); refocus() }, onMarker = { addMarker(); refocus() }, onSelect = { sel = it },
+                    h, actions, tool, layout, view, hint = editHint(p, sel, tool),
+                    onTool = { tool = it; refocus() }, onSplit = { split(); refocus() }, onMarker = { addMarker(); refocus() }, onFocus = ::refocus,
                 )
                 HorizontalDivider()
                 VideoTimelineView(
@@ -698,6 +798,16 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
                     },
                     modifier = Modifier.weight(1f).fillMaxWidth(),
                     view = view, scale = layout.trackScale, folded = layout.foldedTracks, onFold = { layout.toggleTrack(it) },
+                    // Right-click (AP-121): what can be done with the thing under the mouse, in plain words.
+                    menu = { s, t, dismiss ->
+                        TimelineMenu(h, actions, s, t, { dismiss(); refocus() },
+                            onSplitAt = { item, at -> splitAt(item, at) },
+                            onDelete = { deleteSelected() },
+                            onProps = { if (fit.props == null) layout.toggleProps(false) },
+                            onSeek = { player.seek(h.project, it) },
+                            onMarker = { at -> val (q, mid) = VideoEdit.addMarker(h.project, at); h.edit { q }; sel = Sel.Mark(mid) },
+                        )
+                    },
                 )
             }
         }
@@ -708,7 +818,8 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
         assignTranscript = false
         h.edit { it.copy(transcripts = it.transcripts + map.mapValues { e -> e.value.id }) }
     }
-    if (export) ExportDialog(c, p, onDismiss = { export = false })
+    if (actions.export) ExportDialog(c, p, onDismiss = { actions.export = false; refocus() })
+    VideoActionDialogs(actions)
     if (keys) VideoShortcutsDialog { keys = false; runCatching { focus.requestFocus() } }
 }
 
@@ -718,8 +829,8 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
  */
 @Composable
 private fun EditorHeader(
-    p: VideoProject, h: History, layout: VideoLayout, menuShown: Boolean, poolShown: Boolean, propsShown: Boolean,
-    onClose: () -> Unit, onKeys: () -> Unit, onExport: () -> Unit, onFocus: () -> Unit,
+    p: VideoProject, h: History, layout: VideoLayout, menuShown: Boolean, poolShown: Boolean, propsShown: Boolean, saved: Boolean, wide: Boolean,
+    onClose: () -> Unit, onKeys: () -> Unit, onExport: () -> Unit, onFocus: () -> Unit, onGuide: () -> Unit,
 ) {
     EditorBar("header", height = 48.dp) {
         TipIconButton(Icons.Outlined.Menu, tr(if (menuShown) "Seitenleiste ausblenden" else "Seitenleiste zeigen") + " (Strg+B)", { Navigation.openRoute.value = "drawer" }, selected = menuShown)
@@ -730,6 +841,7 @@ private fun EditorHeader(
             tr("{0} × {1} · {2} fps · {3}", p.width, p.height, p.fps, clock(p.duration)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
         )
+        SavedBadge(saved, labelled = wide)
         ToolGroup {
             TipIconButton(Icons.Outlined.VideoLibrary, tr(if (poolShown) "Medienpool einklappen" else "Medienpool zeigen"), { layout.togglePool(poolShown); onFocus() }, selected = poolShown)
             TipIconButton(Icons.Outlined.Tune, tr(if (propsShown) "Eigenschaften einklappen" else "Eigenschaften zeigen"), { layout.toggleProps(propsShown); onFocus() }, selected = propsShown)
@@ -756,7 +868,8 @@ private fun EditorHeader(
             }
         }
         BarGap()
-        TipIconButton(Icons.Outlined.Keyboard, tr("Tastenkürzel") + " (?)", onKeys)
+        // Help (AP-121): the step card, the tour, the keys and Lora in one place.
+        Spot("video.help") { HelpButton(layout.guide, onGuide = onGuide, onKeys = onKeys, onDismiss = onFocus) }
         ToolGroup {
             TipIconButton(Icons.AutoMirrored.Outlined.Undo, tr("Rückgängig") + " (Strg+Z)", h::undo, enabled = h.canUndo)
             TipIconButton(Icons.AutoMirrored.Outlined.Redo, tr("Wiederholen") + " (Strg+Y)", h::redo, enabled = h.canRedo)
@@ -861,14 +974,22 @@ private fun SourceViewer(sp: VideoProject, item: io.github.thepytales.llmhub.vid
     }
 }
 
-/** The picture at the playhead, with the titles and subtitles that are on at that time. */
+/**
+ * The picture at the playhead, with the titles and subtitles that are on at that time. A click plays or pauses
+ * ([onToggle], AP-121) – a round play symbol shows on the picture while it stands; without clips a button adds videos.
+ */
 @Composable
-private fun Preview(p: VideoProject, player: VideoPlayer, pos: Double, modifier: Modifier) {
+private fun Preview(p: VideoProject, player: VideoPlayer, pos: Double, modifier: Modifier, onToggle: (() -> Unit)? = null, onAdd: (() -> Unit)? = null) {
     val frame by player.frame.collectAsStateWithLifecycle()
+    val playing by player.playing.collectAsStateWithLifecycle()
     BoxWithConstraints(modifier.background(Color(0xFF111111)), contentAlignment = Alignment.Center) {
         val ratio = p.width.toFloat() / p.height
         val w = min(maxWidth.value, maxHeight.value * ratio)
-        Box(Modifier.size(w.dp, (w / ratio).dp).background(Color.Black)) {
+        val click = if (onToggle != null && p.clips.isNotEmpty()) Modifier.clickable(
+            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }, indication = null,
+            onClickLabel = tr(if (playing) "Pause" else "Abspielen"), onClick = onToggle,
+        ) else Modifier
+        Box(Modifier.size(w.dp, (w / ratio).dp).background(Color.Black).then(click)) {
             frame?.let { Image(it, null, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize()) }
             val px = with(LocalDensity.current) { w.dp.roundToPx() }.coerceAtLeast(64)
             p.overlays.filter { pos >= it.startSec && pos < it.endSec }.forEach { o ->
@@ -887,7 +1008,18 @@ private fun Preview(p: VideoProject, player: VideoPlayer, pos: Double, modifier:
                 val key = subtitleKey(next.text, p, px, p.subtitleRaised(next))
                 LaunchedEffect(key) { drawTitle(key) { VideoTitles.render(VideoTitles.subtitleDesign(next.text, p.width, p.height, p.subtitleRaised(next)), px) } }
             }
-            if (p.clips.isEmpty()) Text(tr("Noch keine Clips – über der Zeitleiste „+“ › „Clip hinzufügen“."), color = Color.White, modifier = Modifier.align(Alignment.Center))
+            // Standing: a quiet play symbol in the middle, so it is clear a click plays (AP-121).
+            if (onToggle != null && !playing && p.clips.isNotEmpty() && w >= 200f) {
+                Box(Modifier.align(Alignment.Center).size(56.dp).background(Color(0x66000000), androidx.compose.foundation.shape.CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Outlined.PlayArrow, null, tint = Color.White.copy(alpha = 0.9f), modifier = Modifier.size(34.dp))
+                }
+            }
+            if (p.clips.isEmpty()) Column(Modifier.align(Alignment.Center).padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Icon(Icons.Outlined.Movie, null, tint = Color.White.copy(alpha = 0.7f), modifier = Modifier.size(36.dp))
+                Text(tr("Noch keine Clips"), color = Color.White, style = MaterialTheme.typography.titleSmall)
+                if (onAdd != null) Button(onClick = onAdd) { Icon(Icons.Outlined.Add, null, Modifier.size(18.dp)); Spacer(Modifier.size(6.dp)); Text(tr("Videos hinzufügen"), maxLines = 1, softWrap = false) }
+                Text(tr("oder Dateien aus dem Explorer hierher ziehen"), color = Color.White.copy(alpha = 0.75f), style = MaterialTheme.typography.bodySmall)
+            }
         }
     }
 }
@@ -926,60 +1058,23 @@ private fun rememberSubtitle(text: String, p: VideoProject, px: Int, raised: Boo
 // ── Toolbar above the timeline ─────────────────────────────────────────────────────────────────────
 
 /**
- * The toolbar above the timeline (AP-70): the tools as a group of symbols (A, B, T, magnet), cut and marker, the
- * things to add (+, titles, subtitles, rough cut), a one-line hint for the tool, track height and zoom.
+ * The toolbar above the timeline (AP-70, AP-121): the tools as a group of symbols (A, B, T, magnet); cutting – split,
+ * start and end of a piece, cut it out, marker; the things to add (+, titles, subtitles, rough cut); a one-line hint for
+ * what is selected; track height, the whole timeline and zoom. Where there is room the main buttons carry their word.
  */
 @Composable
 private fun TimelineBar(
-    c: AppContainer, h: History, player: VideoPlayer, tool: CutTool, layout: VideoLayout, view: TimelineState,
-    onTool: (CutTool) -> Unit, onSplit: () -> Unit, onMarker: () -> Unit, onSelect: (Sel) -> Unit,
+    h: History, a: VideoActions, tool: CutTool, layout: VideoLayout, view: TimelineState, hint: String,
+    onTool: (CutTool) -> Unit, onSplit: () -> Unit, onMarker: () -> Unit, onFocus: () -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
     var titles by remember { mutableStateOf(false) }
     var subs by remember { mutableStateOf(false) }
     var cut by remember { mutableStateOf(false) }
     var add by remember { mutableStateOf(false) }
-    var pickTranscript by remember { mutableStateOf<String?>(null) }
-    var loraCut by remember { mutableStateOf(false) }
     val p = h.project
-    // The playhead when a button is used: read then, not at the last composition of this bar (which does not follow
-    // the playback – music was put where the playhead had been before).
-    fun pos() = player.position.value
-    fun addClips() = scope.launch {
-        val files = withContext(Dispatchers.IO) { DesktopActions.pickFiles(tr("Videos auswählen"), multiple = true, extensions = VIDEO_MEDIA) }
-        val clips = withContext(Dispatchers.IO) { files.mapNotNull { f -> Media.probe(f)?.let { i -> VideoClip(path = f.absolutePath, inSec = 0.0, outSec = if (i.duration > 0.05) i.duration else 5.0) } } }
-        if (clips.isNotEmpty()) h.edit { VideoEdit.addToPool(it.copy(clips = it.clips + clips), clips.map { c -> c.path }) }
-    }
-    fun addPicture() = scope.launch {
-        val f = withContext(Dispatchers.IO) { DesktopActions.pickFiles(tr("Bild-in-Bild: Video oder Bild auswählen"), multiple = false, extensions = VIDEO_MEDIA).firstOrNull() } ?: return@launch
-        val info = withContext(Dispatchers.IO) { Media.probe(f) } ?: run { Notices.error(tr("Die Datei ließ sich nicht lesen.")); return@launch }
-        val still = Media.isStill(f, info)
-        val at = pos()
-        val len = if (still) 5.0 else info.duration.takeIf { it > 0.05 } ?: 5.0
-        var made: String? = null
-        h.edit { pp -> VideoEdit.addLayer(VideoEdit.addToPool(pp, listOf(f.absolutePath)), f.absolutePath, at, len, still = still).let { (q, lid) -> made = lid; q } }
-        made?.let { onSelect(Sel.Layer(it)) }
-    }
-    fun addAudio() = scope.launch {
-        val f = withContext(Dispatchers.IO) { DesktopActions.pickFiles(tr("Musik oder Sprecherton auswählen"), multiple = false, extensions = AUDIO_MEDIA).firstOrNull() } ?: return@launch
-        val info = withContext(Dispatchers.IO) { Media.probe(f) }
-        if (info?.hasAudio != true) { Notices.error(tr("In der Datei ist kein Ton.")); return@launch }
-        val at = pos()
-        val a = AudioClip(path = f.absolutePath, startSec = at, outSec = minOf(info.duration, maxOf(1.0, h.project.duration - at)))
-        h.edit { pp ->
-            val tr0 = VideoEdit.freeAudioTrack(pp, a.startSec, a.endSec)
-            VideoEdit.addToPool(pp.copy(audio = pp.audio + a.copy(track = tr0), audioTracks = maxOf(pp.audioTracks, tr0)), listOf(a.path))
-        }
-        onSelect(Sel.Sound(a.id))
-    }
-    fun importSubs() = scope.launch {
-        val f = withContext(Dispatchers.IO) { DesktopActions.pickFiles(tr("Untertitel (SRT oder VTT)"), multiple = false, extensions = listOf("srt", "vtt")).firstOrNull() } ?: return@launch
-        val cues = withContext(Dispatchers.IO) { runCatching { VideoRender.parseSubtitles(f.readText()) }.getOrDefault(emptyList()) }
-        if (cues.isEmpty()) Notices.error(tr("In der Datei wurden keine Untertitel gefunden.")) else {
-            h.edit { it.copy(subtitles = cues) }
-            Notices.info("${cues.size} " + tr("Untertitel übernommen."))
-        }
-    }
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+    // Words beside the symbols from about 1250 dp (Full HD at 125 %, 1366 × 768 at 100 %); smaller, the symbols as before.
+    val words = maxWidth >= 1250.dp
     EditorBar("toolbar", height = 42.dp) {
         Spot("video.tools") {
             ToolGroup {
@@ -990,19 +1085,28 @@ private fun TimelineBar(
             }
         }
         BarGap()
-        ToolGroup {
-            TipIconButton(Icons.AutoMirrored.Outlined.CallSplit, tr("Am Abspielkopf teilen") + " (S)", onSplit, size = 34.dp)
-            TipIconButton(Icons.Outlined.BookmarkAdd, tr("Marker setzen") + " (M)", onMarker, size = 34.dp)
+        Spot("video.cut") {
+            ToolGroup {
+                BarButton(Icons.AutoMirrored.Outlined.CallSplit, tr("Teilen"), tr("Am Abspielkopf teilen") + " (S)", onSplit, words)
+                TipIconButton(MarkInIcon, tr("Anfang des Stücks markieren") + " (I)", { a.mark(start = true); onFocus() }, selected = p.markIn != null, size = 34.dp)
+                TipIconButton(MarkOutIcon, tr("Ende des Stücks markieren") + " (O)", { a.mark(start = false); onFocus() }, selected = p.markOut != null, size = 34.dp)
+                BarButton(
+                    CutRangeIcon, tr("Herausschneiden"),
+                    if (a.canCutRange) tr("Markiertes Stück herausschneiden – der Rest rückt nach (Entf)") else tr("Erst Anfang (I) und Ende (O) des Stücks markieren"),
+                    { a.cutRange(); onFocus() }, words, enabled = a.canCutRange,
+                )
+                TipIconButton(Icons.Outlined.BookmarkAdd, tr("Marker setzen") + " (M)", onMarker, size = 34.dp)
+            }
         }
         BarGap()
         ToolGroup {
             Spot("video.pip") {
                 Box {
-                    TipIconButton(Icons.Outlined.Add, tr("Hinzufügen: Clip, Bild-in-Bild, Musik, Spuren"), { add = true }, size = 34.dp)
-                    DropdownMenu(expanded = add, onDismissRequest = { add = false }) {
-                        DropdownMenuItem(text = { Text(tr("Clip hinzufügen …")) }, leadingIcon = { Icon(Icons.Outlined.Movie, null) }, onClick = { add = false; addClips() })
-                        DropdownMenuItem(text = { Text(tr("Bild-in-Bild …")) }, leadingIcon = { Icon(Icons.Outlined.PictureInPicture, null) }, onClick = { add = false; addPicture() })
-                        DropdownMenuItem(text = { Text(tr("Musik / Ton …")) }, leadingIcon = { Icon(Icons.Outlined.MusicNote, null) }, onClick = { add = false; addAudio() })
+                    BarButton(Icons.Outlined.Add, tr("Hinzufügen"), tr("Hinzufügen: Clip, Bild-in-Bild, Musik, Spuren"), { add = true }, words)
+                    DropdownMenu(expanded = add, onDismissRequest = { add = false; onFocus() }) {
+                        DropdownMenuItem(text = { Text(tr("Clip hinzufügen …")) }, leadingIcon = { Icon(Icons.Outlined.Movie, null) }, onClick = { add = false; a.addClips() })
+                        DropdownMenuItem(text = { Text(tr("Bild-in-Bild …")) }, leadingIcon = { Icon(Icons.Outlined.PictureInPicture, null) }, onClick = { add = false; a.addPicture() })
+                        DropdownMenuItem(text = { Text(tr("Musik / Ton …")) }, leadingIcon = { Icon(Icons.Outlined.MusicNote, null) }, onClick = { add = false; a.addAudio() })
                         HorizontalDivider()
                         DropdownMenuItem(text = { Text(tr("+ Videospur")) }, onClick = { add = false; h.edit { VideoEdit.addTrack(it, video = true) } })
                         DropdownMenuItem(text = { Text(tr("+ Tonspur")) }, onClick = { add = false; h.edit { VideoEdit.addTrack(it, video = false) } })
@@ -1010,90 +1114,64 @@ private fun TimelineBar(
                 }
             }
             Box {
-                Spot("video.titles") { TipIconButton(Icons.Outlined.Title, tr("Titel & Bauchbinde"), { titles = true }, size = 34.dp) }
-                DropdownMenu(expanded = titles, onDismissRequest = { titles = false }) {
+                Spot("video.titles") { BarButton(Icons.Outlined.Title, tr("Titel"), tr("Titel & Bauchbinde"), { titles = true }, words) }
+                DropdownMenu(expanded = titles, onDismissRequest = { titles = false; onFocus() }) {
                     TextOverlay.STYLES.forEach { (style, label) ->
-                        DropdownMenuItem(text = { Text(tr(label)) }, onClick = {
-                            titles = false
-                            val start = when (style) { "titel" -> 0.0; "abspann" -> maxOf(0.0, p.duration - 5.0); else -> pos() }
-                            val o = TextOverlay(
-                                style = style, startSec = start, durationSec = if (style == "bauchbinde") 6.0 else 4.0,
-                                text = when (style) { "titel" -> p.title; "abspann" -> tr("Vielen Dank"); "bauchbinde" -> tr("Vorname Nachname"); else -> tr("Wichtiger Hinweis") },
-                                subtext = when (style) { "titel" -> tr("Lehrvideo · TU Dresden"); "abspann" -> "tu-dresden.de"; "bauchbinde" -> tr("Professur … · TU Dresden"); else -> "" },
-                            )
-                            h.edit { it.copy(overlays = it.overlays + o) }
-                            onSelect(Sel.Title(o.id))
-                        })
+                        DropdownMenuItem(text = { Text(tr(label)) }, onClick = { titles = false; a.addTitle(style) })
                     }
                 }
             }
             Box {
-                Spot("video.subtitles") { TipIconButton(Icons.Outlined.Subtitles, tr("Untertitel"), { subs = true }, size = 34.dp) }
-                DropdownMenu(expanded = subs, onDismissRequest = { subs = false }) {
-                    DropdownMenuItem(text = { Text(tr("Aus der Transkription …")) }, onClick = { subs = false; pickTranscript = "subs" })
-                    DropdownMenuItem(text = { Text(tr("SRT/VTT importieren …")) }, onClick = { subs = false; importSubs() })
+                Spot("video.subtitles") { BarButton(Icons.Outlined.Subtitles, tr("Untertitel"), tr("Untertitel"), { subs = true }, words) }
+                DropdownMenu(expanded = subs, onDismissRequest = { subs = false; onFocus() }) {
+                    DropdownMenuItem(text = { Text(tr("Aus der Transkription …")) }, onClick = { subs = false; a.pickTranscript = "subs" })
+                    DropdownMenuItem(text = { Text(tr("SRT/VTT importieren …")) }, onClick = { subs = false; a.importSubs() })
                     if (p.subtitles.isNotEmpty()) DropdownMenuItem(text = { Text(tr("Alle Untertitel entfernen")) }, onClick = { subs = false; h.edit { it.copy(subtitles = emptyList()) } })
                 }
             }
             Box {
-                Spot("video.roughcut") { TipIconButton(Icons.Outlined.AutoAwesome, tr("Rohschnitt"), { cut = true }, size = 34.dp) }
-                DropdownMenu(expanded = cut, onDismissRequest = { cut = false }) {
-                    DropdownMenuItem(text = { Text(tr("Pausen und Füllwörter herausschneiden …")) }, onClick = { cut = false; pickTranscript = "cut" })
-                    DropdownMenuItem(text = { Text(tr("Mit Lora kürzen …")) }, onClick = { cut = false; loraCut = true })
+                Spot("video.roughcut") { BarButton(Icons.Outlined.AutoAwesome, tr("Rohschnitt"), tr("Rohschnitt: Pausen und Füllwörter, mit Lora kürzen"), { cut = true }, words) }
+                DropdownMenu(expanded = cut, onDismissRequest = { cut = false; onFocus() }) {
+                    DropdownMenuItem(text = { Text(tr("Pausen und Füllwörter herausschneiden …")) }, onClick = { cut = false; a.pickTranscript = "cut" })
+                    DropdownMenuItem(text = { Text(tr("Mit Lora kürzen …")) }, onClick = { cut = false; a.loraCut = true })
                 }
             }
         }
         BarGap()
-        Text(tr(tool.hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+        Text(hint, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
         TipIconButton(Icons.Outlined.UnfoldLess, tr("Spuren niedriger"), { layout.tracksTaller(false) }, enabled = layout.trackScale > VideoLayout.MIN_TRACKS, size = 32.dp)
         TipIconButton(Icons.Outlined.UnfoldMore, tr("Spuren höher"), { layout.tracksTaller(true) }, enabled = layout.trackScale < VideoLayout.MAX_TRACKS, size = 32.dp)
+        TipIconButton(Icons.Outlined.ZoomOutMap, tr("Ganze Zeitleiste zeigen") + " (" + tr("Umschalt+Z") + ")", { view.zoom = 1f; view.scroll = 0f; onFocus() }, enabled = view.zoom > 1.01f || view.scroll > 0f, size = 32.dp)
         Tip(tr("Zoom (Strg+Mausrad)")) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Outlined.ZoomIn, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                Slider(value = view.zoom, onValueChange = { view.zoom = it }, valueRange = 1f..24f, modifier = Modifier.width(110.dp).height(32.dp).semantics { contentDescription = tr("Zoom") })
+                Slider(value = view.zoom, onValueChange = { view.zoom = it }, valueRange = 1f..24f, modifier = Modifier.width(if (words) 110.dp else 84.dp).height(32.dp).semantics { contentDescription = tr("Zoom") })
             }
         }
     }
-    pickTranscript?.let { purpose ->
-        TranscriptPicker(c, h.project, onDismiss = { pickTranscript = null }) { map ->
-            pickTranscript = null
-            h.edit { it.copy(transcripts = it.transcripts + map.mapValues { e -> e.value.id }) }
-            scope.launch {
-                val all = loadTranscripts(c, h.project)
-                if (purpose == "subs") {
-                    val cues = RoughCut.subtitles(h.project, all)
-                    if (cues.isEmpty()) Notices.error(tr("Im Transkript passt nichts zu den Clips."))
-                    else { h.edit { it.copy(subtitles = cues, burnSubtitles = true) }; Notices.info("${cues.size} " + tr("Untertitel aus der Transkription.")) }
-                } else {
-                    var saved = 0.0
-                    h.edit { pp ->
-                        var next = pp
-                        // From the back, so the indices of the clips before stay valid.
-                        for (i in pp.clips.indices.reversed()) {
-                            val clip = pp.clips[i]
-                            val t = all[clip.path] ?: continue
-                            val parts = RoughCut.keep(t, clip.inSec, clip.outSec)
-                            if (parts.isEmpty()) continue
-                            saved += RoughCut.saved(clip.inSec, clip.outSec, parts)
-                            next = RoughCut.apply(next, i, parts)
-                        }
-                        next
-                    }
-                    Notices.info(if (saved > 0.5) tr("Rohschnitt fertig:") + " ${clock(saved)} " + tr("kürzer. Mit Strg+Z rückgängig.") else tr("Nichts zum Herausschneiden gefunden."))
-                }
-            }
-        }
     }
-    if (loraCut) LoraCutDialog(c, h, onDismiss = { loraCut = false })
 }
 
-private suspend fun loadTranscripts(c: AppContainer, p: VideoProject): Map<String, Transcript> = withContext(Dispatchers.IO) {
-    p.transcripts.mapNotNull { (path, tid) -> c.transcription.load(tid)?.let { path to it } }.toMap()
+/**
+ * The hint line of the toolbar (AP-121): what can be done with what is selected, in a few words – before, only what
+ * the tool does.
+ */
+internal fun editHint(p: VideoProject, sel: Sel, tool: CutTool): String = when {
+    tool == CutTool.BLADE -> tr(tool.hint)
+    tool == CutTool.TRIM -> tr(tool.hint)
+    sel is Sel.Clip -> tr("Clip gewählt: Ränder ziehen kürzt · S teilt · Entf löscht · Rechtsklick für mehr")
+    sel is Sel.Title -> tr("Titel gewählt: Text rechts ändern · Ränder ziehen ändert die Dauer · Entf löscht")
+    sel is Sel.Layer -> tr("Bild-in-Bild gewählt: Ecke und Größe rechts · Entf löscht")
+    sel is Sel.Sound -> tr("Ton gewählt: Lautstärke rechts · S teilt · Entf löscht")
+    sel is Sel.Mark -> tr("Marker gewählt: Notiz rechts · ziehen verschiebt · Entf löscht")
+    p.markIn != null && p.markOut != null -> tr("Stück markiert: Entf schneidet es heraus · Alt+X hebt die Markierung auf")
+    p.clips.isEmpty() -> tr("Videos aus dem Medienpool oder dem Explorer in die Zeitleiste ziehen")
+    else -> tr("Klick setzt den Abspielkopf · Rechtsklick zeigt, was geht")
 }
 
 /** Which transcript belongs to which source file; or transcribe a video now. */
 @Composable
-private fun TranscriptPicker(c: AppContainer, p: VideoProject, onDismiss: () -> Unit, onPick: (Map<String, io.github.thepytales.llmhub.transcribe.TranscriptSummary>) -> Unit) {
+internal fun TranscriptPicker(c: AppContainer, p: VideoProject, onDismiss: () -> Unit, onPick: (Map<String, io.github.thepytales.llmhub.transcribe.TranscriptSummary>) -> Unit) {
     val list by c.transcription.transcripts.collectAsStateWithLifecycle()
     val sources = p.clips.map { it.path }.distinct()
     val chosen = remember { mutableStateOf(sources.associateWith { path -> list.firstOrNull { it.id == p.transcripts[path] } ?: list.firstOrNull { t -> t.title.equals(File(path).nameWithoutExtension, ignoreCase = true) } }) }
@@ -1145,7 +1223,7 @@ private fun TranscriptPicker(c: AppContainer, p: VideoProject, onDismiss: () -> 
 
 /** „Mit Lora kürzen“: a wish for the selected or the first clip with a transcript; Lora picks the passages. */
 @Composable
-private fun LoraCutDialog(c: AppContainer, h: History, onDismiss: () -> Unit) {
+internal fun LoraCutDialog(c: AppContainer, h: History, onDismiss: () -> Unit) {
     var wish by remember { mutableStateOf("") }
     var running by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -1191,7 +1269,7 @@ private fun LoraCutDialog(c: AppContainer, h: History, onDismiss: () -> Unit) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun Properties(c: AppContainer, h: History, sel: Sel, pos: Double, onSelect: (Sel) -> Unit, onSplit: () -> Unit, onDelete: () -> Unit, onSeek: (Double) -> Unit) {
+private fun Properties(c: AppContainer, h: History, sel: Sel, pos: Double, a: VideoActions, onSelect: (Sel) -> Unit, onSplit: () -> Unit, onDelete: () -> Unit, onSeek: (Double) -> Unit) {
     val p = h.project
     val scope = rememberCoroutineScope()
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -1209,6 +1287,22 @@ private fun Properties(c: AppContainer, h: History, sel: Sel, pos: Double, onSel
                     TipIconButton(Icons.AutoMirrored.Outlined.CallSplit, tr("Am Abspielkopf teilen") + " (S)", onSplit, size = 32.dp)
                     TipIconButton(Icons.Outlined.Delete, tr("Löschen") + " (Entf)", onDelete, size = 32.dp)
                 }
+                // Shorten without dragging (AP-121): everything before or after the playhead goes.
+                val start = p.starts()[i]
+                val inside = pos > start + 0.05 && pos < start + clip.length - 0.05
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Tip(tr("Alles vor dem Abspielkopf aus diesem Clip entfernen")) {
+                        OutlinedButton(onClick = { a.trimTo(start = true) }, enabled = inside, contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 10.dp, vertical = 2.dp)) {
+                            Icon(MarkInIcon, null, Modifier.size(16.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Anfang kürzen"), maxLines = 1, softWrap = false)
+                        }
+                    }
+                    Tip(tr("Alles ab dem Abspielkopf aus diesem Clip entfernen")) {
+                        OutlinedButton(onClick = { a.trimTo(start = false) }, enabled = inside, contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 10.dp, vertical = 2.dp)) {
+                            Icon(MarkOutIcon, null, Modifier.size(16.dp)); Spacer(Modifier.size(4.dp)); Text(tr("Ende kürzen"), maxLines = 1, softWrap = false)
+                        }
+                    }
+                }
+                if (!inside) HintText(tr("Zum Kürzen den Abspielkopf in diesen Clip setzen."))
                 PropSection("clip.time", tr("Zeit"), summary = clock(clip.length, true)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         SecondsField(tr("Anfang (s)"), clip.inSec, "in-${clip.id}", Modifier.weight(1f)) { v -> h.edit("in-${clip.id}") { pp -> pp.copy(clips = pp.clips.map { if (it.id == clip.id) it.copy(inSec = v.coerceIn(0.0, it.outSec - 0.2)) else it }) } }
@@ -1324,7 +1418,12 @@ private fun Properties(c: AppContainer, h: History, sel: Sel, pos: Double, onSel
                     }
                 }
             }
-            Sel.None -> ProjectSettings(h)
+            Sel.None -> {
+                // „So entsteht dein Video“ (AP-121) above the settings of the project, while nothing is selected.
+                val layout = LocalVideoLayout.current
+                if (layout?.guide != false) Spot("video.guide") { GuideCard(p, a, onSplit = onSplit, onClose = { layout?.guide = false }) }
+                ProjectSettings(h)
+            }
         }
     }
 }
@@ -1407,12 +1506,16 @@ internal fun SecondsField(label: String, value: Double, key: String, modifier: M
     fun show(v: Double) = String.format(Locale.GERMANY, "%.2f", v)
     var text by remember(key) { mutableStateOf(show(value)) }
     var focused by remember(key) { mutableStateOf(false) }
-    LaunchedEffect(value, focused) { if (!focused && text.replace(',', '.').toDoubleOrNull()?.let { abs(it - value) > 0.005 } != false) text = show(value) }
+    // „1:23,5“ as well as „83,5“ (AP-121): beginners read times as minutes and seconds, as the timeline shows them.
+    LaunchedEffect(value, focused) { if (!focused && parseSeconds(text)?.let { abs(it - value) > 0.005 } != false) text = show(value) }
     OutlinedTextField(
-        text, { t -> text = t; t.replace(',', '.').toDoubleOrNull()?.let(onChange) }, label = { Text(label, maxLines = 1) }, singleLine = true,
+        text, { t -> text = t; parseSeconds(t)?.let(onChange) }, label = { Text(label, maxLines = 1) }, singleLine = true,
         modifier = modifier.onFocusChanged { focused = it.isFocused }.typing(), textStyle = MaterialTheme.typography.bodySmall,
     )
 }
+
+/** Seconds typed into a field: „83,5“, „83.5“, „1:23,5“ or „1:02:03“; null while it is not a time (AP-121). */
+internal fun parseSeconds(text: String): Double? = io.github.thepytales.llmhub.video.VideoLora.seconds(text)?.takeIf { !it.isNaN() && !it.isInfinite() }
 
 /** Length of the source file at [path] in seconds (null while unknown, and for a picture). */
 @Composable

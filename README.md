@@ -392,6 +392,19 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   Frage?“. Auf Android wartet Lora, wenn das System das Gerät als warm meldet, und hält an, bevor es heiß wird; der
   Modell-Server rechnet dort nur auf den großen Kernen (höchstens die Hälfte). Die Arbeitskarte zeigt „Liest die Anfrage
   ein … 40 %“. Test `LocalLimitsTest`; Messung am Gerät: Arbeitsplan AP-116.
+- **Videoeditor für Einsteiger** (seit 1.0.70, AP-121): Der Editor erklärt sich jetzt selbst – für alle, die noch nie ein
+  Video geschnitten haben, ohne eigene „Einfach-Ansicht“. **Startseite** mit zwei großen Karten (*Video schneiden*,
+  *Bildschirm aufnehmen*), die vier Schritte darunter, Projekte mit *Öffnen*, *Umbenennen*, *Kopie anlegen*, *Löschen*;
+  Videos aus dem Explorer auf die Seite ziehen legt ein Projekt an. Im Editor zeigt **„So entsteht dein Video“** rechts den
+  nächsten Schritt (Schneiden → Titel und Untertitel → Musik und Ton → Exportieren) mit Knöpfen, die ihn gleich ausführen,
+  und hakt Erledigtes ab. **Einfach schneiden**: *Anfang kürzen* / *Ende kürzen* bis zum Abspielkopf, ein Stück aus der
+  Mitte mit *Anfang* (I), *Ende* (O) und **Herausschneiden** (auch Entf ohne Auswahl) – alles danach rückt nach.
+  **Rechtsklick** auf Clip, Titel, Ton oder eine leere Stelle zeigt in Klartext, was dort geht (*Hier teilen*, *Anfang bis
+  hier entfernen*, *Ton aus*, *Name hier einblenden* …). Dazu Knöpfe mit Wort statt nur Symbol, wo Platz ist, eine
+  Hinweiszeile passend zur Auswahl, *Gespeichert* im Kopf, ein Hilfe-Menü (Erste Schritte, Tour, Tasten, Lora), Klick ins
+  Bild spielt ab, Mauszeiger zum Ziehen an Clip-Rändern, die Zeitleiste folgt beim Abspielen, *Ganze Zeitleiste zeigen*
+  (Umschalt+Z), Zeiten auch als „1:23,5“ eintippen, Dateien aus dem Explorer in den Editor ziehen. Lora kann jetzt
+  „Schneide 1:20 bis 1:45 heraus“. Details unter *Videoeditor für Einsteiger* weiter unten.
 - **Lora einrichten Schritt für Schritt** (seit 1.0.69, AP-120): Beim ersten Start erscheint statt der kurzen Fragen
   ein Einrichtungsfenster mit acht Schritten – *Willkommen*, *Wofür* (Rollen, AP-80), *Wo Lora arbeitet*, *Zugang*,
   *Datenschutz*, *Werkzeuge*, *Aussehen*, *Fertig* (Übersicht mit *Ändern* je Punkt). Geschrieben für Menschen ohne
@@ -1464,6 +1477,50 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     gewählten Element, auch bei 1366×768 und 150 % ohne Umbruch. Tour-Karten stehen neben dem Ort, den sie erklären.
   - **Kein grauer Kasten** mehr beim Überfahren von Knöpfen und Chips (in der ganzen App) – nur eine leichte Tönung;
     der deutliche Tastaturfokus bleibt.
+- **Videoeditor für Einsteiger** (AP-121, seit 1.0.70): Ein großer Teil des Teams hat wenig Erfahrung mit Videoschnitt.
+  Der Editor bleibt **eine** Ansicht (kein Einfach-/Expertenmodus, siehe Grundsätze), aber die Hilfen stehen dort, wo sie
+  gebraucht werden, und lassen sich wegklappen.
+  - **Startseite**: zwei große Karten *Video schneiden* (Videos auswählen – oder aus dem Explorer auf die Seite ziehen) und
+    *Bildschirm aufnehmen*, darunter die vier Schritte eines Videos. Die Projekte stehen nach *Geändert* sortiert, mit
+    Vorschaubild und Länge, *Öffnen* und ⋮ (*Umbenennen …*, *Kopie anlegen* zum Ausprobieren, *Löschen* mit Rückgängig).
+  - **„So entsteht dein Video“** rechts in den Eigenschaften, solange nichts gewählt ist: *Schneiden*, *Titel und
+    Untertitel*, *Musik und Ton* (wenn du willst), *Exportieren*. Der nächste offene Schritt ist aufgeklappt, mit einem Satz,
+    was zu tun ist, und Knöpfen, die es tun (*Teilen*, *Herausschneiden*, *Pausen entfernen …*, *Titel*, *Name einblenden*,
+    *Untertitel …*, *Musik …*, *Rauschen mindern*, *Exportieren …*); Erledigtes bekommt einen Haken, jeder Schritt lässt
+    sich überspringen. ✕ blendet die Karte aus, das Hilfe-Menü (?) holt sie zurück (`videoGuide` in `ui_state`, *Anordnung
+    zurücksetzen* zeigt sie wieder).
+  - **Einfach schneiden** (`VideoEdit.trimToPlayhead`, `VideoEdit.cutRange`): *Anfang kürzen* und *Ende kürzen* in den
+    Clip-Eigenschaften entfernen alles vor bzw. ab dem Abspielkopf. Ein Stück aus der Mitte: *Anfang des Stücks markieren*
+    (I), *Ende* (O), **Herausschneiden** in der Leiste über der Zeitleiste – oder Entf, wenn nichts gewählt ist. Der
+    verknüpfte Ton geht mit, alles danach (Titel, Musik, Untertitel, Marker) rückt nach, auch ohne Magnet.
+  - **Rechtsklick** in der Zeitleiste wählt das Element und zeigt, was geht: am Clip *Hier teilen*, *Anfang bis hier
+    entfernen*, *Ende ab hier entfernen*, *Ton aus*, *Ton auf eine Tonspur legen*, *Eigenschaften*, *Löschen*; an Bild-in-Bild,
+    Ton, Titel und Markern das Passende; an einer leeren Stelle *Ab hier abspielen*, *Hier teilen*, *Name hier
+    einblenden*, *Marker hier setzen*, *Musik hier einfügen …*, *Clip hinzufügen …*. Geteilt wird dort, wo geklickt wurde.
+  - **Klarere Oberfläche**: In der Leiste über der Zeitleiste tragen *Teilen*, *Herausschneiden*, *Hinzufügen*, *Titel*,
+    *Untertitel* und *Rohschnitt* ab etwa 1250 dp Breite (Full HD bei 125 %, 1366 × 768 bei 100 %) ihr Wort neben dem
+    Symbol; schmaler bleiben die Symbole mit Tooltip. Die Hinweiszeile sagt, was mit dem Gewählten geht („Clip gewählt:
+    Ränder ziehen kürzt · S teilt · Entf löscht · Rechtsklick für mehr“). Im Kopf steht *Gespeichert* (jede Änderung wird
+    von selbst gespeichert) und statt des Tastatur-Symbols ein **Hilfe-Menü** (*So entsteht dein Video*, *Tour durch den
+    Videoeditor*, *Tastenkürzel*, *Lora fragen*). Die Tastenkürzel sind nach *Abspielen*, *Schneiden*, *Quelle*, *Ansicht*
+    gruppiert. Der Medienpool hat ein kleines Suchfeld (ab vier Dateien) und ohne Dateien einen Knopf *Dateien hinzufügen*.
+  - **Vorschau und Zeitleiste**: Ein Klick ins Bild spielt oder hält an (ein rundes Abspielsymbol zeigt das); ohne Clips
+    steht dort *Videos hinzufügen*. Über Clip-Rändern zeigt der Mauszeiger ↔ (ziehen kürzt), über Clips eine Hand, mit der
+    Klinge ein Fadenkreuz; das Element unter der Maus bekommt einen hellen Rahmen. Beim Abspielen in der vergrößerten
+    Zeitleiste blättert die Ansicht mit, *Ganze Zeitleiste zeigen* (Umschalt+Z) holt alles zurück. Zeitfelder nehmen auch
+    „1:23,5“ und „1:02:03“.
+  - **Dateien aus dem Explorer**: auf den Editor gezogen kommen Videos und Bilder ans Ende, Ton an den Abspielkopf; auf den
+    Medienpool gezogen nur in den Pool. Alles mit Strg+Z rückgängig.
+  - **Lora**: neue Aktion *Stück herausschneiden* („Schneide 1:20 bis 1:45 heraus“, ohne Zeiten: zwischen In und Out), mit
+    Vorschau und Rückgängig; Orte *So entsteht dein Video*, *Stück herausschneiden* und *Hilfe im Videoeditor* auf der
+    Landkarte, die Tour zeigt die Schrittkarte und das Schneiden.
+  Test `VideoEaseTest` (Kürzen, Herausschneiden mit verknüpftem Ton und ohne Magnet, Kopie, Zeiten; Startseite, Schrittkarte
+  und Rechtsklick „Hier teilen“ auf dem Bildschirm, Bilder in `desktop/build/video-ease`); `VideoLayoutTest` prüft weiter
+  alle Leisten bei 1366 × 768 und 150 % ohne Umbruch.
+
+  | Vorher | Nachher | Startseite | Rechtsklick |
+  | --- | --- | --- | --- |
+  | ![Videoeditor vorher](docs/bilder/ap121-vorher.png) | ![Videoeditor nachher](docs/bilder/ap121-editor.png) | ![Startseite](docs/bilder/ap121-start.png) | ![Rechtsklick](docs/bilder/ap121-rechtsklick.png) |
 - **Bildschirmaufnahme** (AP-56, *Videoeditor › Bildschirm aufnehmen*): ganzer Bildschirm, ein Fenster oder ein
   gezogener Bereich, dazu **Webcam**, **Mikrofon** und **Systemton** (über ein Aufnahmegerät wie „Stereomix“), Countdown,
   Mauszeiger und **Klicks als Ringe**. Ein ffmpeg-Prozess nimmt alles mit derselben Uhr auf, jede Quelle in eine eigene
@@ -2125,6 +2182,7 @@ automatisch für beide Versionen. Kleine Stellvertreter für Android-Klassen (`a
 | `docs/DocFiles.kt`, `docs/DocxExtras.kt`, `docs/LatexOmml.kt`, `docs/SlideExtras.kt`, `docs/LocalSpelling.kt` (beide), `data/ChatFilter.kt` | Office-Ausbau (AP-16): echte Dateien und Schreiben ins Original, Überarbeitungen und Kommentare in Word, Formeln, freie Folien, Rechtschreibung, Chatfilter |
 | `creative/DesignRender.kt`, `creative/DesignExport.kt`, `creative/DesignEditorState.kt` und `creative/CanvasOps.kt` (gemeinsam, AP-50), `ui/DesignEditor.kt`, `ui/CreateDesigns.kt`, `ui/DesignPlatform.kt` (beide), `data/DesignSupport.kt` (beide), `creative/TudAssets.kt`, `resources/fonts/`, `resources/tud/` (Logos, Icons; aus `tools/tud_cd_assets.py`) (gemeinsam: `data/Designs.kt`, `data/DesignTemplates.kt`, `agent/DesignTools.kt`, `ui/CreateUi.kt`) | Erstellen › Gestalten (AP-24): Renderer mit Noto Sans, Export PNG/PDF/PowerPoint, Editor, Vorlagen, Agent-Werkzeuge |
 | `video/VideoProject.kt`, `video/Media.kt`, `video/VideoRender.kt`, `video/VideoTitles.kt`, `video/RoughCut.kt`, `video/VideoPlayer.kt`, `ui/VideoScreen.kt`, `ui/VideoLayout.kt` | Videoeditor (AP-25, Anordnung AP-70): Projekte, ffprobe/ffmpeg, Proxys, Vorschau, Titel im TUD-Design, Rohschnitt, Export |
+| `ui/VideoEase.kt`, `ui/VideoActions.kt` | Videoeditor für Einsteiger (AP-121): Startkarten, „So entsteht dein Video“, beschriftete Knöpfe, Hilfe-Menü, „Gespeichert“, Rechtsklick-Menüs; gemeinsame Aktionen für Leiste, Menüs, Schrittkarte und Dateien aus dem Explorer |
 | `ui/ExtraWindows.kt` | Lora in mehreren Fenstern: Chats, Dokumente und Loras Panel in eigenen Fenstern (AP-84) |
 | `video/ExportQueue.kt` | Export-Warteschlange, übersteht einen Neustart (AP-57, AP-81) |
 | `video/VideoEdit.kt`, `video/AudioSync.kt`, `ui/VideoTimeline.kt`, `ui/VideoPanels.kt` | Videoeditor (AP-52, AP-53): Spuren, Bild-in-Bild, Schnitt (Klinge, Ripple, Roll, Slip, Einfügen/Überschreiben, Magnet), verknüpfter Ton, Synchronisieren über die Wellenform, Medienpool, Quellmonitor, Marker, Tastenkürzel |

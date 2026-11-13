@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 13.11.2026 (AP-121 Lora-Aussehen und -Animationen: Entwurf fertig, Freigabe offen, nicht in der App) · 11.11.2026 (Sitzung Dateiwerkzeuge: AP-90 Rest, AP-91, AP-93, AP-97 bis AP-100, AP-107 Rest, neu AP-119 und AP-120 in der App, Prüfung am Gerät offen) · 11.11.2026 (AP-112 und AP-116 in der App, Messung am Gerät offen; AP-117 erledigt; AP-118 Server-Terminal in der App, am eigenen Server zu prüfen) · 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen; neu: AP-116 lokale Modelle auf dem Handy zu langsam, nicht abbrechbar, Gerät heiß) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 13.11.2026 (AP-122 Lora-Aussehen und -Animationen: Entwurf auf eigenem Zweig, nicht in der App; Gegenstände offen) · 13.11.2026 (AP-121 Videoeditor für Einsteiger in der App, für 1.0.70; Prüfung am Gerät offen) · 11.11.2026 (Sitzung Dateiwerkzeuge: AP-90 Rest, AP-91, AP-93, AP-97 bis AP-100, AP-107 Rest, neu AP-119 und AP-120 in der App, Prüfung am Gerät offen) · 11.11.2026 (AP-112 und AP-116 in der App, Messung am Gerät offen; AP-117 erledigt; AP-118 Server-Terminal in der App, am eigenen Server zu prüfen) · 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen; neu: AP-116 lokale Modelle auf dem Handy zu langsam, nicht abbrechbar, Gerät heiß) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -72,8 +72,9 @@ Fairlight).
 | ~~Lora im Alltag~~ ☑ | AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen (erledigt 10.11.2026, siehe *Erledigt*) |
 | **Danach** | ~~AP-86 Lokale Modelle auf dem Mac laden~~ ☑ (10.11.2026, 1.0.67) |
 | **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung ◐ · AP-106 Modellkatalog in feinen Stufen, nach Zweck ◐ · AP-107 Suche nach Bedeutung auf dem Gerät ◐ (Rest in der App) · AP-108 Lange Texte lokal ◐ · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal ◐ · AP-111 Sprachausgabe lokal ☑ · AP-112 Offline-Schiene in der Oberfläche ◐ · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 ☑ · **AP-116 Lokale Modelle: Tempo, Abbruch, Hitze ◐** (Fehler aus 1.0.67, vor AP-109) · ~~AP-117 Eigene Modelle aktualisieren, auf GitHub~~ ☑ (11.11.2026) |
+| **Neu (13.11.2026)** | **AP-121 Videoeditor für Einsteiger ◐** (Startseite, „So entsteht dein Video“, einfach schneiden, Rechtsklick, klarere Leisten; Prüfung am Gerät offen) |
+| **Neu (12.11.2026)** | **AP-122 Lora: neues Aussehen und lebendigere Animationen ◐** (Wunsch Hauptnutzer; Entwurf auf dem Zweig `ccr-591efb5e-siqh68`, **nicht in der App** – Gegenstände und ihr Gebrauch noch offen, Einbau erst nach Freigabe) |
 | **Neu (11.11.2026)** | **AP-118 Server-Terminal mit Lora ◐** (SSH wie PuTTY, Lora schlägt Schritte vor, Ausführung nur nach Zustimmung; nur Desktop) · ~~AP-119 Anzeige, wohin die Daten gehen~~ ☑ (Wunsch des Kollegen) · **AP-120 Lora einrichten Schritt für Schritt ◐** (Wunsch Hauptnutzer) |
-| **Neu (12.11.2026)** | **AP-121 Lora: neues Aussehen und lebendigere Animationen ◐** (Wunsch Hauptnutzer; Entwurf fertig, **nicht in der App** – erst nach Freigabe der Vorschau) |
 | **Später** | AP-87 Datei-Erste-Hilfe · AP-88 Zeitreise für Dateien · AP-89 Vorlage aus eigener Datei · AP-90 Formatwandler mit Verlustanzeige ◐ · AP-91 Schriften-Notfall ◐ · AP-92 Formatierung aufräumen · AP-93 CSV-Lotse ◐ · AP-94 Formular aus Scan · AP-95 PDF-Tabellen nach Excel ◐ · AP-96 Diagramm zu Daten · AP-97 Druck-Lotse ◐ · AP-98 Passwortschutz für Dateien ◐ · AP-99 Archiv-Werkzeug ◐ · AP-100 Fotos vom Handy aufbereiten ◐ · AP-101 Bild-Werkstatt · AP-102 Umzug auf einen neuen PC |
 
 Abhängigkeiten: AP-38 vor AP-40 und vor allen Lora-Teilen der späteren Pakete (jedes neue Werkzeug liefert seine
@@ -1087,30 +1088,73 @@ RAM-Einschätzung, danach Route `local-setup`; eigener Anbieter (Gemini) und Exp
 `SetupLookTest` (Bild je Schritt, Fensterbreite und Handy). **Offen – mit Nutzer:innen**: einmal mit jemandem ohne
 Vorwissen durchgehen (Hauptnutzer schaut zu); Texte nach Rückmeldung nachschärfen.
 
-### AP-121 ◐ Lora: neues Aussehen und lebendigere Animationen · M (neu, Wunsch Hauptnutzer 12.11.2026)
-**Ziel**: Lora ist Maskottchen und Aushängeschild der App – niedlich, aber noch etwas starr. Ihr Aussehen und alle 51
-bestehenden Animationen deutlich aufwerten, ohne dass sie ihren Charakter verliert; seriös bleiben und *Ruhigere
-Bewegungen* respektieren (Grundsatz *Lora*). **Erst nach Freigabe des Hauptnutzers in die App** – bis dahin gibt es nur
-eine Vorschau (Vorher/Nachher-Filme jeder Aktion), nichts wird veröffentlicht.
+### AP-121 ◐ Videoeditor für Einsteiger: leichter bedienbar, klarere Oberfläche · M (neu, Wunsch Hauptnutzer 13.11.2026, D)
+**Befund**: Einige im Team kennen sich mit Videoschnitt aus, ein großer Teil eher nicht. Der Editor (AP-25, AP-52 bis
+AP-57, AP-70) kann viel, setzt aber Wissen voraus: Leisten nur aus Symbolen, Begriffe wie In/Out, Ripple, Klinge; rechts
+beginnt er mit Format und Bildrate; kein Rechtsklick; ein Stück aus der Mitte entfernen braucht zwei Schnitte, Auswählen
+und Löschen; die Startseite hat nur zwei kleine Wörter oben rechts; ob gespeichert ist, sieht man nicht.
+**Ziel**: Unerfahrene kommen ohne Anleitung zu einem fertigen Video; Geübte verlieren nichts (alle Tasten bleiben).
+**Eine** Ansicht wie bisher (Grundsatz: keine Einfach-/Expertenansicht) – die Hilfen stehen am Ort und klappen weg.
+- **Startseite**: zwei große Karten (*Video schneiden* – auch Dateien hineinziehen –, *Bildschirm aufnehmen*), die vier
+  Schritte, Projekte mit *Öffnen*, *Umbenennen*, *Kopie anlegen*, *Löschen*.
+- **„So entsteht dein Video“**: Schrittkarte in den Eigenschaften (Schneiden, Titel und Untertitel, Musik und Ton,
+  Exportieren), der nächste Schritt offen, mit Knöpfen, die ihn ausführen; Haken für Erledigtes; ausblendbar.
+- **Einfach schneiden**: Anfang/Ende bis zum Abspielkopf kürzen; Stück zwischen In und Out herausschneiden (alles rückt
+  nach, auch ohne Magnet); Lora-Aktion *Stück herausschneiden*.
+- **Rechtsklick** auf Clip, Bild-in-Bild, Ton, Titel, Marker und leere Stellen, in Klartext.
+- **Klarer**: Knöpfe mit Wort, wo Platz ist; Hinweiszeile passend zur Auswahl; *Gespeichert*; Hilfe-Menü; Tasten
+  gruppiert; Klick ins Bild spielt; Mauszeiger an Rändern; Zeitleiste folgt beim Abspielen; *Ganze Zeitleiste zeigen*;
+  Zeiten als „1:23,5“; Dateien aus dem Explorer in den Editor.
+**Fertig, wenn**: jemand ohne Vorkenntnisse ein Lehrvideo kürzt, einen Titel setzt und exportiert, ohne nach dem Weg zu
+fragen; alle Leisten bei 1366 × 768 und 150 % ohne Umbruch bleiben; die bisherigen Video-Tests grün sind.
+◐ *Stand 13.11.2026 (für 1.0.70)*: alles oben in der App – `ui/VideoEase.kt` (Startkarten, Schrittkarte, `BarButton`,
+`SavedBadge`, `HelpButton`, `TimelineMenu`), `ui/VideoActions.kt` (gemeinsame Aktionen für Leiste, Menüs, Schrittkarte,
+Dateien aus dem Explorer), `VideoEdit.trimToPlayhead`, `VideoEdit.cutRange`, `VideoEdit.duplicate`, Lora-Aktion
+`video.cut_range`, Orte `video.guide`, `video.cut`, `video.help`, Tour um zwei Schritte ergänzt. Rechtsklick wird als
+Mausereignis gelesen (ein Druck mit der rechten Taste ist in Compose kein „down“ für die Gesten). Test `VideoEaseTest`;
+`VideoLayoutTest`, `VideoReviewTest`, `VideoCutTest`, `TextCutTest` unverändert grün. **Offen – am Gerät**: unter Windows
+mit echter Skalierung prüfen (Mauszeiger, Rechtsklick, Ziehen aus dem Explorer); einmal mit jemandem ohne Vorwissen ein
+Video schneiden lassen und die Texte der Schrittkarte nachschärfen.
+
+
+
+### AP-122 ◐ Lora: neues Aussehen und lebendigere Animationen · M (neu, Wunsch Hauptnutzer 12.11.2026)
+(Die Commits vom 13.11.2026 nennen das Paket noch „AP-121“ – diese Nummer vergab PR #80 gleichzeitig an den Videoeditor.)
+**Ziel**: Lora ist Maskottchen und Aushängeschild der App – niedlich, aber noch etwas starr. Ihr Aussehen, alle 51
+bestehenden Animationen und die Gegenstände deutlich aufwerten, ohne dass sie ihren Charakter verliert; seriös bleiben
+und *Ruhigere Bewegungen* respektieren (Grundsatz *Lora*). **Erst nach Freigabe des Hauptnutzers in die App** – bis
+dahin gibt es nur eine Vorschau (Vorher/Nachher-Filme jeder Aktion), nichts wird veröffentlicht.
 **Fertig, wenn**: der Hauptnutzer die Vorschau freigegeben hat, der Entwurf in der App ist und die App-Symbole neu
 ausgegeben sind.
-◐ *Stand 13.11.2026 – Entwurf liegt auf dem Entwicklungszweig, wartet auf Freigabe*: alles in `ui/LoraFigure.kt`.
-**Aussehen**: Körper mit Volumen (Verlauf, weiches Licht von links oben, Glanz – aus der Stilfarbe abgeleitet, passt
-also zu jeder Akzentfarbe), Kopf als Kuppel (`bodyPath`, `drawBody`), Visier wie Glas (leicht eingelassen, Spiegelung;
-auf dunklem Glas leuchten die Augen), größere Augen mit Lichtpunkten, kleine Stiefel (`boot`), Arme und Beine verjüngt
-(`limb`) mit Schatten auf dem Körper, Stern mit Lichthof. Augen und Mund sind Formen, die ineinander übergehen
-(`EYE_SHAPES`, `MOUTH_SHAPES`, `faceOf`), dazu neue Blicke (`SOFT`, `SPARKLE`, `WINK`) und Münder (`OOH`, `TONGUE`).
-**Bewegung**: Lora „spürt“ ihre Bewegung der letzten 360 ms (`trailOf`, `jelly`) – Antenne, Arme und Körper schwingen
-nach, sie streckt sich im Sprung und federt bei der Landung; die Füße bleiben am Boden (Knie geben nach, Zehenspitzen),
-neu `sway` (Gewicht verlagern, Füße bleiben stehen) neben `dx`; bewegt sie sich fort, macht sie echte Schritte
-(`stepOffset`, `STRIDE`); Übergänge zwischen Aktionen beginnen sanfter; *Ruhigere Bewegungen* dämpft das Nachschwingen.
-**Choreografie** aller 51 Aktionen überarbeitet (`loraPose`: Ausholen, Gewichtsverlagerung, Mimik). Namen, Dauer
-(`periodMs`), Reihenfolge, Regie (`LoraDirector`) und alle Gegenstände sind unverändert – der Rest der App bleibt, wie er
-ist. Tests: `LoraFigureTest` unverändert (alles bleibt im Bild), `LogoTest` zählt helle statt rein weißer Pixel im
-Gesicht, neu `LoraPreviewTest` (Filme aller Aktionen nach `LORA_PREVIEW_DIR`, braucht ffmpeg; ohne die Variable tut er
-nichts). **Offen – nach der Freigabe**: App-Symbole neu ausgeben und kopieren (README › *Logo ändern*, auch `app.icns`),
-README-Abschnitte *Logo und Startanimation* und *Lora, das Maskottchen* anpassen, Paket abhaken.
-
+◐ *Stand 13.11.2026 – Entwurf auf dem Zweig `ccr-591efb5e-siqh68` (mit `main` bis PR #80 zusammengeführt), nicht in der
+App*: alles in `ui/LoraFigure.kt`. **Aussehen**: Körper mit Volumen (Verlauf, weiches Licht von links oben, Glanz – aus
+der Stilfarbe abgeleitet, passt zu jeder Akzentfarbe), Kopf als Kuppel (`bodyPath`, `drawBody`), Visier wie Glas, größere
+Augen mit Lichtpunkten, kleine Stiefel (`boot`), Arme und Beine verjüngt (`limb`) mit Schatten auf dem Körper, Stern mit
+Lichthof. Augen und Mund sind Formen, die ineinander übergehen (`EYE_SHAPES`, `MOUTH_SHAPES`, `faceOf`), dazu neue Blicke
+(`SOFT`, `SPARKLE`, `WINK`) und Münder (`OOH`, `TONGUE`). **Das Gesicht bleibt auch im dunklen Design weiß** (`FaceGlass`,
+`FaceInk` in `drawFace`). **Bewegung**: Lora „spürt“ ihre Bewegung der letzten 360 ms (`trailOf`, `jelly`) – Antenne,
+Arme und Körper schwingen nach, sie streckt sich im Sprung und federt bei der Landung; die Füße bleiben am Boden (Knie
+geben nach, Zehenspitzen), neu `sway` (Gewicht verlagern, Füße bleiben stehen) neben `dx`; bewegt sie sich fort, macht
+sie Schritte (`stepOffset`, `STRIDE`); Übergänge beginnen sanfter; *Ruhigere Bewegungen* dämpft das Nachschwingen.
+**Choreografie** aller 51 Aktionen überarbeitet (`loraPose`). Namen, Dauer (`periodMs`), Reihenfolge, Regie
+(`LoraDirector`) und alle Gegenstände sind unverändert. **Logo**: Figur etwas größer (`ui/Logo.kt`, 2,4 statt 2,15
+Einheiten); `LogoTest` zählt helle statt rein weißer Pixel und gibt die Android-Symbole mit kleinerem Maßstab aus, damit
+sie gleich groß bleiben. Neu `LoraPreviewTest` (Filme aller Aktionen, nur mit `LORA_PREVIEW_DIR`).
+**Vorschau**: private Seite <https://claude.ai/artifact/1BiJ6Nwn1GyU5mvZhS7f51>; Werkzeuge und Anleitung in
+`tools/lora-vorschau/`. Die Seite zeigt den Stand **vor** „Gesicht weiß im dunklen Design“ und „Logo größer“.
+**Rückmeldung des Hauptnutzers (13.11.2026)**: Aussehen und Animationen gefallen („deutlich besser“). **Offen**:
+1. **Gegenstände und wie Lora sie benutzt**: Die Gegenstände sehen teils noch nicht gut aus (flach neben der neuen Lora)
+   und die Interaktion hat Fehler – am Mikroskop schaut sie vorbei statt hinein, die Lupe beim Suchen wirkt wie ein Ring,
+   mit dem sie spielt, „solche Sachen“. Zuerst alle 51 Aktionen durchsehen und eine Mängelliste machen (**noch nicht
+   geschehen**), dann beheben: `drawScene` (steht am Boden), `drawHeld` (in der Hand), Posen in `loraPose`. Hände treffen
+   Dinge über `reachL`/`reachR`; für Blicke in ein Okular müssen Auge und Okular an derselben Stelle liegen.
+2. **Laufen** wirkt manchmal komisch (Spazieren, Bücher tragen, Suchen, Schritt zum Regal). Vermutung: das Überblenden
+   zwischen Stehen und Schritten bei langsamer Bewegung (`walk` in `drawLora`) und der Richtungswechsel. Mit dem
+   Hauptnutzer klären, wo genau.
+3. Vorschau danach neu rendern und unter derselben Adresse aktualisieren.
+**Nach der Freigabe**: Pull Request von diesem Zweig, App-Symbole neu ausgeben und kopieren (README › *Logo ändern*, auch
+`app.icns`), README-Abschnitte *Logo und Startanimation* und *Lora, das Maskottchen* anpassen, Paket abhaken.
+Veröffentlicht wird nur auf ausdrücklichen Wunsch.
 
 ---
 
