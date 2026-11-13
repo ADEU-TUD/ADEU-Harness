@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lora UI-Review November 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..24,400,0..1,0&display=block">
+<style>
+/* Übersicht APD-01 – Palette aus der Stilrichtung „Klar, ruhig – mit Lora als Farbe“; Layout: eine Lesespalte, Bilder breiter. */
+:root {
+  --bg: #F6F6FA; --sheet: #FFFFFF; --line: #E2E2EB; --soft: #EEEEF4; --text: #17171F; --muted: #575770; --faint: #8B8BA0;
+  --accent: #5B4FE9; --accent-soft: #EDEBFD; --accent-ink: #3A2FC4;
+  --hoch: #D93A40; --mittel: #C2710C; --gering: #6B7280; --ok: #1E9A5F;
+  --display: "Manrope", "Segoe UI", system-ui, sans-serif; --body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131318; --sheet: #1C1C23; --line: #2D2D38; --soft: #24242C; --text: #ECECF3; --muted: #A9A9BC; --faint: #7D7D90;
+    --accent: #8C82FF; --accent-soft: #2B2850; --accent-ink: #CBC6FF; --hoch: #FF6B70; --mittel: #F0A63A; --gering: #9CA3AF; --ok: #4CCB8D;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131318; --sheet: #1C1C23; --line: #2D2D38; --soft: #24242C; --text: #ECECF3; --muted: #A9A9BC; --faint: #7D7D90;
+  --accent: #8C82FF; --accent-soft: #2B2850; --accent-ink: #CBC6FF; --hoch: #FF6B70; --mittel: #F0A63A; --gering: #9CA3AF; --ok: #4CCB8D;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.55 var(--body); }
+.i { font-family: "Material Symbols Outlined"; font-size: 20px; line-height: 1; vertical-align: -4px; font-weight: 400; font-style: normal; }
+a { color: var(--accent-ink); }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px 64px; }
+.read { max-width: 760px; }
+header.top { padding: 40px 0 8px; display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; }
+.eyebrow { font: 700 12px/1 var(--display); letter-spacing: .12em; text-transform: uppercase; color: var(--accent-ink); }
+h1 { font: 800 clamp(30px, 4.4vw, 46px)/1.08 var(--display); letter-spacing: -.02em; margin: 10px 0 10px; text-wrap: balance; }
+h2 { font: 700 26px/1.2 var(--display); letter-spacing: -.01em; margin: 56px 0 6px; text-wrap: balance; }
+h3 { font: 700 18px/1.3 var(--display); margin: 0 0 4px; }
+.lead { color: var(--muted); font-size: 19px; margin: 0; max-width: 680px; }
+.top img { width: 150px; }
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 28px 0 0; }
+.kpi { background: var(--sheet); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+.kpi b { display: block; font: 800 30px/1.1 var(--display); font-variant-numeric: tabular-nums; }
+.kpi span { color: var(--muted); font-size: 14px; }
+.sub { color: var(--muted); margin: 0 0 18px; max-width: 760px; }
+.points { display: grid; gap: 10px; counter-reset: p; padding: 0; margin: 0; list-style: none; max-width: 860px; }
+.points li { background: var(--sheet); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px 12px 52px; position: relative; }
+.points li::before { counter-increment: p; content: counter(p); position: absolute; left: 16px; top: 12px; width: 24px; height: 24px; border-radius: 7px; background: var(--accent-soft); color: var(--accent-ink); font: 700 13px/24px var(--display); text-align: center; }
+.points b { font-weight: 700; }
+/* Noten */
+.grades { width: 100%; border-collapse: collapse; background: var(--sheet); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; font-size: 15px; }
+.gwrap { overflow-x: auto; }
+.grades th { text-align: left; font: 700 12px/1 var(--display); letter-spacing: .06em; text-transform: uppercase; color: var(--faint); padding: 12px 12px 10px; border-bottom: 1px solid var(--line); background: var(--soft); }
+.grades td { padding: 8px 12px; border-bottom: 1px solid var(--soft); vertical-align: middle; }
+.grades tr.grp td { background: var(--soft); font: 700 12px/1 var(--display); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 10px 12px; }
+.g { display: inline-flex; align-items: center; justify-content: center; min-width: 38px; height: 26px; border-radius: 8px; font: 700 14px/1 var(--display); font-variant-numeric: tabular-nums; }
+.g1 { background: color-mix(in srgb, var(--ok) 18%, transparent); color: var(--ok); }
+.g2 { background: color-mix(in srgb, var(--ok) 11%, transparent); color: var(--ok); }
+.g3 { background: color-mix(in srgb, var(--mittel) 14%, transparent); color: var(--mittel); }
+.g4 { background: color-mix(in srgb, var(--hoch) 14%, transparent); color: var(--hoch); }
+.g5 { background: color-mix(in srgb, var(--hoch) 24%, transparent); color: var(--hoch); }
+.note { color: var(--muted); font-size: 14px; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; color: var(--muted); font-size: 14px; margin: 10px 0 0; align-items: center; }
+/* Befunde */
+.finds { display: grid; gap: 18px; }
+.find { background: var(--sheet); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
+.find figure { margin: 0; background: var(--soft); display: flex; align-items: center; justify-content: center; padding: 14px; gap: 8px; }
+.find figure img { max-width: 100%; max-height: 360px; border-radius: 8px; border: 1px solid var(--line); cursor: zoom-in; display: block; }
+.find figure.two img { max-width: 49%; }
+.find .txt { padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sev { font: 700 12px/1 var(--display); padding: 5px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: .05em; }
+.sev.hoch { background: color-mix(in srgb, var(--hoch) 15%, transparent); color: var(--hoch); }
+.sev.mittel { background: color-mix(in srgb, var(--mittel) 15%, transparent); color: var(--mittel); }
+.tag { font-size: 13px; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 2px 7px; }
+.find p { margin: 0; }
+.prop { border-left: 3px solid var(--accent); padding-left: 12px; }
+.prop b { color: var(--accent-ink); }
+code { font: 13px/1.4 ui-monospace, "JetBrains Mono", Consolas, monospace; background: var(--soft); padding: 1px 5px; border-radius: 5px; }
+/* Stil */
+.rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.rule { background: var(--sheet); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+.rule h3 { display: flex; gap: 8px; align-items: center; }
+.rule h3 .i { color: var(--accent); }
+.rule p { margin: 0; color: var(--muted); font-size: 15px; }
+.areas { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.areas span { width: 22px; height: 22px; border-radius: 6px; }
+.vs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 18px 0 8px; }
+.vs figure { margin: 0; }
+.vs img { width: 100%; border-radius: 10px; border: 1px solid var(--line); display: block; cursor: zoom-in; background: var(--sheet); }
+.vs figcaption { font: 700 12px/1 var(--display); letter-spacing: .08em; text-transform: uppercase; color: var(--faint); margin: 0 0 8px; display: flex; gap: 6px; align-items: center; }
+.vs figcaption.after { color: var(--accent-ink); }
+.vsnote { color: var(--muted); font-size: 15px; margin: 0 0 30px; max-width: 860px; }
+.wide img { width: 100%; border-radius: 12px; border: 1px solid var(--line); cursor: zoom-in; }
+/* Pakete */
+.pk { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.pk li { background: var(--sheet); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: start; }
+.pk li.later { opacity: .7; }
+.pk li.drop { opacity: .5; }
+.pk li.drop h3 { text-decoration: line-through; }
+.num { font: 800 14px/1 var(--display); color: var(--accent-ink); background: var(--accent-soft); border-radius: 9px; height: 34px; display: flex; align-items: center; justify-content: center; }
+.pk h3 { font-size: 17px; }
+.pk p { margin: 2px 0 0; color: var(--muted); font-size: 15px; }
+.pk .meta { font-size: 13px; color: var(--faint); margin-top: 4px; }
+.ctl { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+.seg button { font: 600 13px/1 var(--body); border: 0; background: transparent; color: var(--muted); padding: 7px 10px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent-ink); }
+.mv { display: flex; gap: 4px; }
+.mv button, .btn { font: 600 14px/1 var(--body); border: 1px solid var(--line); background: var(--sheet); color: var(--text); border-radius: 9px; padding: 6px 8px; cursor: pointer; }
+.btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); padding: 10px 16px; border-radius: 20px; }
+:root[data-theme="dark"] .btn.primary { color: #0E0B30; }
+button:focus-visible, img:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.answer { background: var(--sheet); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; margin-top: 18px; display: grid; gap: 10px; }
+.answer textarea { width: 100%; min-height: 150px; font: 14px/1.5 ui-monospace, Consolas, monospace; border: 1px solid var(--line); border-radius: 10px; padding: 10px; background: var(--bg); color: var(--text); resize: vertical; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.copied { color: var(--ok); font-weight: 600; }
+footer { color: var(--muted); font-size: 15px; margin-top: 48px; border-top: 1px solid var(--line); padding-top: 18px; }
+dialog { border: 0; padding: 0; background: transparent; max-width: 96vw; max-height: 94vh; }
+dialog::backdrop { background: rgba(10, 10, 20, .75); }
+dialog img { max-width: 96vw; max-height: 90vh; border-radius: 10px; display: block; }
+dialog button { position: fixed; top: 14px; right: 18px; }
+@media (max-width: 760px) {
+  header.top { grid-template-columns: 1fr; }
+  .top img { width: 96px; }
+  .kpis { grid-template-columns: repeat(2, 1fr); }
+  .find { grid-template-columns: 1fr; }
+  .vs { grid-template-columns: 1fr; }
+  .pk li { grid-template-columns: 36px 1fr; }
+  .ctl { grid-column: 1 / -1; flex-direction: row; justify-content: space-between; align-items: center; }
+}
+@media (prefers-reduced-motion: no-preference) { .pk li { transition: opacity .15s ease; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">APD-01 · Design-Arbeitsplan · 13.11.2026</div>
+      <h1>Wie gut ist die Oberfläche von Lora – und wie wird sie „super“?</h1>
+      <p class="lead">Ein vollständiges Review der App aus rund 300 Bildern aus einem Test, eine Stilrichtung, die zur neuen Lora passt, und 13 Pakete in der Reihenfolge, in der sie am meisten bringen. Unten kannst du Richtung und Reihenfolge freigeben, verschieben oder streichen.</p>
+    </div>
+    <img src="entwuerfe/lora-wave.png" alt="Lora winkt">
+  </header>
+
+  <div class="kpis">
+    <div class="kpi"><b>3,1</b><span>Übersicht (Note 1–5)</span></div>
+    <div class="kpi"><b>2,8</b><span>Bedienung</span></div>
+    <div class="kpi"><b>3,2</b><span>Ausstrahlung</span></div>
+    <div class="kpi"><b>89</b><span>Befunde · 23 hoch · 40 mittel</span></div>
+  </div>
+
+  <h2>Das Wichtigste in sechs Sätzen</h2>
+  <ol class="points">
+    <li><b>Solides Fundament, aber noch kein Gesamtprodukt.</b> Knöpfe, Dialoge und Felder sind seit AP-123 einheitlich – darüber baut jeder Bildschirm seinen eigenen Kopf, seine eigene Hauptaktion, seinen eigenen leeren Zustand und seine eigenen Farben.</li>
+    <li><b>Die Hauptplattform ist der schwächste Fall.</b> Bei 1366 × 768 und 150 % ist die Seitenleiste nie dauerhaft da, die Chat-Startseite ist fast leer, der Gestalten-Editor bricht, der Dokument-Editor lässt wenig Platz zum Schreiben.</li>
+    <li><b>Textwüsten statt visueller Anker.</b> Fast jede Seite beginnt mit einem grauen Absatz; Symbole, Farbe und Vorschauen fehlen dort, wo sie Orientierung geben würden.</li>
+    <li><b>Farbe sagt nicht überall dasselbe.</b> Rot steht auch für „noch nicht eingerichtet“, Dateien nutzt fest das TU-Blau (im Dunkeln fast unsichtbar), der Sprachmodus-Knopf ist im violetten Stil schwarz.</li>
+    <li><b>Die besten Stellen zeigen den Weg:</b> Einrichtung, Darstellung, Tabellen- und Folien-Editor und die leeren Zustände mit Lora in Lernspiele, Stapel und Antrags-Werkstatt.</li>
+    <li><b>Lora steht noch nicht gut da</b> – sechs Größen ohne Regel, schlafend über Feldern, als Gesicht am Modellnamen jeder Antwort. Vor einer ruhigeren Oberfläche würde sie viel stärker wirken.</li>
+  </ol>
+
+  <h2>Noten je Bereich</h2>
+  <p class="sub">1 sehr gut bis 5 mangelhaft. Übersicht: finde ich mich zurecht? Bedienung: komme ich schnell ans Ziel? Ausstrahlung: wirkt es seriös, modern, hochwertig?</p>
+  <div class="gwrap"><table class="grades" id="grades"><thead><tr><th>Bereich</th><th>Übersicht</th><th>Bedienung</th><th>Ausstrahlung</th><th>Kurz</th></tr></thead><tbody></tbody></table></div>
+  <div class="legend"><span class="g g2">2</span> gut <span class="g g3">3</span> befriedigend <span class="g g4">4</span> ausreichend – hier lohnt sich die Arbeit am meisten</div>
+
+  <h2>Die wichtigsten Befunde</h2>
+  <p class="sub">Bild aus dem Test, was stört, und der Vorschlag. Alle 89 Befunde mit Ort im Code stehen in <code>docs/design/review-2026-11.md</code>. Klick auf ein Bild vergrößert es.</p>
+  <div class="finds" id="finds"></div>
+
+  <h2>Die Stilrichtung: klar, ruhig – mit Lora als Farbe</h2>
+  <p class="sub">Die Oberfläche wird ruhig, hell und präzise. Farbe kommt von Lora, vom Akzent für Handlungen und von gedämpften Bereichsfarben als visuelle Anker. Kein Comic, keine Verläufe – die Qualität kommt aus Gliederung, Abständen und Typografie. Lora bleibt poppig und steht genau deshalb gut davor.</p>
+  <div class="rules">
+    <div class="rule"><h3><span class="i">view_quilt</span>Drei Zonen</h3><p>Seitenleiste eine Stufe dunkler, Inhalt als helles Blatt, Schwebendes (Menüs, Dialoge, Eingabefeld) mit weichem Schatten.</p></div>
+    <div class="rule"><h3><span class="i">palette</span>Farbe mit Bedeutung</h3><p>Akzent nur für Handlung und Auswahl. Zustände fest mit Symbol. Bereichsfarben als Kacheln:</p>
+      <div class="areas" aria-label="Bereichsfarben"><span style="background:#5B4FE9" title="Chat"></span><span style="background:#2F6FE0" title="Dateien"></span><span style="background:#0E8A86" title="Literatur"></span><span style="background:#E0583F" title="Transkription"></span><span style="background:#A23DB5" title="Erstellen"></span><span style="background:#D23B3B" title="PDF"></span><span style="background:#C08410" title="Mail"></span><span style="background:#1E9A5F" title="Tabellen"></span><span style="background:#55657A" title="Werkzeuge"></span></div></div>
+    <div class="rule"><h3><span class="i">text_fields</span>Eine Schrift-Skala</h3><p>32 · 24 · 20 · 16 · 14 · 12 – Begrüßung, Seitentitel, Abschnitt, Kartentitel, Text, Hinweis. Abschnitte überall als kleines Label in Großbuchstaben.</p></div>
+    <div class="rule"><h3><span class="i">rounded_corner</span>Formen und Abstände</h3><p>Drei Radien (8 · 12 · 20), Pillen nur für Knöpfe und Chips, Abstände im 4er-Raster, Rahmen statt Schatten.</p></div>
+    <div class="rule"><h3><span class="i">web_asset</span>Ein Seitenkopf</h3><p>Titel, ein Satz, rechts genau ein gefüllter Hauptknopf; „Frag Lora“ im Kopf statt schlafend über dem Inhalt.</p></div>
+    <div class="rule"><h3><span class="i">sentiment_satisfied</span>Lora mit Regel</h3><p>Startseite, Panel, Einrichtung, leere Zustände, Erfolg, Hilfe – in drei Größen. Nie als Modell-Avatar, nie über Inhalt.</p></div>
+  </div>
+
+  <h3 style="margin-top:34px">Chat-Startseite bei 1366 × 768 @ 150 %</h3>
+  <div class="vs">
+    <figure><figcaption><span class="i">history</span>Heute</figcaption><img src="bilder/pc-start.png" alt="Heutige Chat-Startseite: kleine Lora, Gruß, viel leerer Raum, Seitenleiste ausgeblendet" tabindex="0"></figure>
+    <figure><figcaption class="after"><span class="i">auto_awesome</span>Entwurf</figcaption><img src="entwuerfe/chat-start.png" alt="Entwurf: Seitenleiste dauerhaft, Lora groß neben dem Gruß, Eingabefeld in der Mitte, Startaktionen, Weiter wo du warst" tabindex="0"></figure>
+  </div>
+  <p class="vsnote">Seitenleiste bleibt stehen, Lora begrüßt groß neben dem Gruß, das Eingabefeld rückt in die Mitte, darunter eine Reihe Startaktionen mit Bereichsfarben und „Weiter, wo du warst“. Graue Kontext-Chips werden zu Status-Symbolen in der Eingabeleiste, Senden im Akzent statt Schwarz.</p>
+
+  <h3>Seitenleiste mit Chat</h3>
+  <div class="vs">
+    <figure><figcaption><span class="i">history</span>Heute</figcaption><img src="bilder/pc-chat.png" alt="Heutiger Chat: Titel gekürzt, Lora-Gesicht am Modellnamen, graue Chips, großes Eingabefeld" tabindex="0"></figure>
+    <figure><figcaption class="after"><span class="i">auto_awesome</span>Entwurf</figcaption><img src="entwuerfe/seitenleiste.png" alt="Entwurf: Seitenleiste mit Neuer-Chat-Knopf, Projekten und Chats; Chat mit Projektpfad, neutralem Modell-Symbol und Loras Vorschlägen" tabindex="0"></figure>
+  </div>
+  <p class="vsnote">„Neuer Chat“ wird ein Knopf mit Strg+N, Bereiche bekommen Farbkacheln, Projekte Farbe und Zähler, Chats sind sofort sichtbar. Im Chat: Titel mit Projektpfad statt gekürzt, ein neutrales Symbol für das Modell, Loras Vorschläge als eigene, klar erkennbare Zeile.</p>
+
+  <h3>Dateien</h3>
+  <div class="vs">
+    <figure><figcaption><span class="i">history</span>Heute</figcaption><img src="bilder/pc-dateien.png" alt="Heutige Dateien: graue Liste, US-Datum, dunkelblauer Knopf, roher Pfad" tabindex="0"></figure>
+    <figure><figcaption class="after"><span class="i">auto_awesome</span>Entwurf</figcaption><img src="entwuerfe/dateien.png" alt="Entwurf: Seitenkopf mit Suche und Neu-Knopf, Reiter, zuletzt geöffnete Dateien als Karten, Liste mit Typ-Kacheln und Spalten" tabindex="0"></figure>
+  </div>
+  <p class="vsnote">Seitenkopf mit Suche und einem Hauptknopf, Ort statt Pfad, Abschnitte als Reiter, „Zuletzt“ als Karten mit Vorschau, Liste mit farbigen Typ-Kacheln, Spalten und deutschem, relativem Datum; Aktionen erscheinen beim Darüberfahren.</p>
+
+  <h3>Dunkel und der Baukasten</h3>
+  <div class="vs">
+    <figure><figcaption class="after"><span class="i">dark_mode</span>Entwurf dunkel</figcaption><img src="entwuerfe/chat-start-dunkel.png" alt="Entwurf der Chat-Startseite im dunklen Design" tabindex="0"></figure>
+    <figure><figcaption class="after"><span class="i">widgets</span>Baukasten</figcaption><img src="entwuerfe/baukasten.png" alt="Baukasten: Bereichsfarben, Knöpfe, Schrift-Skala, Radien, Hinweise, Seitenkopf, Listenzeile, leere Zustände mit Lora" tabindex="0"></figure>
+  </div>
+  <p class="vsnote">Dieselben Tokens tragen das dunkle Design. Der Baukasten zeigt die Bausteine, die mit APD-03 und APD-04 in die App kommen – vom Seitenkopf bis zum leeren Zustand mit Lora.</p>
+
+  <h2>Die Pakete in Reihenfolge</h2>
+  <p class="sub">Erst echte Fehler (klein, ohne Umbau), dann der Baukasten, dann die Bildschirme nach Häufigkeit. Mit den Pfeilen verschiebst du ein Paket, rechts gibst du es frei, stellst es zurück oder streichst es. Deine Auswahl bleibt in diesem Browser gespeichert.</p>
+  <ol class="pk" id="pk"></ol>
+
+  <div class="answer">
+    <h3>Deine Antwort an Claude</h3>
+    <p class="note" style="margin:0">Fasst Freigabe, Reihenfolge und Streichungen zusammen. Kopieren und im Chat einfügen.</p>
+    <div class="row"><span class="seg" role="group" aria-label="Stilrichtung"><button type="button" id="dirOk" aria-pressed="true">Stilrichtung passt</button><button type="button" id="dirNo" aria-pressed="false">Stilrichtung ändern</button></span></div>
+    <textarea id="out" aria-label="Zusammenfassung" readonly></textarea>
+    <div class="row"><button type="button" class="btn primary" id="copy"><span class="i">content_copy</span> Antwort kopieren</button><span id="copied" class="copied" hidden>Kopiert</span></div>
+  </div>
+
+  <footer>Im Repository: Review <code>docs/design/review-2026-11.md</code> · Entwürfe <code>docs/design/entwuerfe/</code> · Pakete im <code>docs/DESIGN-ARBEITSPLAN.md</code> unter „Danach“ · Bilder neu erzeugen mit <code>ADEU_DESIGN_REVIEW=1 ./gradlew -p desktop test --tests '*DesignReviewTest*'</code>. Die TU-Dresden-Vorlagen sind in keinem Paket enthalten und bleiben unverändert.</footer>
+</div>
+
+<dialog id="zoom"><button type="button" class="btn" id="zoomClose">Schließen</button><img id="zoomImg" alt=""></dialog>
+
+<script>
+const GRADES = [
+  ["Rahmen"],
+  ["Einrichtung beim ersten Start", 2, 2, 2.5, "Gute Struktur; Fläche getönt, Lora klein"],
+  ["Seitenleiste", 3, 3, 3.5, "Am PC nur als Overlay; hohe Zeilen, Chats erst nach Scrollen"],
+  ["Strg+K und Tastenkürzel", 2.5, 2, 3.5, "Funktioniert; ohne Symbole und Kürzel"],
+  ["Lora-Panel, schlafende Lora", 2.5, 3, 3, "Breit gut; schwebende Lora verdeckt Inhalte"],
+  ["Chat"],
+  ["Chat-Startseite", 3.5, 3, 3.5, "PC fast leer; ohne Schlüssel abgeschnitten"],
+  ["Eingabefeld, Modellwahl", 3, 2.5, 3, "Groß, graue Chips, schwarzer Knopf"],
+  ["Chat-Antworten", 2, 2.5, 2.5, "Gute Typografie; Lora am Modellnamen"],
+  ["Modellvergleich", 3.5, 3, 4, "Leere Spalten, eigenes Eingabefeld"],
+  ["Bilder erzeugen", 3, 3, 3.5, "Vorschläge hinter dem Eingabefeld"],
+  ["Inhalte"],
+  ["Dateien", 3, 2.5, 3.5, "Graue Liste, feste Farben, US-Datum, kein leerer Zustand"],
+  ["Erstellen und TU Vorlagen (Oberfläche)", 4, 3.5, 3, "Überladen; am Handy zerbrochen"],
+  ["Dokument-Editor", 3, 3, 3, "Drei Leisten + Lineal, wenig Schreibfläche"],
+  ["Tabellen, Folien", 2, 2, 2, "Vertraut und aufgeräumt"],
+  ["Gestalten (Design-Editor)", 4, 4, 3.5, "Bricht bei 1366 × 768"],
+  ["Whiteboard und Diagramme", 4, 3.5, 3.5, "Zwei gemischte Chip-Reihen"],
+  ["Scanner", 2, 2, 2.5, "Klarer Einstieg"],
+  ["Literatur", 3.5, 3, 3, "Startet mit langem Formular"],
+  ["Werkzeuge"],
+  ["Transkription (Liste)", 2.5, 2.5, 3, "Guter leerer Zustand; Aufnehmen wirkt wie Fehler"],
+  ["PDF-Werkzeugkasten (Start)", 3, 2.5, 4, "Absatz statt Werkzeug-Übersicht"],
+  ["Tresor", 2.5, 2.5, 3, "Ordentlich; Textpunkte"],
+  ["Lernspiele, Stapel, Antrags-Werkstatt", 2, 2.5, 2.5, "Vorbild für leere Zustände"],
+  ["Mail und Kalender", 3.5, 3.5, 4, "„Nicht verbunden“ als roter Absatz"],
+  ["Videoeditor (Start)", 3.5, 3, 3, "Vier Muster auf einer Seite"],
+  ["Server-Terminal", 3, 3, 3, "Hauptknopf weit unten"],
+  ["Geplante Aufgaben, Umgebungen", 3.5, 3, 4, "Erklärtext, roter Hinweis, nackter Leer-Text"],
+  ["Modelle, lokale Modelle", 4, 3, 3.5, "Rohe Fehlermeldung, 19 Filter, Wortbruch"],
+  ["Verbrauch", 3, 3, 3.5, "Viermal „0“"],
+  ["Einstellungen und Querschnitt"],
+  ["Einstellungen – Übersicht", 2, 2, 2.5, "Gut gegliedert"],
+  ["Einstellungen – Seiten", 3.5, 2.5, 3, "Drei Aufbau-Muster, viel Fließtext"],
+  ["Dunkles Design", 2.5, null, 2.5, "Gleichwertig bis auf feste Farben"],
+  ["Hoher Kontrast", 3, null, 3, "Feste Farben, graue Chips unter AAA"],
+  ["Handy-Breite", 3.5, 3, 3, "Brüche in Erstellen und Modelle"],
+];
+
+const FINDS = [
+  { id: "C-01", sev: "hoch", pk: "APD-05", title: "Die PC-Startseite ist fast leer", img: ["bilder/pc-start.png"],
+    what: "Bei 512 dp Höhe blendet die Startseite Startaktionen, „Zuletzt“ und Loras Ideen aus. Übrig bleiben eine kleine Lora, der Gruß und viel Weiß – genau „langweilig“.",
+    prop: "Kompaktes Layout statt Ausblenden: Lora groß neben dem Gruß, Aktionen in einer Reihe, „Weiter, wo du warst“ als Karten (siehe Entwurf)." },
+  { id: "R-01", sev: "hoch", pk: "APD-06", title: "Die Seitenleiste ist am PC nie da", img: ["bilder/pc-seitenleiste.png"],
+    what: "Bei 1366 × 768 @ 150 % ist das Fenster 911 dp breit, die Seitenleiste bleibt erst ab 1000 dp stehen. Auf der Hauptplattform kommt sie also immer als Overlay – jeder Chat-Wechsel kostet zwei Klicks; Chats sieht man erst nach Scrollen.",
+    prop: "Ab 840 dp dauerhaft (260 dp breit), darunter eine Symbol-Leiste; kompakte Zeilen, „Neuer Chat“ als Knopf." },
+  { id: "I-10", sev: "hoch", pk: "APD-02", title: "Gestalten-Editor bricht bei 1366 × 768", img: ["bilder/pc-gestalten.png"],
+    what: "„Exportieren“ steht senkrecht Buchstabe für Buchstabe, die Seite ist winzig, der Titel steckt als großes Feld in der Leiste.",
+    prop: "Kopfleiste umbrechen, Export unter 1000 dp als Symbol-Knopf, Titel als Text (Klick = umbenennen)." },
+  { id: "I-07", sev: "hoch", pk: "APD-02", title: "Erstellen am Handy zerbrochen", img: ["bilder/handy-erstellen.png"],
+    what: "Hinweis einwortig untereinander, Beschreibung gequetscht, die Überschrift „Diagramme“ läuft Buchstabe für Buchstabe nach unten; schwebende Lora und „Neue Vorlage“ teilen sich die Ecke.",
+    prop: "Unter 600 dp untereinander statt nebeneinander; danach Erstellen mit Abschnitts-Reitern aufräumen (APD-10). Die TU-Vorlagen selbst bleiben unverändert." },
+  { id: "Q-08", sev: "hoch", pk: "APD-02", title: "Rohe Fehlermeldung mit Token-Hash", img: ["bilder/pc-modelle.png"],
+    what: "Modelle zeigt „HTTP 401 … Key Hash (Token) = c5714… LiteLLM_VerificationTokenTable“ – Interna auf dem Bildschirm.",
+    prop: "Klartext („Der Schlüssel wurde nicht angenommen“), Knopf „Schlüssel prüfen“, Details zugeklappt zum Kopieren." },
+  { id: "Q-06", sev: "hoch", pk: "APD-03", title: "Feste Farben verschwinden im Dunkeln", img: ["bilder/kontrast-dunkel-dateien.png"],
+    what: "467 feste Farben in Bildschirmen. In Dateien sind Knopf und Ordner fest TU-Dunkelblau – im Hohen Kontrast dunkel: blau auf Schwarz, kaum zu sehen.",
+    prop: "Semantische Farben je Stil (Ordner, Dateitypen, Bereiche, Zustände) und ein Test, der neue Hex-Farben meldet." },
+  { id: "Q-07", sev: "hoch", pk: "APD-02 · APD-04", title: "Rot für Dinge, die keine Fehler sind", img: ["bilder/pc-mail.png", "bilder/pc-aufgaben.png"],
+    what: "„Noch kein Postfach verbunden“ als roter Absatz ohne Knopf; „Dieser PC zeigt keine Benachrichtigungen“ mit rotem Fehler-Symbol.",
+    prop: "Ein StatusBanner (Info · Warnung · Fehler · Erfolg) mit Symbol und einer Aktion, z. B. „Postfach verbinden“." },
+  { id: "Q-02", sev: "hoch", pk: "APD-04", title: "Drei Arten von leeren Zuständen", img: ["bilder/pc-umgebungen-leer.png", "bilder/pc-lernspiele-leer.png"],
+    what: "Umgebungen sagt nur „Noch keine Umgebungen.“, Dateien hat gar keinen leeren Zustand – Lernspiele dagegen zeigt Lora, Titel, Satz und Knopf.",
+    prop: "Das Lernspiele-Muster als Baustein EmptyState für alle Bereiche, mit passender Lora-Pose." },
+  { id: "W-01", sev: "hoch", pk: "APD-09", title: "PDF-Werkzeugkasten: Absatz statt Werkzeuge", img: ["bilder/pc-pdf.png"],
+    what: "Titel doppelt, sechs Zeilen Fließtext, ein Knopf. Was der Werkzeugkasten kann, sieht man nicht.",
+    prop: "Die Werkzeuge als Kacheln (Zusammenfügen, Teilen, Unterschreiben, Texterkennung, Umwandeln) und eine Ablagefläche." },
+  { id: "I-13", sev: "hoch", pk: "APD-10", title: "Whiteboard: alles in zwei Chip-Reihen", img: ["bilder/pc-whiteboard.png"],
+    what: "Diagrammart, Werkzeuge und Aktionen stehen gemischt in Chip-Reihen, „Rückgängig“ ist grauer Text, für die Zeichenfläche bleibt wenig Platz.",
+    prop: "Werkzeugleiste links mit Symbolen, Art als Auswahl, Aktionen im Kopf, Lora-Prompt als ausklappbare Leiste." },
+  { id: "C-02", sev: "hoch", pk: "APD-02", title: "Ohne Schlüssel: Willkommen abgeschnitten", img: ["bilder/pc-start-ohne-schluessel.png"],
+    what: "Am PC zeigt die Willkommenskarte nur Titel und einen Knopf – die Schritte, „API-Key eintragen“ und „alles auf diesem Gerät“ sind weg.",
+    prop: "Karte kompakt und scrollbar: ein Hauptknopf „Einrichten“, zwei Nebenwege als Zeilen." },
+  { id: "Q-01", sev: "hoch", pk: "APD-04", title: "Die Hauptaktion steht an vier Orten", img: ["bilder/pc-aufgaben.png", "bilder/pc-lernspiele-leer.png"],
+    what: "Text-Knopf im Kopf („+ Neues Lernspiel“), hellvioletter FAB unten („Neue Aufgabe“), großer dunkelblauer FAB (Dateien) oder graue Text-Aktion („Speichern“). Am Handy schneidet die Kopfaktion den Titel ab.",
+    prop: "Ein Seitenkopf für alle: Titel, ein Satz, rechts genau ein gefüllter Hauptknopf; am Handy als erweiterter FAB." },
+];
+
+const PACKAGES = [
+  ["APD-02", "Sofort-Korrekturen", "S–M", "Gestalten-Editor, Erstellen am Handy, Wortbrüche, Willkommen abgeschnitten, Rohfehler, US-Datum, rote Zustände."],
+  ["APD-03", "Stil-Grundlagen (Tokens)", "M", "Abstände, Radien, Schrift-Skala, semantische und Bereichsfarben, Zonen, Lora-Regel; Tests gegen feste Werte und für Kontrast."],
+  ["APD-04", "Baukasten für Seiten", "L", "PageScaffold, EmptyState, StatusBanner, LoadingState, ListRow, SettingRow, Einzelwahl- und Knopf-Regeln; dann alle Bildschirme umstellen."],
+  ["APD-05", "Chat-Startseite und Eingabefeld", "M", "Wie Entwurf: Lora groß, Aktionen, „Weiter, wo du warst“, Status-Symbole, Akzent-Knopf."],
+  ["APD-06", "Seitenleiste, Rahmen und Lora im Kopf", "M", "Seitenleiste ab 840 dp, kompakte Zeilen, Neuer-Chat-Knopf, Strg+K mit Symbolen, „Frag Lora“ im Kopf."],
+  ["APD-07", "Dateien", "M", "Wie Entwurf: Seitenkopf, Reiter, Karten „Zuletzt“, Typ-Kacheln, Spalten, leerer Zustand."],
+  ["APD-08", "Einstellungen aus einem Guss", "M", "Ein Aufbau für alle 24 Seiten, kürzere Texte, Werkzeuge mit Symbolen, Fehler am Feld."],
+  ["APD-09", "Werkzeug-Startseiten und leere Zustände", "M–L", "PDF-Kacheln, Mail verbinden, Videoeditor-Start, Aufgaben, Umgebungen, Verbrauch, Tresor."],
+  ["APD-10", "Erstellen und Editoren", "L", "Erstellen mit Reitern, Dokument-Editor mit mehr Schreibfläche, Whiteboard-Leisten. TU-Vorlagen unverändert."],
+  ["APD-11", "Literatur und Modelle", "M", "Sammlung zuerst, Suche als eine Zeile; Modelle mit einfachen Filtern und kompakten Karten."],
+  ["APD-12", "Chat-Antworten und Nebenansichten", "M", "Neutrales Modell-Symbol, Code am Handy, Modellvergleich, Bilder erzeugen, Arbeits- und Übergabekarte."],
+  ["APD-13", "Handy, kleine Fenster, große Schrift", "M", "360 dp und Schrift 200 % im Test, Prüfung am Android-Gerät."],
+  ["APD-14", "Kontrast, dunkles Design und Tastatur", "M", "AAA im Hohen Kontrast, Kürzel in Tooltips und Menüs, Prüfung am Gerät."],
+];
+
+const fmt = (v) => v == null ? "–" : String(v).replace(".", ",");
+const cls = (v) => v == null ? "" : "g g" + Math.min(5, Math.max(1, Math.floor(v + 0.25)));
+const tbody = document.querySelector("#grades tbody");
+for (const r of GRADES) {
+  const tr = document.createElement("tr");
+  if (r.length === 1) { tr.className = "grp"; tr.innerHTML = `<td colspan="5">${r[0]}</td>`; }
+  else tr.innerHTML = `<td>${r[0]}</td>` + [r[1], r[2], r[3]].map(v => `<td><span class="${cls(v)}">${fmt(v)}</span></td>`).join("") + `<td class="note">${r[4]}</td>`;
+  tbody.appendChild(tr);
+}
+
+const finds = document.getElementById("finds");
+for (const f of FINDS) {
+  const el = document.createElement("article");
+  el.className = "find";
+  const imgs = f.img.map(src => `<img src="${src}" alt="${f.title} – Bild aus dem Test" tabindex="0">`).join("");
+  el.innerHTML = `<figure class="${f.img.length > 1 ? "two" : ""}">${imgs}</figure>
+    <div class="txt"><div class="tags"><span class="sev ${f.sev}">${f.sev}</span><span class="tag">${f.id}</span><span class="tag">${f.pk}</span></div>
+    <h3>${f.title}</h3><p>${f.what}</p><p class="prop"><b>Vorschlag:</b> ${f.prop}</p></div>`;
+  finds.appendChild(el);
+}
+
+const KEY = "lora-apd01-freigabe";
+let state;
+try { state = JSON.parse(localStorage.getItem(KEY)); } catch (e) { state = null; }
+if (!state || !Array.isArray(state.order) || state.order.length !== PACKAGES.length) {
+  state = { order: PACKAGES.map(p => p[0]), choice: {}, dir: "ok" };
+}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+const list = document.getElementById("pk");
+const LABEL = { ok: "Freigeben", later: "Später", drop: "Streichen" };
+
+function render() {
+  list.innerHTML = "";
+  state.order.forEach((id, idx) => {
+    const p = PACKAGES.find(x => x[0] === id);
+    const c = state.choice[id] || "ok";
+    const li = document.createElement("li");
+    li.className = c === "ok" ? "" : c;
+    li.innerHTML = `<span class="num">${idx + 1}</span>
+      <div><h3>${p[0]} · ${p[1]}</h3><p>${p[3]}</p><div class="meta">Größe ${p[2]}</div></div>
+      <div class="ctl"><span class="seg" role="group" aria-label="Entscheidung ${p[0]}">${["ok", "later", "drop"].map(k =>
+        `<button type="button" data-id="${id}" data-c="${k}" aria-pressed="${c === k}">${LABEL[k]}</button>`).join("")}</span>
+        <span class="mv"><button type="button" data-up="${id}" aria-label="${p[0]} nach oben" ${idx === 0 ? "disabled" : ""}><span class="i">arrow_upward</span></button>
+        <button type="button" data-down="${id}" aria-label="${p[0]} nach unten" ${idx === state.order.length - 1 ? "disabled" : ""}><span class="i">arrow_downward</span></button></span></div>`;
+    list.appendChild(li);
+  });
+  document.getElementById("dirOk").setAttribute("aria-pressed", state.dir === "ok");
+  document.getElementById("dirNo").setAttribute("aria-pressed", state.dir !== "ok");
+  writeAnswer();
+}
+
+function writeAnswer() {
+  const name = (id) => id + " " + PACKAGES.find(x => x[0] === id)[1];
+  const ok = state.order.filter(id => (state.choice[id] || "ok") === "ok");
+  const later = state.order.filter(id => state.choice[id] === "later");
+  const drop = state.order.filter(id => state.choice[id] === "drop");
+  const moved = state.order.join(",") !== PACKAGES.map(p => p[0]).join(",");
+  const lines = [
+    "APD-01 Freigabe:",
+    state.dir === "ok" ? "- Stilrichtung „Klar, ruhig – mit Lora als Farbe“: passt, so umsetzen." : "- Stilrichtung: bitte ändern (Wünsche siehe unten).",
+    "- Reihenfolge" + (moved ? " (geändert)" : " wie vorgeschlagen") + ": " + ok.map(name).join(" → "),
+  ];
+  if (later.length) lines.push("- Später (nach hinten): " + later.map(name).join(", "));
+  if (drop.length) lines.push("- Streichen: " + drop.map(name).join(", "));
+  if (state.dir !== "ok") lines.push("- Wünsche zur Stilrichtung: …");
+  document.getElementById("out").value = lines.join("\n");
+}
+
+list.addEventListener("click", (e) => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  if (b.dataset.c) state.choice[b.dataset.id] = b.dataset.c;
+  const move = (id, d) => { const i = state.order.indexOf(id); const j = i + d; if (j < 0 || j >= state.order.length) return; [state.order[i], state.order[j]] = [state.order[j], state.order[i]]; };
+  if (b.dataset.up) move(b.dataset.up, -1);
+  if (b.dataset.down) move(b.dataset.down, 1);
+  save(); render();
+});
+document.getElementById("dirOk").onclick = () => { state.dir = "ok"; save(); render(); };
+document.getElementById("dirNo").onclick = () => { state.dir = "change"; save(); render(); };
+document.getElementById("copy").onclick = async () => {
+  const t = document.getElementById("out");
+  try { await navigator.clipboard.writeText(t.value); } catch (e) { t.select(); }
+  const m = document.getElementById("copied"); m.hidden = false; setTimeout(() => { m.hidden = true; }, 2000);
+};
+render();
+
+const dlg = document.getElementById("zoom");
+const zImg = document.getElementById("zoomImg");
+function openZoom(img) { if (!dlg.showModal) return; zImg.src = img.src; zImg.alt = img.alt; dlg.showModal(); }
+document.addEventListener("click", (e) => { const img = e.target.closest(".find img, .vs img"); if (img) openZoom(img); });
+document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.matches(".find img, .vs img")) openZoom(e.target); });
+document.getElementById("zoomClose").onclick = () => dlg.close();
+dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
+</script>
+</body>
+</html>

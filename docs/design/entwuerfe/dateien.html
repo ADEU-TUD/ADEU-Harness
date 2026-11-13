@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=911">
+<title>Entwurf · Dateien</title>
+<link rel="stylesheet" href="stil.css">
+<style>
+.head { display: flex; align-items: center; gap: 8px; padding: 14px 18px 2px 20px; }
+.head h1 { font-size: 22px; font-weight: 600; margin: 0; letter-spacing: -.01em; }
+.head .sp { flex: 1; }
+.search { display: flex; align-items: center; gap: 6px; width: 190px; white-space: nowrap; height: 34px; border: 1px solid var(--line); border-radius: 17px; background: var(--sheet); padding: 0 10px; color: var(--faint); font-size: 13px; }
+.search .i { font-size: 18px; }
+.search kbd { margin-left: auto; }
+.sub { padding: 0 20px; color: var(--muted); font-size: 13px; display: flex; align-items: center; gap: 4px; }
+.sub .i { font-size: 16px; }
+.tabs { display: flex; gap: 4px; padding: 10px 18px 6px; }
+.tab { height: 30px; padding: 0 12px; border-radius: 15px; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); white-space: nowrap; }
+.tab .i { font-size: 17px; }
+.tab.on { background: var(--sheet); color: var(--text); font-weight: 600; box-shadow: 0 0 0 1px var(--line); }
+.recent { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 4px 20px 0; }
+.fcard { display: flex; gap: 10px; align-items: center; padding: 8px; }
+.thumb { width: 44px; height: 54px; border-radius: 5px; border: 1px solid var(--line); background: var(--sheet); flex: none; padding: 6px 5px; display: flex; flex-direction: column; gap: 3px; position: relative; overflow: hidden; }
+.thumb i { display: block; height: 3px; border-radius: 2px; background: var(--line); }
+.thumb i.h { background: currentColor; width: 70%; height: 4px; }
+.thumb .badge { position: absolute; bottom: 3px; right: 3px; font: 700 7px var(--font); color: #fff; background: currentColor; border-radius: 2px; padding: 0 2px; }
+.thumb .badge b { color: #fff; }
+.fcard b { font-size: 13px; font-weight: 600; display: block; line-height: 1.25; }
+.fcard small { color: var(--muted); font-size: 12px; }
+.list { margin: 6px 20px 0; }
+.lh, .lr { display: grid; grid-template-columns: 1fr 120px 64px 76px; align-items: center; gap: 8px; }
+.lh { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); padding: 6px 8px 4px; }
+.lr { height: 40px; padding: 0 8px; border-radius: var(--r-s); font-size: 13px; }
+.lr + .lr { border-top: 1px solid var(--line-soft); }
+.lr .n { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.lr .n span:last-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.lr .m { color: var(--muted); }
+.lr .acts { display: flex; justify-content: flex-end; color: var(--muted); opacity: 0; }
+.lr.hover { background: var(--sheet); box-shadow: 0 0 0 1px var(--line); }
+.lr.hover .acts { opacity: 1; }
+.lr .acts .iconbtn { width: 26px; height: 26px; }
+.lr .acts .i { font-size: 18px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side" aria-label="Seitenleiste">
+    <div class="brand"><img src="lora-look.png" alt=""><b>Lora</b>
+      <span class="iconbtn" title="Chats durchsuchen (Strg+Umschalt+F)"><span class="i">search</span></span>
+      <span class="iconbtn" title="Seitenleiste ausblenden (Strg+B)"><span class="i">left_panel_close</span></span></div>
+    <div class="newchat"><span class="i">edit_square</span><span class="l">Neuer Chat</span><kbd>Strg N</kbd></div>
+    <div class="nav"><span class="tile t-create"><span class="i">auto_awesome_mosaic</span></span>Erstellen</div>
+<div class="nav"><span class="tile t-lit"><span class="i">menu_book</span></span>Literatur</div>
+<div class="nav"><span class="tile t-trans"><span class="i">graphic_eq</span></span>Transkription</div>
+<div class="nav on"><span class="tile t-files"><span class="i">folder</span></span>Dateien</div>
+    <div class="nav muted"><span class="tile"><span class="i">expand_more</span></span>Mehr</div>
+    <div class="scroll">
+      <div class="group"><span>Projekte</span><span class="i" style="font-size:16px">add</span></div>
+      <div class="chat"><span class="dot" style="background:var(--a-lit)"></span><span class="name">Lehrinnovation 2027</span><span class="count">3</span></div>
+      <div class="chat"><span class="dot" style="background:var(--a-create)"></span><span class="name">Promotion Kapitel 3</span><span class="count">2</span></div>
+      <div class="group"><span>Heute</span></div>
+      <div class="chat"><span class="name">Antrag Lehrinnovationsfonds gliedern</span></div><div class="chat"><span class="name">Mail an Prüfungsamt formulieren</span></div>
+      <div class="group"><span>Letzte 7 Tage</span></div>
+      <div class="chat"><span class="name">Folien Ringvorlesung KI</span></div><div class="chat"><span class="name">Excel: Notenliste bereinigen</span></div><div class="chat"><span class="name">Übersetzung Abstract Englisch</span></div>
+    </div>
+    <div class="me"><span class="avatar">A</span><span class="who">Alex<small>Einstellungen</small></span>
+      <span class="iconbtn" title="Einstellungen (Strg+,)"><span class="i">settings</span></span></div>
+  </aside>
+  <main class="main">
+    <div class="head"><h1>Dateien</h1><span class="sp"></span>
+      <span class="search"><span class="i">search</span>Suchen<kbd>Strg F</kbd></span>
+      <span class="iconbtn" title="Ansicht: Liste oder Raster"><span class="i">grid_view</span></span>
+      <span class="btn primary"><span class="i">add</span>Neu</span></div>
+    <div class="sub"><span class="i">folder_open</span>Dokumente › Lora · alles, was du hochlädst oder mit Lora erstellst</div>
+    <div class="tabs">
+      <span class="tab on"><span class="i">folder</span>Meine Dateien</span>
+      <span class="tab"><span class="i">schedule</span>Zuletzt</span>
+      <span class="tab"><span class="i">star</span>Markiert</span>
+      <span class="tab"><span class="i">auto_awesome</span>Von Lora</span>
+      <span class="tab"><span class="i">cloud</span>Orte</span>
+      <span class="tab"><span class="i">delete</span>Papierkorb</span>
+    </div>
+    <div class="recent">
+      <div class="card fcard"><span class="thumb" style="color:var(--a-pdf)"><i class="h"></i><i></i><i></i><i style="width:60%"></i><span class="badge">PDF</span></span><div><b>Ausschreibung Lehrinnovation</b><small>PDF · 3 Seiten · heute</small></div></div>
+      <div class="card fcard"><span class="thumb" style="color:var(--a-create)"><i class="h"></i><i></i><i style="width:80%"></i><i></i><span class="badge">MD</span></span><div><b>Einladung Kolloquium</b><small>Dokument · gestern</small></div></div>
+      <div class="card fcard"><span class="thumb" style="color:var(--a-sheet)"><i class="h" style="width:100%"></i><i></i><i></i><i></i><span class="badge">CSV</span></span><div><b>Notenliste WS26</b><small>Tabelle · Mo.</small></div></div>
+    </div>
+    <div class="list">
+      <div class="lh"><span>Name</span><span>Geändert</span><span>Größe</span><span></span></div>
+      <div class="lr"><span class="n"><span class="tile t-files"><span class="i fill">folder</span></span><span>Lehre</span></span><span class="m">heute, 18:02</span><span class="m">4 Dateien</span><span class="acts"><span class="iconbtn" title="Markieren"><span class="i">star</span></span><span class="iconbtn" title="In Chat senden"><span class="i">chat_add_on</span></span><span class="iconbtn" title="Mehr"><span class="i">more_vert</span></span></span></div>
+<div class="lr"><span class="n"><span class="tile t-files"><span class="i fill">folder</span></span><span>Forschung</span></span><span class="m">heute, 18:02</span><span class="m">2 Dateien</span><span class="acts"><span class="iconbtn" title="Markieren"><span class="i">star</span></span><span class="iconbtn" title="In Chat senden"><span class="i">chat_add_on</span></span><span class="iconbtn" title="Mehr"><span class="i">more_vert</span></span></span></div>
+<div class="lr hover"><span class="n"><span class="tile t-pdf"><span class="i">picture_as_pdf</span></span><span>Ausschreibung Lehrinnovation.pdf</span></span><span class="m">heute, 17:58</span><span class="m">48 KB</span><span class="acts"><span class="iconbtn" title="Markieren"><span class="i">star</span></span><span class="iconbtn" title="In Chat senden"><span class="i">chat_add_on</span></span><span class="iconbtn" title="Mehr"><span class="i">more_vert</span></span></span></div>
+<div class="lr"><span class="n"><span class="tile t-create"><span class="i">description</span></span><span>Einladung Kolloquium.md</span></span><span class="m">gestern, 09:14</span><span class="m">2 KB</span><span class="acts"><span class="iconbtn" title="Markieren"><span class="i">star</span></span><span class="iconbtn" title="In Chat senden"><span class="i">chat_add_on</span></span><span class="iconbtn" title="Mehr"><span class="i">more_vert</span></span></span></div>
+<div class="lr"><span class="n"><span class="tile t-sheet"><span class="i">table_view</span></span><span>Notenliste WS26.csv</span></span><span class="m">Mo., 11:30</span><span class="m">1 KB</span><span class="acts"><span class="iconbtn" title="Markieren"><span class="i">star</span></span><span class="iconbtn" title="In Chat senden"><span class="i">chat_add_on</span></span><span class="iconbtn" title="Mehr"><span class="i">more_vert</span></span></span></div>
+<div class="lr"><span class="n"><span class="tile t-tools"><span class="i">article</span></span><span>Protokoll Institutsrat.txt</span></span><span class="m">05.11.2026</span><span class="m">3 KB</span><span class="acts"><span class="iconbtn" title="Markieren"><span class="i">star</span></span><span class="iconbtn" title="In Chat senden"><span class="i">chat_add_on</span></span><span class="iconbtn" title="Mehr"><span class="i">more_vert</span></span></span></div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

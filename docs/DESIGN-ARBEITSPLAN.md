@@ -1,6 +1,6 @@
 # Design-Arbeitsplan Lora (APD)
 
-Stand: 13.11.2026 (angelegt; APD-01 *Umfassendes UI-Review* als Erstes; Anspruch des Hauptnutzers: super aussehen, gut bedienbar, rundes Gesamtprodukt mit einheitlichem Stil auf dem Niveau der neuen Lora, ohne wie Lora auszusehen; TU-Dresden-CD-Vorlagen unveränderlich) · Lebendes Dokument: Status hier pflegen,
+Stand: 13.11.2026 (APD-01 *Umfassendes UI-Review* durchgeführt: Review mit Noten, Stilrichtung „Klar, ruhig – mit Lora als Farbe“ und Pakete APD-02 bis APD-14 unter *Danach*, wartet auf Freigabe; Anspruch des Hauptnutzers: super aussehen, gut bedienbar, rundes Gesamtprodukt mit einheitlichem Stil auf dem Niveau der neuen Lora, ohne wie Lora auszusehen; TU-Dresden-CD-Vorlagen unveränderlich) · Lebendes Dokument: Status hier pflegen,
 erledigte Pakete abhaken und in der README beschreiben.
 
 **Was hier steht**: alle Arbeitspakete zu **Aussehen, Bedienbarkeit und Nutzerfreundlichkeit** der App – Oberfläche,
@@ -79,8 +79,8 @@ Gilt für das Review (APD-01) und als Abnahme jedes Pakets. Je Bildschirm:
 
 | Abschnitt | Pakete |
 | --- | --- |
-| **Jetzt** | **APD-01 Umfassendes UI-Review der ganzen App ☐** |
-| **Danach** | (entsteht aus APD-01: je Befundgruppe ein Paket APD-02 ff.) |
+| **Jetzt** | **APD-01 Umfassendes UI-Review der ganzen App ◐** (fertig bis auf die Freigabe des Hauptnutzers) |
+| **Danach** | APD-02 Sofort-Korrekturen ☐ · APD-03 Stil-Grundlagen ☐ · APD-04 Baukasten für Seiten ☐ · APD-05 Chat-Startseite und Eingabefeld ☐ · APD-06 Seitenleiste, Rahmen und Lora im Kopf ☐ · APD-07 Dateien ☐ · APD-08 Einstellungen aus einem Guss ☐ · APD-09 Werkzeug-Startseiten und leere Zustände ☐ · APD-10 Erstellen und Editoren ☐ · APD-11 Literatur und Modelle ☐ · APD-12 Chat-Antworten und Nebenansichten ☐ · APD-13 Handy, kleine Fenster, große Schrift ☐ · APD-14 Kontrast, dunkles Design und Tastatur ☐ |
 | **Später** | – |
 | **Erledigt** | Grundlage: AP-123 *Bedienelemente aus einem Guss* (allgemeiner Arbeitsplan, 1.0.71) |
 
@@ -88,7 +88,7 @@ Gilt für das Review (APD-01) und als Abnahme jedes Pakets. Je Bildschirm:
 
 ## Jetzt
 
-### APD-01 ☐ Umfassendes UI-Review der ganzen App · L (Wunsch Hauptnutzer 13.11.2026)
+### APD-01 ◐ Umfassendes UI-Review der ganzen App · L (Wunsch Hauptnutzer 13.11.2026)
 **Ziel**: Die ganze Oberfläche einmal vollständig und ehrlich prüfen – mit dem Blick einer erfahrenen UI/UX-Designerin –
 und daraus einen geordneten Plan machen, mit dem wir das Design Stück für Stück verbessern, bis die App ein **rundes
 Gesamtprodukt mit einheitlichem Stil** ist, das **super aussieht und sich leicht bedienen lässt** (Grundsätze
@@ -155,11 +155,177 @@ grauer Listen und Textwüsten (Symbole, Farbe, Bilder, Vorschauen).
 Vorschlägen und Noten abdeckt, die Stilrichtung mit Entwürfen vorliegt, die Pakete APD-02 ff. hier unter *Danach*
 stehen und der Hauptnutzer Richtung und Reihenfolge auf der Übersichtsseite freigegeben hat.
 
+**Stand (13.11.2026)** – erledigt bis auf die Freigabe:
+- ☑ **Bilder**: `ui/DesignReviewTest` (desktop) (nur mit `ADEU_DESIGN_REVIEW=1`, ca. 6 Minuten) rendert die echte App (`AppRoot`) durch alle Routen – PC 1366 × 768 @ 150 %
+  (alle 54 Routen, ADEU hell und dunkel), breit 1600 × 900 dp, Handy-Breite 393 dp, TU Dresden und Hoher Kontrast
+  (hell/dunkel), leer, erster Start, mit Beispieldaten und die Editoren (Dokument, Tabelle, Folien, Gestalten,
+  Whiteboard): rund 300 Bilder in `desktop/build/design-review/`, Auswahl in `docs/design/bilder/`. Nicht gerendert
+  (im Review genannt): Arbeits- und Übergabekarte, Browser neben dem Chat, Transkript-Ansicht, Android-eigene Teile.
+- ☑ **Review**: [`docs/design/review-2026-11.md`](design/review-2026-11.md) – 89 Befunde (23 hoch, 40 mittel, 21 gering; 19 querschnittlich; je Bereich
+  mit Ort im Code, Schweregrad, Vorschlag, Aufwand) und Noten für Übersicht, Bedienung, Ausstrahlung je Bereich
+  (gesamt 3,1 · 2,8 · 3,2). Schwächster Fall ist die Hauptplattform 1366 × 768 @ 150 %.
+- ☑ **Stilrichtung** „Klar, ruhig – mit Lora als Farbe“ mit Entwürfen für Chat-Startseite (hell/dunkel), Seitenleiste
+  mit Chat, Dateien und einer Baukasten-Tafel: [`docs/design/entwuerfe/`](design/entwuerfe/).
+- ☑ **Pakete** APD-02 bis APD-14 unter *Danach*, nach Nutzen geordnet.
+- ◐ **Übersichtsseite** (Artefakt) liegt dem Hauptnutzer zur Freigabe von Richtung und Reihenfolge vor.
+
 ---
 
 ## Danach
 
-(leer – entsteht aus APD-01)
+Aus APD-01 (Befund-Nummern Q-, R-, C-, I-, W-, E-, D- siehe [`design/review-2026-11.md`](design/review-2026-11.md)).
+Reihenfolge nach Nutzen: zuerst echte Fehler, die im Alltag stören (klein und ohne Umbau), dann **der Baukasten** (Tokens
+und Bausteine, auf denen alles Weitere aufbaut), dann die Bildschirme in der Reihenfolge, in der man sie am häufigsten
+sieht. Jede Stufe zeigt Vorher/Nachher-Bilder aus `DesignReviewTest` (gleiche Konfigurationen) auf einer Vergleichsseite.
+Grundlage aller Pakete ist die **Stilrichtung „Klar, ruhig – mit Lora als Farbe“** (Review, Abschnitt *Stilrichtung*,
+Entwürfe in `design/entwuerfe/`). TU-Dresden-Vorlagen und ihre Ausgabe bleiben in allen Paketen unberührt.
+
+### APD-02 ☐ Sofort-Korrekturen · S–M
+**Befund**: Fehler, die heute im Alltag stören und keinen Baukasten brauchen: Gestalten-Editor bricht bei 1366 × 768
+(„Exportieren“ senkrecht, I-10), Erstellen am Handy zerbrochen (I-07), Wörter brechen mitten im Wort (Q-17),
+Willkommenskarte ohne Schlüssel am PC abgeschnitten (C-02), rohe Fehlermeldung mit Token-Hash in Modelle (Q-08), Datum
+und Uhrzeit im US-Format (Q-09), „nicht verbunden“ in Mail als roter Absatz und Hinweis mit rotem Fehler-Symbol in
+Aufgaben (Q-07, W-05).
+**Ziel**: Nichts mehr, was kaputt oder erschreckend aussieht – auf der Hauptplattform und am Handy.
+**Vorschläge**: Kopfleiste des Design-Editors umbrechen/Symbol-Knopf unter 1000 dp; `FlowRow`/Spalte unter 600 dp in
+Erstellen; Mindestbreiten für Namen; Willkommenskarte scrollbar und kompakt; `ErrorHelp` in Modelle (Details
+zugeklappt); `formatDate/formatTime` mit Locale der App-Sprache in `ui/I18n.kt`, relativ („heute, 18:02“); Rot nur für
+Fehler.
+**Fertig, wenn**: `DesignReviewTest` zeigt in allen Konfigurationen keinen senkrechten oder mitten im Wort gebrochenen
+Text, keine Hex-Hashes und keine US-Daten (ein Test prüft die Bilder bzw. die Semantik auf diese Muster); Vorher/Nachher
+freigegeben.
+
+### APD-03 ☐ Stil-Grundlagen (Tokens) · M
+**Befund**: 18 Eckenradien, 15 Innenabstände, 28 feste Schriftgrößen, 467 feste Farben; Seitenleiste und Inhalt ohne
+Zonen; Dialoge getönt; alles gleich laut; Lora ohne Regel (Q-05, Q-06, Q-11, Q-15, Q-16, Q-19).
+**Ziel**: Eine gemeinsame Grundlage in `ui/Theme.kt`, die alle 8 Stile hell und dunkel bedient.
+**Vorschläge**: `Space` (4/8/12/16/24/32/48), `Radius` S/M/L je Stil, Typo-Rollen (Begrüßung 32, Seitentitel 24,
+Abschnitt 20, Kartentitel 16, Text 14, Hinweis 12, Abschnittslabel 11), semantische Farben in `ChatLook` (Zustände,
+**Bereichsfarben** als gedämpfte Kacheln, Dateitypen, Ordner, Stern); Zonen (Seitenleiste eine Stufe dunkler, Inhalt
+als Blatt); Dialoge auf `look.card`; Lora-Größen 32/96/160 dp und die Regel, wo sie erscheint. TUD-Stil nimmt die
+CD-Farben unverändert. Ein Test meldet neue feste Farben, Radien und Schriftgrößen in Bildschirmen (Ausnahmen: Theme,
+Lora, Vorlagen-Vorschauen, Editor-Inhalte); ein Kontrast-Test misst Text gegen Grund in allen Stilen (AA, Kontrast AAA).
+**Fertig, wenn**: Tokens und Tests stehen, die Baukasten-Tafel (`design/entwuerfe/baukasten.html`) ist als Compose-Bild
+aus einem Test nachgebaut, hell/dunkel und alle Stile grün.
+
+### APD-04 ☐ Baukasten für Seiten · L (Stufen: a Bausteine + Look-Test, b Umstellung aller Bildschirme)
+**Befund**: Kein gemeinsamer Seitenkopf (26 eigene `TopAppBar`, Hauptaktion an vier Orten), drei Muster für leere
+Zustände, Textwüsten, Lesebreite uneinheitlich, Zustandsfarben falsch, Einzelwahl in fünf Formen, mehrere Hauptknöpfe,
+Filter laufen ab, Laden ohne Satz (Q-01, Q-02, Q-03, Q-04, Q-07, Q-12, Q-13, Q-14, Q-18).
+**Ziel**: Wer einen Bildschirm kennt, kennt alle.
+**Vorschläge**: In `ui/Page.kt` bzw. `ui/Design.kt`: `PageScaffold(title, subtitle, primary, actions, width =
+LESEN/LISTE/VOLL)` mit **einem** gefüllten Hauptknopf rechts im Kopf (Handy: erweiterter FAB) und „Frag Lora“ im Kopf;
+`EmptyState(pose, title, text, primary, secondary)` mit Lora; `StatusBanner(INFO/WARNUNG/FEHLER/ERFOLG, text, action)`;
+`LoadingState`; `ListRow` (Kachel, Titel, Meta, Aktionen bei Hover, Rechtsklick); `SettingRow`; `RadioCards`,
+`ModelField`; Regeln für Einzelwahl und Knopf-Hierarchie; Erklärtexte als Untertitel + zuklappbare „So funktioniert
+es“-Karte. Ein Test (wie `ControlsBehaviourTest`) prüft, dass Bildschirme keine eigene `TopAppBar` und keinen eigenen
+leeren Zustand mehr bauen.
+**Fertig, wenn**: Stufe a: Bausteine mit Look-Test (alle Stile, hell/dunkel, Handy) freigegeben; Stufe b: alle
+Bildschirme umgestellt, Vorher/Nachher aller Routen freigegeben.
+
+### APD-05 ☐ Chat-Startseite und Eingabefeld · M
+**Befund**: PC-Startseite fast leer (Schwellen 380/420/600 dp), Modellzeile doppelt, graue Kontext-Chips, mächtiges
+Eingabefeld mit schwarzem Knopf, Modellwahl gekürzt, Chat-Titel gekürzt, unverständliches Auge-Symbol (C-01, C-03 bis
+C-06, C-09, R-10).
+**Ziel**: Die meistgesehene Seite ist einladend und klar – Lora begrüßt, man sieht sofort, was geht und wo man war.
+**Vorschläge**: Wie Entwurf `design/entwuerfe/chat-start.html`: Lora 96 dp neben Gruß und einem Satz, Eingabefeld in
+der Mitte, Startaktionen als eine Reihe mit Bereichsfarben, „Weiter, wo du warst“ als drei Karten; kompaktes statt
+ausgeblendetes Layout bei wenig Höhe; Status-Symbole (Schild, Gedächtnis) in der Eingabeleiste; Akzent für Senden;
+ein Mikrofon mit Menü; Titel linksbündig; temporärer Chat ins Menü.
+**Fertig, wenn**: Bei 1366 × 768 @ 150 % sind Lora, Aktionen und „Weiter“ sichtbar; Vorher/Nachher in allen Stilen,
+hell/dunkel und am Handy freigegeben.
+
+### APD-06 ☐ Seitenleiste, Rahmen und Lora im Kopf · M
+**Befund**: Seitenleiste auf der Hauptplattform nur als Overlay (Schwelle 1000 dp), hohe Zeilen, „Neuer Chat“ kein
+Knopf, Projektnamen gekürzt, uneinheitliche Abschnittstitel, Strg+K und Kürzel-Übersicht roh, Lora-Panel als Blatt über
+dem Inhalt, schwebende Lora verdeckt Inhalte, keine Zonen (R-01 bis R-09, R-11, Q-10, Q-15).
+**Ziel**: Navigation ist auf jedem PC-Fenster da, kompakt und klar; Lora steht im Kopf, nicht über dem Inhalt.
+**Vorschläge**: Wie Entwurf `design/entwuerfe/seitenleiste.html`: Seitenleiste ab 840 dp dauerhaft (260 dp), darunter
+Symbol-Leiste; Zeilen 32–40 dp mit Bereichskacheln; „Neuer Chat“ als Knopf mit Strg+N; Projekte mit Farbe und Zähler;
+`GroupLabel`; Strg+K mit Symbolen und Kürzeln auf weißer Fläche; Kürzel-Übersicht in Gruppen; Lora-Panel ab 840 dp als
+Seitenpanel; „Frag Lora“ im Kopf aller Seiten statt schlafender Lora unten rechts; Einrichtung auf weißer Fläche mit
+Haken an erledigten Schritten.
+**Fertig, wenn**: Wege bleiben (Strg+K, Spots, Leuchtrahmen – Tests grün); Vorher/Nachher bei 911, 1366 und 1600 dp
+Breite und am Handy freigegeben.
+
+### APD-07 ☐ Dateien · M
+**Befund**: Graue Liste ohne Anker, feste Farben (FAB und Ordner im Dunkeln unsichtbar), roher Pfad, kein leerer
+Zustand, Ziehgriff zufällig, „Erstellt“ doppelt, Handy mit zweizeiliger Suche und abgeschnittenen Filtern (I-01 bis
+I-06).
+**Ziel**: Dateien finden und erkennen auf einen Blick – wie in einem guten Dateimanager, ruhig und modern.
+**Vorschläge**: Wie Entwurf `design/entwuerfe/dateien.html`: Seitenkopf mit Suche und Hauptknopf „Neu“, Ort statt
+Pfad, Abschnitte als Reiter, „Zuletzt“ als Karten mit Vorschau, Liste mit Typ-Kacheln und Spalten (Name, Geändert,
+Größe), Aktionen bei Hover, `EmptyState` mit Ablagefläche.
+**Fertig, wenn**: Vorher/Nachher (leer und mit Daten; PC, breit, Handy; ADEU hell/dunkel, Kontrast) freigegeben;
+Schnellansicht, Ziehen und Ablegen und Details-Spalte funktionieren wie vorher (`Round2EndLookTest`).
+
+### APD-08 ☐ Einstellungen aus einem Guss · M
+**Befund**: Drei Aufbau-Muster, viel Fließtext, Werkzeuge ohne Symbole, leerer Papierkorb ohne Zustand, rohes
+Fehlerprotokoll, Mischung aus Links und Knöpfen, dichter Datenschutz, Ergebnisse nicht am Feld (E-01 bis E-11, Q-03).
+**Ziel**: Jede Einstellungsseite gleich gebaut: Abschnitt, Karte, Zeilen mit Titel, einem Satz und Steuerelement.
+**Vorschläge**: `GroupLabel` + Karte + `SettingRow` überall; Erklärungen in Untertitel und Hilfe; Werkzeuge als Kacheln
+mit den Symbolen der Seitenleiste; Fehler und Testergebnisse unter dem Feld; Texte kürzen (+ `i18n/en.tsv`).
+**Fertig, wenn**: Alle 24 Einstellungsseiten im Vorher/Nachher freigegeben; Suche in den Einstellungen und Leuchtrahmen
+finden alles wie vorher (`PrivacyPageTest` u. a. grün).
+
+### APD-09 ☐ Werkzeug-Startseiten und leere Zustände · M–L
+**Befund**: PDF-Werkzeugkasten als Absatz statt Werkzeug-Übersicht, Mail „nicht verbunden“ ohne Knopf, Videoeditor mit
+vier Mustern, Server-Terminal mit Hauptknopf unten, Aufgaben und Umgebungen mit Erklärtext und nacktem Leer-Text,
+Verbrauch mit viermal „0“, Tresor mit Textpunkten, Kopfaktion doppelt in Lernspiele/Stapel/Anträge (W-01 bis W-10,
+W-12, I-15).
+**Ziel**: Jedes Werkzeug zeigt beim ersten Öffnen, was es kann, und den ersten Schritt als Knopf – mit Lora im leeren
+Zustand.
+**Vorschläge**: PDF: Raster der Werkzeuge + Ablagefläche; Mail: `EmptyState` mit „Outlook nutzen“ / „Mailserver
+eintragen“; Videoeditor: zwei große Start-Kacheln + `StatusBanner` für das Paket; Aufgaben: Zeitplan als Satz, nächster
+Lauf relativ; Umgebungen, Verbrauch, Papierkorb: `EmptyState`; Lernspiele/Stapel/Anträge: Kopfaktion erst bei Inhalten.
+**Fertig, wenn**: Alle Werkzeuge leer und mit Daten im Vorher/Nachher freigegeben.
+
+### APD-10 ☐ Erstellen und Editoren · L
+**Befund**: Erstellen überladen (Prompt, Galerie, Diagramme, TU-Vorlagen-Suche, Filter, Liste; zwei Text-Links je
+Karte), unklare Kopf-Symbole, Dokument-Editor mit drei Leisten und Lineal (wenig Schreibfläche bei 1366 × 768),
+Tabelle im Dokument als Einzelkästen, Whiteboard mit zwei gemischten Chip-Reihen (I-08, I-09, I-11 bis I-14).
+**Ziel**: Erstellen ist eine aufgeräumte Galerie; die Editoren haben eine gemeinsame, kompakte Leisten-Logik wie
+Tabellen- und Folien-Editor.
+**Vorschläge**: Erstellen mit Abschnitts-Reitern (Gestalten · Diagramme · TU Vorlagen · Eigene), Karten mit einer
+Hauptaktion; Dokument-Editor: Menü und Format in einer Zeile, Lineal einklappbar, Tab-Leiste nur bei mehreren Tabs,
+KI-Leiste angedockt; Whiteboard: Werkzeugleiste links, Art als Auswahl, Aktionen im Kopf. **Die TU-Vorlagen selbst,
+ihre Vorschauen und alles, was im TUD-Stil erzeugt wird, bleiben unverändert** – nur die Oberfläche drumherum.
+**Fertig, wenn**: Bei 1366 × 768 @ 150 % hat der Dokument-Editor mindestens die Hälfte der Höhe für Text; Vorher/Nachher
+aller Editoren freigegeben; `FlowEditorUiTest`, `CreativeScreenTest`, `PruefsammlungTest` grün.
+
+### APD-11 ☐ Literatur und Modelle · M
+**Befund**: Literatur startet mit langem Formular, Reiter über volle Breite (I-16); Modelle mit 19 Filter-Chips in zwei
+Reihen und textlastigen Karten (W-11).
+**Ziel**: Die Sammlung bzw. die passenden Modelle stehen vorn; Suchen und Filtern sind einfach.
+**Vorschläge**: Literatur startet auf „Sammlung“, sobald es Einträge gibt; Suche als eine Zeile + „Erweitert“;
+Modelle: Aufgabe als `Segmented`, Fähigkeiten als Filter-Menü, Karten mit Name, einem Satz, drei Kennzahlen, „Chatten“.
+**Fertig, wenn**: Vorher/Nachher (leer und mit Daten, PC und Handy) freigegeben.
+
+### APD-12 ☐ Chat-Antworten und Nebenansichten · M
+**Befund**: Lora als Gesicht am Modellnamen (C-07), Code am Handy abgeschnitten (C-08), Modellvergleich mit leeren
+Spalten und eigenem Eingabefeld (C-11), Bilder erzeugen mit überlappenden Vorschlägen (C-12); Arbeitskarte,
+Übergabe-Karte, Persona, Chat-Menüs noch nicht bebildert.
+**Ziel**: Antworten und Nebenansichten sprechen dieselbe Sprache wie der Chat.
+**Vorschläge**: Neutrales Modell-Symbol, Lora nur bei ihren Vorschlägen (eigene Zeile wie im Entwurf); Code und
+Tabellen mit Rand-Verlauf und Bildlaufleiste; Vergleich mit Chat-Eingabefeld und Modellkarten; Bild-Optionen in einem
+Menü; `DesignReviewTest` um Arbeitskarte, Übergabe und Menüs erweitern.
+**Fertig, wenn**: Vorher/Nachher freigegeben; `ChatLookTest`, `LoraPanelLookTest` grün.
+
+### APD-13 ☐ Handy, kleine Fenster, große Schrift · M · A
+**Befund**: Brüche und Kürzungen am Handy (D-04), kleine Fenster wie Handy (D-05); Android-eigene Teile noch nicht
+bebildert.
+**Ziel**: Jede Seite funktioniert bei 360 dp Breite und Schrift 200 % ohne Abschneiden; Touch-Ziele ≥ 48 dp.
+**Vorschläge**: `DesignReviewTest` um 360 dp und Schrift 200 % erweitern; ein Test erkennt abgeschnittene Texte
+(Semantik-Grenzen außerhalb des Bildschirms, Ellipse bei Titeln); Prüfung am Gerät.
+**Fertig, wenn**: Keine Funde im Test; Prüfung auf einem Android-Gerät dokumentiert.
+
+### APD-14 ☐ Kontrast, dunkles Design und Tastatur · M
+**Befund**: Hoher Kontrast unter AAA an mehreren Stellen (D-02), dunkles Design mit festen Farben (D-01), Kürzel kaum in
+Tooltips und Menüs (D-06), Strg+K und Kürzel-Übersicht (R-07, R-08 – falls nicht schon in APD-06).
+**Ziel**: Hoher Kontrast hält AAA, dunkles Design ist gleichwertig, alles ist mit der Tastatur auffindbar.
+**Vorschläge**: Kontrast-Test aus APD-03 auf alle Review-Bilder; Kürzel im Tooltip-Text und rechts in Menüs;
+Prüfung am Gerät aus AP-123 (Tooltips, Enter/Esc in echten Fenstern, Bildlaufleisten, Screenreader).
+**Fertig, wenn**: Kontrast-Test grün; Prüfprotokoll am Gerät im Review ergänzt.
 
 ## Später
 
