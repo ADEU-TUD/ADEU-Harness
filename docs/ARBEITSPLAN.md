@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 13.11.2026 (AP-121 Videoeditor für Einsteiger in der App, für 1.0.70; Prüfung am Gerät offen) · 11.11.2026 (Sitzung Dateiwerkzeuge: AP-90 Rest, AP-91, AP-93, AP-97 bis AP-100, AP-107 Rest, neu AP-119 und AP-120 in der App, Prüfung am Gerät offen) · 11.11.2026 (AP-112 und AP-116 in der App, Messung am Gerät offen; AP-117 erledigt; AP-118 Server-Terminal in der App, am eigenen Server zu prüfen) · 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen; neu: AP-116 lokale Modelle auf dem Handy zu langsam, nicht abbrechbar, Gerät heiß) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 13.11.2026 (AP-122 Lora neu gezeichnet und lebendiger: vom Hauptnutzer freigegeben, in der App, für 1.0.70 zusammen mit AP-121; Prüfung am Gerät offen) · 13.11.2026 (AP-121 Videoeditor für Einsteiger in der App, für 1.0.70; Prüfung am Gerät offen) · 11.11.2026 (Sitzung Dateiwerkzeuge: AP-90 Rest, AP-91, AP-93, AP-97 bis AP-100, AP-107 Rest, neu AP-119 und AP-120 in der App, Prüfung am Gerät offen) · 11.11.2026 (AP-112 und AP-116 in der App, Messung am Gerät offen; AP-117 erledigt; AP-118 Server-Terminal in der App, am eigenen Server zu prüfen) · 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen; neu: AP-116 lokale Modelle auf dem Handy zu langsam, nicht abbrechbar, Gerät heiß) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **So ist der Plan aufgebaut**
@@ -73,6 +73,7 @@ Fairlight).
 | **Danach** | ~~AP-86 Lokale Modelle auf dem Mac laden~~ ☑ (10.11.2026, 1.0.67) |
 | **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung ◐ · AP-106 Modellkatalog in feinen Stufen, nach Zweck ◐ · AP-107 Suche nach Bedeutung auf dem Gerät ◐ (Rest in der App) · AP-108 Lange Texte lokal ◐ · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal ◐ · AP-111 Sprachausgabe lokal ☑ · AP-112 Offline-Schiene in der Oberfläche ◐ · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 ☑ · **AP-116 Lokale Modelle: Tempo, Abbruch, Hitze ◐** (Fehler aus 1.0.67, vor AP-109) · ~~AP-117 Eigene Modelle aktualisieren, auf GitHub~~ ☑ (11.11.2026) |
 | **Neu (13.11.2026)** | **AP-121 Videoeditor für Einsteiger ◐** (Startseite, „So entsteht dein Video“, einfach schneiden, Rechtsklick, klarere Leisten; Prüfung am Gerät offen) |
+| **Neu (12.11.2026)** | **AP-122 Lora: neues Aussehen und lebendigere Animationen ☑** (Wunsch Hauptnutzer; am 13.11.2026 freigegeben, in der App, für 1.0.70) |
 | **Neu (11.11.2026)** | **AP-118 Server-Terminal mit Lora ◐** (SSH wie PuTTY, Lora schlägt Schritte vor, Ausführung nur nach Zustimmung; nur Desktop) · ~~AP-119 Anzeige, wohin die Daten gehen~~ ☑ (Wunsch des Kollegen) · **AP-120 Lora einrichten Schritt für Schritt ◐** (Wunsch Hauptnutzer) |
 | **Später** | AP-87 Datei-Erste-Hilfe · AP-88 Zeitreise für Dateien · AP-89 Vorlage aus eigener Datei · AP-90 Formatwandler mit Verlustanzeige ◐ · AP-91 Schriften-Notfall ◐ · AP-92 Formatierung aufräumen · AP-93 CSV-Lotse ◐ · AP-94 Formular aus Scan · AP-95 PDF-Tabellen nach Excel ◐ · AP-96 Diagramm zu Daten · AP-97 Druck-Lotse ◐ · AP-98 Passwortschutz für Dateien ◐ · AP-99 Archiv-Werkzeug ◐ · AP-100 Fotos vom Handy aufbereiten ◐ · AP-101 Bild-Werkstatt · AP-102 Umzug auf einen neuen PC |
 
@@ -1115,6 +1116,82 @@ Mausereignis gelesen (ein Druck mit der rechten Taste ist in Compose kein „dow
 mit echter Skalierung prüfen (Mauszeiger, Rechtsklick, Ziehen aus dem Explorer); einmal mit jemandem ohne Vorwissen ein
 Video schneiden lassen und die Texte der Schrittkarte nachschärfen.
 
+
+
+### AP-122 ☑ Lora: neues Aussehen und lebendigere Animationen · M (neu, Wunsch Hauptnutzer 12.11.2026)
+(Die Commits vom 13.11.2026 nennen das Paket noch „AP-121“ – diese Nummer vergab PR #80 gleichzeitig an den Videoeditor.)
+**Ziel**: Lora ist Maskottchen und Aushängeschild der App – niedlich, aber noch etwas starr. Ihr Aussehen, alle 51
+bestehenden Animationen und die Gegenstände deutlich aufwerten, ohne dass sie ihren Charakter verliert; seriös bleiben
+und *Ruhigere Bewegungen* respektieren (Grundsatz *Lora*). **Erst nach Freigabe des Hauptnutzers in die App** – bis
+dahin gibt es nur eine Vorschau (Vorher/Nachher-Filme jeder Aktion), nichts wird veröffentlicht.
+**Fertig, wenn**: der Hauptnutzer die Vorschau freigegeben hat, der Entwurf in der App ist und die App-Symbole neu
+ausgegeben sind.
+☑ *Erledigt 13.11.2026 (für 1.0.70) – erst als Entwurf auf einem eigenen Zweig, nach der Freigabe in der App*: alles in `ui/LoraFigure.kt`. **Aussehen**: Körper mit Volumen (Verlauf, weiches Licht von links oben, Glanz – aus
+der Stilfarbe abgeleitet, passt zu jeder Akzentfarbe), Kopf als Kuppel (`bodyPath`, `drawBody`), Visier wie Glas, größere
+Augen mit Lichtpunkten, kleine Stiefel (`boot`), Arme und Beine verjüngt (`limb`) mit Schatten auf dem Körper, Stern mit
+Lichthof. Augen und Mund sind Formen, die ineinander übergehen (`EYE_SHAPES`, `MOUTH_SHAPES`, `faceOf`), dazu neue Blicke
+(`SOFT`, `SPARKLE`, `WINK`) und Münder (`OOH`, `TONGUE`). **Das Gesicht bleibt auch im dunklen Design weiß** (`FaceGlass`,
+`FaceInk` in `drawFace`). **Bewegung**: Lora „spürt“ ihre Bewegung der letzten 360 ms (`trailOf`, `jelly`) – Antenne,
+Arme und Körper schwingen nach, sie streckt sich im Sprung und federt bei der Landung; die Füße bleiben am Boden (Knie
+geben nach, Zehenspitzen), neu `sway` (Gewicht verlagern, Füße bleiben stehen) neben `dx`; bewegt sie sich fort, macht
+sie Schritte (`stepOffset`, `STRIDE`); Übergänge beginnen sanfter; *Ruhigere Bewegungen* dämpft das Nachschwingen.
+**Choreografie** aller 51 Aktionen überarbeitet (`loraPose`). Namen, Dauer (`periodMs`), Reihenfolge, Regie
+(`LoraDirector`) und alle Gegenstände sind unverändert. **Logo**: Figur etwas größer (`ui/Logo.kt`, 2,4 statt 2,15
+Einheiten); `LogoTest` zählt helle statt rein weißer Pixel und gibt die Android-Symbole mit kleinerem Maßstab aus, damit
+sie gleich groß bleiben. Neu `LoraPreviewTest` (Filme aller Aktionen, nur mit `LORA_PREVIEW_DIR`).
+**Vorschau**: private Seite <https://claude.ai/artifact/SQbVtroPNFVWHrrFfE8TdR> (Stand 13.11.2026 mit überarbeiteten
+Gegenständen, neuem Laufen, weißem Gesicht im dunklen Design und größerem Logo; links jeweils der Stand von `main`).
+Die erste Seite <https://claude.ai/artifact/1BiJ6Nwn1GyU5mvZhS7f51> zeigt den älteren Entwurf und ließ sich aus der
+zweiten Sitzung nicht aktualisieren (dort nicht auffindbar) – sie kann gelöscht werden. Werkzeuge und Anleitung in
+`tools/lora-vorschau/`.
+**Rückmeldungen des Hauptnutzers (13.11.2026)**: (1) Aussehen und Animationen gefallen („deutlich besser“);
+beanstandet waren die Gegenstände und ihr Gebrauch (Mikroskop, Lupe, „solche Sachen“) und das normale Laufen – beides
+überarbeitet (Liste unten). (2) Zur zweiten Vorschau: „mit allem anderen sehr zufrieden“, noch komisch waren Spazieren
+und Bücher tragen (Beine, Gesicht, Arme) und der Arm am Bücherregal – nochmals überarbeitet (*Laufen* unten), dann
+**Freigabe**: einbauen und mit den Änderungen am Videoeditor (AP-121) als neue Version veröffentlichen.
+**Symbole**: neu ausgegeben und kopiert (Windows, Infobereich, Android, `app.icns`). Im Benachrichtigungssymbol ist oben
+Luft (2 von 24 Pixeln); unten reichen die Füße wie bisher bis an den Rand.
+**Offen**: Prüfung am Gerät (Android, Windows) – vor allem die Arbeitskarte im Chat und die Startseite im dunklen Design.
+**Mängelliste (Durchsicht aller 51 Aktionen am 13.11.2026, Bildstreifen je sechs Momente; ☐ offen, ☑ behoben)** –
+Arbeitszweig ab hier `ccr-3356efb4-jqscvr` (enthält `ccr-591efb5e-siqh68` vollständig):
+- *Benutzung falsch*: ☑ **MICROSCOPE** Auge lag neben dem Okular → richtiges Mikroskop (Fuß, Arm, Tisch mit Objektträger
+  und Lampe, schräger Tubus), das Auge liegt am Okular, das andere ist zugekniffen, eine Hand am Tubus · ☑ **TELESCOPE**
+  Auge am Okular, Hand unter dem Rohr, Stativ mit runden Beinen · ☑ **SEARCH** echte Lupe (Holzgriff, Fassung, Glas);
+  sie hebt sie vors Auge, das hinter dem Glas riesig erscheint, und geht so auf die Suche · ☑ **COFFEE** größere Tasse,
+  beim Trinken liegt der Rand am Mund · ☑ **GLOBE** Globus steht frei neben ihr (Kugel mit Licht und Schatten), sie
+  wendet sich ihm zu und dreht ihn mit der Hand · ☑ **NOTES** Klemmbrett zum Betrachter (Holz, Klemme, Blatt), die Zeilen
+  entstehen unter dem Stift, der Blick folgt · ☑ **READ** gesenkte Lider, Buch höher · ☑ **TYPE** die Hände tippen
+  sichtbar links und rechts vom Bildschirm, Deckel mit Licht und Schatten.
+- *Kaum zu erkennen*: ☑ **FOLDER** gelber Ordner mit Reiter · ☑ **LOCK** größeres Schloss, goldener Schlüssel ·
+  ☑ **DIG** kleiner Spaten (Holzgriff, Blatt), brauner Erdhügel · ☑ **PAINT** größere Palette, richtiger Pinsel ·
+  ☑ **SCISSORS** größer, rote Griffe · ☑ **HIGHLIGHT** dicker Marker · ☑ **WATER** größere Gießkanne · ☑ **NET**
+  größerer Kescher mit Netz · ☑ **CHART** Tafel steht frei (CALENDAR war bei genauem Hinsehen in Ordnung).
+- *Flach neben der neuen Lora*: ☑ Schatten am Boden, runde Beine und ein weicher Schatten hinter den Flächen für Tische
+  (STAPLER, STAMP, jetzt mit Holzplatte), Tafeln und Staffeleien (CHART, CALENDAR, PAINT, SLIDES, SHEET, PUZZLE), Regal,
+  Karteikasten, Blumentopf; Globus, Bälle, Tasse, Laptop mit Licht und Schatten. ☐ Noch wie zuvor (unauffällig, bei
+  Bedarf nachziehen): Kolben (FLASK), Bücher (READ, BOOKS), Rechenrahmen (ABACUS), Umschlag (MAIL).
+- *Laufen* (WALK, BOOKS, auch SEARCH): ☑ gleichmäßiges Tempo statt Sinus (`travel`), Schrittlänge 11 statt 9, die
+  Füße heben höher, das Knie knickt nach vorn, Schritte setzen schon bei langsamer Bewegung ein · ☑ **Dreiviertelansicht**
+  (40°, bei BOOKS 34°): Der erste Versuch drehte sie fast ins Profil (58°) – das Gesicht wurde ein schmaler Streifen am
+  Rand, der nahe Arm hing mitten auf dem Bauch, die Beine kreuzten sich („komisch“). Jetzt bleibt das Gesicht breit,
+  Hüften und Schultern rücken nur wenig zusammen (`profile` in `drawLora`), das ferne Bein liegt hinter dem nahen, der
+  nahe Arm schwingt an der Seite vor dem Körper, der ferne dahinter (seine Hand schaut beim Vorschwingen hervor), beide
+  gegen die Beine · ☑ BOOKS: beide Hände unter dem Stapel (`reachL`/`reachR`).
+- *Bücherregal* (SHELF): ☑ der Arm ging über den Kopf statt ins Regal → die Hand fährt die Buchrücken auf dem oberen
+  Brett entlang, bleibt am gewählten Buch und geht mit, wenn es herauskippt (`shelfHand`); in der Hand ist das Buch erst
+  noch gekippt und richtet sich dann auf.
+- *Ohne Befund*: JUGGLE, DANCE, THINK, EUREKA, RADAR, BINOCULARS, PUZZLE, PLANE, HEADPHONES, TWIRL, STAPLER, STAMP,
+  MAIL, SLIDES, SHEET, TRANSLATE, WAVE, LOOK, SLEEP, STRETCH, FLY, IDLE, NOD, CHEER, SHRUG, SCRATCH, POINT.
+- *Wie es gebaut ist* (alles in `ui/LoraFigure.kt`): `faceSpot`/`eyeSpot` rechnen aus, wo ein Punkt des Gesichts bei
+  einer Haltung auf der Bühne liegt – daraus stehen Okulare genau am Auge (`MICRO_EYE`, `TELE_EYE`); `reachFor` gibt die
+  Reichweite, die eine Hand an einen Punkt der Bühne bringt; `upright` malt Stehendes zwischen Körper und Händen (vor dem
+  Gesicht, ohne mit Lora zu kippen), `LoraGeo.onStage` rechnet eine Hand auf die Bühne um; `bar` (runder Stab mit Licht
+  und Schatten) und `groundShadow` geben Gegenständen Volumen; `travel` ist gleichmäßiges Gehen. Die Dauer, Namen und
+  Reihenfolge der Aktionen sind unverändert; `LoraFigureTest` (nichts ragt über den Rand) läuft durch.
+- *Werkzeug dafür*: `LORA_STRIP_DIR=/pfad ./gradlew -p desktop cleanTest test --tests '*LoraPreviewTest.strips*'`
+  schreibt in Sekunden Bildstreifen statt Filme (siehe `tools/lora-vorschau/README.md`).
+**Vorschau-Werkzeuge bleiben** (`tools/lora-vorschau/`, `LoraPreviewTest`): für künftige Änderungen an Lora erst
+Bildstreifen oder Filme ansehen, dann einbauen.
 
 ---
 

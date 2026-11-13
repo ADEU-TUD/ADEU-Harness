@@ -42,9 +42,11 @@ class LogoTest {
                 File(dir, "frame%02d.png".format(i)).writeBytes(png)
                 if (i == frames) {
                     val bmp = org.jetbrains.skia.Bitmap.makeFromImage(img)
-                    // Lora's white face shows on the tile, the corners stay transparent (rounded tile).
-                    val face = (0 until 240).flatMap { x -> (0 until 240).map { y -> bmp.getColor(x, y) } }.count { (it and 0xFFFFFF) == 0xFFFFFF }
-                    assertTrue(face > 1500, "Loras weißes Gesicht: $face Pixel")
+                    // Lora's bright face shows on the tile (white glass with a faint tint towards its lower edge), the
+                    // corners stay transparent (rounded tile).
+                    val face = (0 until 240).flatMap { x -> (0 until 240).map { y -> bmp.getColor(x, y) } }
+                        .count { (it ushr 24) == 0xFF && (it shr 16 and 0xFF) >= 0xF0 && (it shr 8 and 0xFF) >= 0xF0 && (it and 0xFF) >= 0xF0 }
+                    assertTrue(face > 1500, "Loras helles Gesicht: $face Pixel")
                     assertTrue((bmp.getColor(1, 1) ushr 24) == 0, "Ecke transparent")
                 }
             }
@@ -64,10 +66,10 @@ class LogoTest {
         for ((name, f) in densities) {
             val fg = (108 * f).toInt()
             val mipmap = File(out, "android/mipmap-$name").apply { mkdirs() }
-            ImageIO.write(render(fg, tile = false, scale = 0.68f), "png", File(mipmap, "ic_launcher_foreground.png"))
-            ImageIO.write(monochrome(render(fg, tile = false, scale = 0.68f)), "png", File(mipmap, "ic_launcher_monochrome.png"))
+            ImageIO.write(render(fg, tile = false, scale = 0.61f), "png", File(mipmap, "ic_launcher_foreground.png"))
+            ImageIO.write(monochrome(render(fg, tile = false, scale = 0.61f)), "png", File(mipmap, "ic_launcher_monochrome.png"))
             val drawable = File(out, "android/drawable-$name").apply { mkdirs() }
-            ImageIO.write(monochrome(render((24 * f).toInt(), tile = false, scale = 1.25f)), "png", File(drawable, "ic_notification.png"))
+            ImageIO.write(monochrome(render((24 * f).toInt(), tile = false, scale = 1.12f)), "png", File(drawable, "ic_notification.png"))
         }
         val ico = File(out, "app.ico")
         assertTrue(ico.length() > 10_000, "ico mit allen Größen: ${ico.length()} Bytes")

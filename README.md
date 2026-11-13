@@ -17,7 +17,7 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   *Weitere Stile* bleiben Claude, ChatGPT, Gemini und Material You. *Einstellungen › Darstellung* zeigt jeden Stil als
   kleine Vorschau; dort lässt sich auch die Startanimation ausschalten.
 - **Logo und Startanimation**: Das Logo zeigt Lora, das Maskottchen, beim Lesen – im App-Violett mit weißem Gesicht auf
-  einer hellen Kachel. Beim Start erscheint die Kachel, Lora hüpft hinein und blättert eine Seite um (abschaltbar unter
+  einer hellen Kachel (seit 1.0.70 in der neuen Zeichnung mit Licht und Schatten, die Figur etwas größer). Beim Start erscheint die Kachel, Lora hüpft hinein und blättert eine Seite um (abschaltbar unter
   *Einstellungen › Darstellung*). App-Symbole für Windows (`.ico`, Infobereich) und Android (Launcher, Benachrichtigung)
   entstehen aus derselben Zeichnung (siehe *Logo ändern* unten).
 - **Chat im ADEU-Stil**: Antworten sind ruhiger Text; Kästen für Code, Tabellen und Hinweise (`> [!NOTE]` oder
@@ -887,7 +887,7 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   und trinkt zwischendurch Kaffee – und spielt oft nach, was der Agent gerade tut (Websuche: Lupe, Antenne, Teleskop,
   Fernglas; Literatur: Bücher, Karteikasten, Regal; Rechnen: Experiment und Abakus; E-Mail: Papierflieger;
   Transkription: Kopfhörer; Nachdenken: Denkerpose und Puzzle). Dabei geht es natürlich zu: Ein Buch hält Lora mit dem
-  Einband nach außen, auf dem Klemmbrett schreibt Lora von hinten und dreht es zum Zeigen um. Lora dreht Kopf und Körper
+  Einband nach außen, auf dem Klemmbrett entstehen die Zeilen unter ihrem Stift. Lora dreht Kopf und Körper
   zu dem, was gerade wichtig ist, lehnt sich in Bewegungen, federt beim Hüpfen, die Antenne schwingt nach, die Arme
   haben weiche Ellbogen, und zwischen zwei Tätigkeiten hüpft Lora kurz hinüber. Ein Tipp auf Lora in der Arbeitskarte
   bringt ein Winken, eine Pirouette, einen Geistesblitz, einen Jubel oder ein Nicken. **Seit AP-36** arbeitet Lora auch
@@ -908,6 +908,19 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   einem Geistesblitz die nächste, ein Tipp auf Lora öffnet ihr Panel. Beim Tippen schreibt Lora mit; nach einer Weile ohne Eingabe nickt
   Lora ein. Wer Lora nicht sehen möchte, schaltet *Chat & Werkzeuge › Lora ausblenden* ein (Standard aus): Dann zeigen
   Startseite, Arbeitskarte und Sprachmodus das Symbol der App, die Ideen bleiben erreichbar.
+  **Neues Aussehen und lebendigere Bewegung** (seit 1.0.70, AP-122): Lora ist neu gezeichnet – ein Körper mit Volumen
+  (Verlauf, weiches Licht von links oben, Glanz, aus der Stilfarbe abgeleitet), der Kopf als Kuppel, das Visier wie Glas,
+  größere Augen mit Lichtpunkten, kleine Stiefel, verjüngte Arme und Beine. Das Gesicht bleibt auch im dunklen Design
+  weiß. Sie „spürt“ ihre Bewegung: Antenne, Arme und Körper schwingen nach, sie streckt sich im Sprung und federt bei der
+  Landung, die Füße bleiben am Boden (die Knie geben nach), Gesichtsausdrücke gehen ineinander über. Geht sie
+  (Spazieren, Bücher tragen, Suchen), sieht man sie aus der Dreiviertelansicht: Sie setzt in gleichmäßigem Tempo einen
+  Fuß vor den anderen, der nahe Arm schwingt vor dem Körper, der ferne dahinter. Ihre Gegenstände benutzt sie richtig:
+  Am Mikroskop und am Teleskop liegt das Auge am Okular (das andere ist zugekniffen), die Lupe hält sie vors Auge, das
+  dahinter riesig erscheint, die Tasse setzt sie am Mund an, ins Regal greift die Hand bis zum Buch. Kleine Dinge
+  (Schloss und Schlüssel, Schere, Marker, Pinsel und Palette, Gießkanne, Kescher, Ordner) sind größer und klarer
+  gezeichnet, stehende Dinge werfen einen Schatten. Namen, Dauer und Reihenfolge der 51 Aktionen sind unverändert;
+  *Ruhigere Bewegungen* dämpft auch das Nachschwingen. Zum Prüfen vor einer Änderung: `tools/lora-vorschau/` (Filme und
+  Bildstreifen aller Aktionen, `LoraPreviewTest`).
 - **Ruhiges Lesen beim Mitlaufen**: Wer beim Entstehen einer Antwort nach oben scrollt, um etwas zu lesen, sieht den Text
   still stehen – die Chatliste ist oben verankert, die Antwort wächst darunter weiter. Beim Mitlaufen bleibt das Ende im
   selben Bild sichtbar (kein Ruckeln).

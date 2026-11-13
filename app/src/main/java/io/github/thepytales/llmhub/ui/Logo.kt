@@ -103,7 +103,7 @@ internal fun DrawScope.drawLogo(t: Float, tile: Boolean = true, scale: Float = 1
     // Lora hops in from below and lands on the ground line; then reads (a page turns while the animation runs).
     val enter = pop(phase(t, 0.05f, 0.62f))
     if (enter <= 0f) return
-    val u = 2.15f * k * scale
+    val u = 2.4f * k * scale
     val rise = (1f - enter) * 30 * k
     val timeMs = if (t >= 1f) LOGO_TIME_MS else (t * 1800).toLong().coerceAtLeast(1)
     // drawLora fills an 80 × 56 space; it is placed so that Lora (about 36 units high) stands centered on the tile.

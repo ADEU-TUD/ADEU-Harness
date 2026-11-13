@@ -1,0 +1,401 @@
+<title>Lora Animationen Vorschau</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap">
+<style>
+/* Layout: a review sheet in the app's own look. A short status header, two long films, what changes, then every
+   action as a card whose film blends into the card (the films carry the card colour of the app). */
+:root {
+  --bg: #F6F6F9; --card: #FFFFFF; --fg: #16161D; --muted: #53536A; --line: #E3E3EA;
+  --accent: #5B4FE9; --accent-soft: #ECEAFD; --ok: #1F8A59;
+  --display: "Space Grotesk", "Inter", system-ui, sans-serif;
+  --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111115; --card: #1A1A20; --fg: #ECECF2; --muted: #A6A6B6; --line: #2C2C35;
+    --accent: #9C94FF; --accent-soft: #26243F; --ok: #3FC585; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111115; --card: #1A1A20; --fg: #ECECF2; --muted: #A6A6B6; --line: #2C2C35;
+  --accent: #9C94FF; --accent-soft: #26243F; --ok: #3FC585; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 400 15px/1.55 var(--body); }
+.page {
+  max-width: 1180px; margin: 0 auto; padding-block: 36px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 56px;
+}
+h1, h2, h3 { font-family: var(--display); font-weight: 600; text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(28px, 4.2vw, 42px); line-height: 1.1; }
+h2 { font-size: 24px; line-height: 1.2; }
+h3 { font-size: 16px; line-height: 1.3; }
+p { margin: 0; }
+.lead { max-width: 64ch; color: var(--muted); font-size: 16px; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+header { display: flex; flex-direction: column; gap: 14px; }
+.status { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.pill { display: inline-flex; align-items: center; gap: 7px; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); font-size: 13px; font-weight: 500; }
+.pill b { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.pill.ok b { background: var(--ok); }
+section { display: flex; flex-direction: column; gap: 20px; }
+.head { display: flex; flex-direction: column; gap: 6px; }
+.head p { color: var(--muted); max-width: 68ch; }
+
+/* A film: the old look on the left, the new one on the right. */
+.film { position: relative; aspect-ratio: 1120 / 392; max-width: 100%; overflow: hidden; background: var(--card); cursor: pointer; }
+.film video { display: block; width: 100%; height: 100%; }
+.film .tag { position: absolute; top: 8px; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); pointer-events: none; }
+.film .tag.old { left: 10px; }
+.film .tag.new { left: calc(50% + 10px); color: var(--accent); }
+.film .split { position: absolute; left: 50%; top: 12%; bottom: 12%; width: 1px; background: var(--line); pointer-events: none; }
+.film.paused::after { content: "Pause"; position: absolute; right: 10px; top: 8px; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.film:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.solo .film.dual { aspect-ratio: 560 / 392; }
+.solo .film.dual video { width: 200%; margin-left: -100%; }
+.solo .film.dual .tag.old, .solo .film.dual .split { display: none; }
+.solo .film.dual .tag.new { left: 10px; }
+
+.reels { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr)); gap: 20px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; min-width: 0; display: flex; flex-direction: column; margin: 0; }
+.card figcaption { padding: 12px 14px 14px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px; }
+.card .name { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.card code { font: 500 11px/1 var(--mono); color: var(--muted); letter-spacing: 0.02em; }
+.card .note { color: var(--muted); font-size: 13.5px; line-height: 1.45; }
+
+.changes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 28px 40px; }
+.changes ul { margin: 10px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 9px; }
+.changes li { padding-left: 18px; position: relative; max-width: 60ch; }
+.changes li::before { content: ""; position: absolute; left: 2px; top: 0.62em; width: 7px; height: 7px; border-radius: 2px; background: var(--accent); transform: rotate(45deg); }
+.keep { border-left: 3px solid var(--line); padding: 2px 0 2px 14px; color: var(--muted); max-width: 72ch; }
+
+.tools { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; background: var(--card); padding: 3px; }
+.seg button { font: 500 13.5px/1 var(--body); color: var(--muted); background: none; border: 0; padding: 8px 14px; border-radius: 7px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--fg); }
+.seg button:focus-visible, .jump a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.jump { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13.5px; }
+.jump a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; }
+.jump a:hover { border-bottom-color: currentColor; }
+.group { display: flex; flex-direction: column; gap: 14px; scroll-margin-top: 16px; }
+.group h3 { display: flex; align-items: baseline; gap: 10px; }
+.group h3 span { font: 500 13px/1 var(--body); color: var(--muted); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 16px; }
+.solo .grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); }
+
+.sizes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 20px; align-items: start; }
+.film.face { aspect-ratio: 640 / 320; }
+.film.small { aspect-ratio: 240 / 84; }
+.logos { display: grid; grid-template-columns: 1fr 1fr; gap: 0; background: var(--card); }
+.logos div { padding: 30px 16px 18px; display: flex; flex-direction: column; align-items: center; gap: 12px; position: relative; }
+.logos div + div { border-left: 1px solid var(--line); }
+.logos img { width: min(100%, 150px); height: auto; display: block; }
+.logos span { position: absolute; top: 8px; left: 10px; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.logos div + div span { color: var(--accent); }
+.real { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+.real .film { width: 60px; flex: none; border: 1px solid var(--line); border-radius: 6px; cursor: default; }
+
+.next ol { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; max-width: 70ch; }
+.next li::marker { color: var(--accent); font-weight: 600; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+
+<div class="page" id="page">
+  <header>
+    <p class="eyebrow">Vorschau zur Freigabe</p>
+    <h1>Loras neues Aussehen und ihre Animationen</h1>
+    <p class="lead">Alle 51 Aktionen im direkten Vergleich: links Lora, wie sie heute in der App ist, rechts der neue Entwurf. Die Filme sind aus dem echten App-Code gerendert und zeigen genau das, was nach dem Einbau zu sehen wäre.</p>
+    <div class="status">
+      <span class="pill"><b></b>Nicht veröffentlicht</span>
+      <span class="pill"><b></b>Nicht in der App eingebaut</span>
+      <span class="pill ok"><b></b>Fertig zum Einbau nach deiner Freigabe</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="head">
+      <h2>So wirkt es im Ablauf</h2>
+      <p>Zwei längere Filme, so wie die App die Aktionen hintereinander spielt, mit den Übergängen dazwischen. Beide Seiten laufen synchron.</p>
+    </div>
+    <div class="reels">
+      <figure class="card">
+        <div class="film dual" tabindex="0" role="button" aria-label="Film Startseite anhalten oder abspielen"><video data-clip="reel-home" muted loop playsinline preload="none"></video><span class="tag old">Vorher</span><span class="tag new">Nachher</span><i class="split"></i></div>
+        <figcaption><div class="name"><h3>Startseite</h3><code>60 s</code></div><p class="note">Begrüßung, Umschauen, Kaffee, Strecken, Lesen, Gießen und mehr.</p></figcaption>
+      </figure>
+      <figure class="card">
+        <div class="film dual" tabindex="0" role="button" aria-label="Film Arbeit anhalten oder abspielen"><video data-clip="reel-work" muted loop playsinline preload="none"></video><span class="tag old">Vorher</span><span class="tag new">Nachher</span><i class="split"></i></div>
+        <figcaption><div class="name"><h3>Bei der Arbeit</h3><code>75 s</code></div><p class="note">Die Karte, während ein Auftrag läuft: Spazieren, Lesen, Funksignal, Mikroskop, Tippen und weiter.</p></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section>
+    <div class="head">
+      <h2>Was sich ändert</h2>
+    </div>
+    <div class="changes">
+      <div>
+        <h3>Aussehen</h3>
+        <ul>
+          <li>Der Körper hat Volumen: oben heller, unten dunkler, ein weiches Licht von links oben und ein Glanzlicht. Das funktioniert mit jeder Akzentfarbe der App.</li>
+          <li>Die Kopfform ist runder, wie eine Kuppel.</li>
+          <li>Das Visier wirkt wie Glas, leicht eingelassen und mit Spiegelung. Im dunklen Design leuchten die Augen.</li>
+          <li>Größere Augen mit Lichtpunkten. Neue Blicke: Funkelaugen, Zwinkern, halb geschlossen.</li>
+          <li>Der Mund wechselt fließend die Form: Lachen mit Zunge, Zungenspitze beim Konzentrieren, ein kleines „Oh“.</li>
+          <li>Arme, die sich zur Hand verjüngen und einen Schatten auf den Körper werfen. Kleine Stiefel statt ovaler Füße.</li>
+          <li>Der Stern auf der Antenne hat einen Lichthof.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Bewegung</h3>
+        <ul>
+          <li>Die Füße bleiben am Boden stehen. Lora gibt in den Knien nach, stellt sich auf die Zehen und verlagert ihr Gewicht.</li>
+          <li>Sobald sie sich fortbewegt, sieht man sie aus der Dreiviertelansicht: Sie setzt mit gleichmäßigen Schritten einen Fuß vor den anderen, die Arme schwingen gegen.</li>
+          <li>Antenne, Arme und Körper schwingen nach, wenn sie anhält oder landet.</li>
+          <li>Sie holt vor Sprüngen aus, streckt sich in der Luft und federt bei der Landung.</li>
+          <li>Gesichtsausdrücke gehen ineinander über, statt umzuspringen. Das Blinzeln ist natürlicher.</li>
+          <li>Jede der 51 Aktionen hat eigene neue Momente, siehe die Notiz unter jedem Film.</li>
+          <li>Die Einstellung <em>Ruhigere Bewegungen</em> dämpft auch das neue Nachschwingen.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="keep">Neu in dieser Runde: Lora benutzt ihre Gegenstände richtig (Auge am Okular von Mikroskop und Teleskop, Lupe vor dem Auge, Tasse am Mund), kleine Dinge sind größer und klarer gezeichnet, stehende Dinge werfen einen Schatten, und das Laufen ist überarbeitet. Das Gesicht bleibt im dunklen Design weiß, die Figur im Logo ist größer.</p>
+    <p class="keep">Gleich geblieben sind die Namen, die Dauer und die Reihenfolge aller Aktionen. Der Rest der App muss für den Einbau nicht angepasst werden.</p>
+  </section>
+
+  <section id="aktionen">
+    <div class="head">
+      <h2>Alle Aktionen</h2>
+      <p>Ein Klick auf einen Film hält ihn an. Zum Rückmelden reicht der Name der Aktion.</p>
+    </div>
+    <div class="tools">
+      <div class="seg" role="group" aria-label="Ansicht">
+        <button type="button" id="mode-dual" aria-pressed="true">Vergleich</button>
+        <button type="button" id="mode-solo" aria-pressed="false">Nur neu</button>
+      </div>
+      <div class="seg" role="group" aria-label="Tempo">
+        <button type="button" id="speed-1" aria-pressed="true">Normal</button>
+        <button type="button" id="speed-half" aria-pressed="false">Zeitlupe</button>
+      </div>
+      <nav class="jump" id="jump" aria-label="Gruppen"></nav>
+    </div>
+    <div id="groups" style="display:flex;flex-direction:column;gap:36px"></div>
+  </section>
+
+  <section>
+    <div class="head">
+      <h2>Kleine Größen und Logo</h2>
+      <p>Lora erscheint auch als Nahaufnahme in Knöpfen, winzig unter Antworten im Chat und im Logo der App.</p>
+    </div>
+    <div class="sizes">
+      <figure class="card">
+        <div class="film face" tabindex="0" role="button" aria-label="Film Nahaufnahme anhalten oder abspielen"><video data-clip="face" muted loop playsinline preload="none"></video><span class="tag old">Vorher</span><span class="tag new">Nachher</span><i class="split"></i></div>
+        <figcaption><div class="name"><h3>Nahaufnahme</h3><code>Knopf, Ecke</code></div><p class="note">Einfach da, Winken, Umschauen, Nicken, Schlafen.</p></figcaption>
+      </figure>
+      <figure class="card">
+        <div class="film small" tabindex="0" role="button" aria-label="Film kleine Größe anhalten oder abspielen"><video data-clip="small" muted loop playsinline preload="none"></video><span class="tag old">Vorher</span><span class="tag new">Nachher</span><i class="split"></i></div>
+        <div class="real"><div class="film small"><video data-clip="small" muted loop playsinline preload="none"></video></div><span>So klein steht sie unter einer Antwort im Chat (links vorher, rechts nachher). Oben dasselbe vergrößert.</span></div>
+        <figcaption><div class="name"><h3>Ganz klein</h3><code>30 × 21</code></div><p class="note">Jubeln, Einfach da, Nicken, Winken.</p></figcaption>
+      </figure>
+      <figure class="card">
+        <div class="logos">
+          <div><span>Vorher</span><img src="logo-old.png" alt="Bisheriges Logo: Lora liest ein Buch" width="512" height="512"></div>
+          <div><span>Nachher</span><img src="logo-new.png" alt="Neues Logo: Lora liest ein Buch, mit Volumen und Glanz" width="512" height="512"></div>
+        </div>
+        <figcaption><div class="name"><h3>Logo</h3><code>App-Symbol</code></div><p class="note">Das Logo wird aus derselben Zeichnung erzeugt. Beim Einbau würden die Symbole für Windows, macOS und Android neu ausgegeben.</p></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="next">
+    <div class="head">
+      <h2>So geht es weiter</h2>
+    </div>
+    <ol>
+      <li>Schau dir die Filme an. Wenn dir etwas nicht gefällt, nenne mir die Aktion beim Namen, zum Beispiel „Winken: weniger Zwinkern“ oder „Augen insgesamt kleiner“.</li>
+      <li>Ich passe den Entwurf an und aktualisiere diese Seite unter derselben Adresse.</li>
+      <li>Nach deiner Freigabe baue ich den Entwurf in die App ein. Eine neue Version erscheint erst, wenn du sie ausdrücklich veröffentlichen lässt.</li>
+    </ol>
+  </section>
+</div>
+
+<script>
+(function () {
+  var GROUPS = [
+    { id: "arbeit", title: "Bei der Arbeit", items: [
+      ["walk", "Spazieren", "Geht in Dreiviertelansicht mit gleichmäßigen Schritten, das Gesicht bleibt breit. Der nahe Arm schwingt vor dem Körper, der ferne dahinter. Dreht am Rand um und lächelt dir unterwegs zu."],
+      ["read", "Lesen", "Schaut mit gesenkten Lidern ins Buch, staunt über eine Stelle, lugt darüber und zwinkert."],
+      ["type", "Tippen", "Die Hände tippen sichtbar links und rechts vom Bildschirm. Zungenspitze, Denkpause, letzte Taste mit Schwung."],
+      ["juggle", "Jonglieren", "Verlagert das Gewicht von Fuß zu Fuß. Ein Ball geht fast daneben."],
+      ["search", "Suchen", "Geht mit der Lupe los, hebt sie vors Auge (es ist riesig hinter dem Glas), schaut sich um und findet etwas."],
+      ["dance", "Tanzen", "Hüftschwung, in der zweiten Hälfte abwechselnd ein Arm hoch und einer runter."],
+      ["think", "Nachdenken", "Der Kopf wandert zur anderen Seite, der Finger tippt ans Kinn, am Ende dämmert etwas."],
+      ["microscope", "Mikroskop", "Lehnt sich hinüber, bis das Auge am Okular liegt, kneift das andere zu, eine Hand am Tubus. Dann staunt sie."],
+      ["flask", "Experiment", "Schaut den Blasen nach, erschrickt deutlicher und freut sich danach hüpfend."],
+      ["globe", "Globus", "Wendet sich dem Globus zu, dreht ihn mit der Hand, entdeckt einen Ort und freut sich."],
+      ["telescope", "Teleskop", "Ein Auge direkt am Okular, eine Hand unter dem Rohr, dann zeigt sie auf die Sternschnuppe."],
+      ["notes", "Notizen", "Schreibt Zeile für Zeile aufs Klemmbrett, der Blick folgt dem Stift, am Ende ein Haken."],
+      ["dig", "Ausgraben", "Gräbt mit einem kleinen Spaten im Erdhügel und stutzt beim Fund."],
+      ["eureka", "Geistesblitz", "Stutzt, holt Schwung und springt mit Funkelaugen."],
+      ["books", "Bücher tragen", "Trägt den Stapel mit beiden Händen, in Dreiviertelansicht und mit gleichmäßigen Schritten. Erschrickt, wenn er wackelt."],
+      ["chart", "Diagramm", "Die Tafel steht frei neben ihr, der Zeiger steigt mit den Balken, der Trend bringt Funkelaugen."],
+      ["coffee", "Kaffeepause", "Pustet, nippt mit geschlossenen Augen (der Tassenrand am Mund) und seufzt zufrieden."],
+      ["radar", "Funksignal", "Lauscht mit halb geschlossenen Augen, der Stern pulsiert, beim Signal Funkelaugen."],
+      ["binoculars", "Fernglas", "Schwenkt mit festem Stand über den Horizont."],
+      ["cards", "Karteikarten", "Blättert mit Zungenspitze und lehnt sich mit festem Stand hinüber."],
+      ["shelf", "Bücherregal", "Tritt ans Regal, fährt mit der Hand die Buchrücken entlang, zieht ein Buch heraus und wiegt es im Arm."],
+      ["net", "Kescher", "Größerer Kescher mit Netz. Geht vor dem Schwung in die Knie und fängt im Sprung."],
+      ["puzzle", "Puzzle", "Zungenspitze beim Einpassen, Funkelaugen beim fertigen Bild."],
+      ["plane", "Papierflieger", "Holt mit dem ganzen Körper aus und staunt dem Flieger nach."],
+      ["headphones", "Musik hören", "Groovt von Fuß zu Fuß, statt zu rutschen."],
+      ["abacus", "Abakus", "Nickt beim Zählen mit, Zungenspitze."],
+      ["twirl", "Pirouette", "Federt bei der Landung in den Knien nach."]
+    ] },
+    { id: "pdf", title: "PDF-Werkzeuge", items: [
+      ["scissors", "Schneiden", "Schere mit roten Griffen, Zungenspitze beim Schneiden, der Körper geht mit jedem Schnitt mit."],
+      ["stapler", "Heften", "Drückt mit Körpereinsatz, das Gewicht geht in die Knie."],
+      ["stamp", "Stempeln", "Holt sichtbar aus und federt beim Aufsetzen nach."]
+    ] },
+    { id: "werkzeuge", title: "Weitere Werkzeuge", items: [
+      ["mail", "Brief", "Leckt den Umschlag an, bevor das Herz ihn verschließt."],
+      ["calendar", "Kalender", "Kringelt den Tag mit Zungenspitze ein."],
+      ["paint", "Malen", "Palette und Pinsel sind gut zu sehen. Malt mit Zungenspitze, tritt zurück und bewundert das Bild."],
+      ["lock", "Schloss", "Größeres Schloss, goldener Schlüssel. Zuckt beim Klick kurz zusammen."],
+      ["slides", "Präsentieren", "Spricht mit bewegtem Mund und schaut zwischendurch freundlich ins Publikum."],
+      ["sheet", "Tabelle", "Füllt die Zellen mit Zungenspitze und holt vor dem Jubel Schwung."],
+      ["translate", "Übersetzen", "Spricht sichtbar, wippt beim Reden und verlagert das Gewicht zur jeweiligen Seite."],
+      ["highlight", "Markieren", "Dicker gelber Marker, Zungenspitze beim Markieren."],
+      ["folder", "Ordner", "Gelber Ordner, gut zu erkennen. Sie wiegt ihn im Arm hin und her."]
+    ] },
+    { id: "start", title: "Startseite", items: [
+      ["wave", "Winken", "Holt Schwung, hüpft, lehnt sich beim Winken zur Seite und zwinkert zum Schluss."],
+      ["look", "Umschauen", "Das Gewicht geht mit dem Blick mit. Etwas fällt ihr auf, sie stutzt."],
+      ["sleep", "Schlafen", "Atmet tief und langsam, der Kopf sinkt mit, leises Schnarchen."],
+      ["stretch", "Strecken", "Steht wirklich auf den Zehenspitzen und schaut danach noch müde."],
+      ["water", "Gießen", "Größere Gießkanne. Lehnt sich zur Pflanze, Funkelaugen bei der Blüte."]
+    ] },
+    { id: "stimmung", title: "Stimmungen und Reaktionen", items: [
+      ["fly", "Fliegen", "Leichtes Schaukeln im Flug, die Beine hängen."],
+      ["idle", "Einfach da", "Verlagert das Gewicht, wippt und schaut einmal zu ihrem eigenen Stern hoch."],
+      ["nod", "Nicken", "Nickt mit dem ganzen Körper."],
+      ["cheer", "Jubeln", "Geht vor jedem Sprung in die Knie, strampelt in der Luft und federt bei der Landung."],
+      ["shrug", "Schulterzucken", "Zuckt zweimal, das Gewicht geht zur Seite."],
+      ["scratch", "Kopfkratzen", "Scharrt verlegen mit dem Fuß."],
+      ["point", "Zeigen", "Holt Schwung, hüpft und stupst mit dem Arm nach: da!"]
+    ] }
+  ];
+
+  var root = document.documentElement;
+  var page = document.getElementById("page");
+  var groups = document.getElementById("groups");
+  var jump = document.getElementById("jump");
+  var dark = window.matchMedia("(prefers-color-scheme: dark)");
+  var rate = 1;
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  GROUPS.forEach(function (g) {
+    var a = el("a", null, g.title);
+    a.href = "#" + g.id;
+    jump.appendChild(a);
+    var box = el("div", "group");
+    box.id = g.id;
+    var h = el("h3", null, g.title);
+    h.appendChild(el("span", null, g.items.length + " Aktionen"));
+    box.appendChild(h);
+    var grid = el("div", "grid");
+    g.items.forEach(function (it) {
+      var fig = el("figure", "card");
+      var film = el("div", "film dual");
+      film.tabIndex = 0;
+      film.setAttribute("role", "button");
+      film.setAttribute("aria-label", "Film " + it[1] + " anhalten oder abspielen");
+      var v = document.createElement("video");
+      v.muted = true; v.loop = true; v.playsInline = true; v.preload = "none";
+      v.setAttribute("muted", ""); v.setAttribute("playsinline", "");
+      v.dataset.clip = it[0];
+      film.appendChild(v);
+      film.appendChild(el("span", "tag old", "Vorher"));
+      film.appendChild(el("span", "tag new", "Nachher"));
+      film.appendChild(el("i", "split"));
+      fig.appendChild(film);
+      var cap = el("figcaption");
+      var name = el("div", "name");
+      name.appendChild(el("h3", null, it[1]));
+      name.appendChild(el("code", null, it[0].toUpperCase()));
+      cap.appendChild(name);
+      cap.appendChild(el("p", "note", it[2]));
+      fig.appendChild(cap);
+      grid.appendChild(fig);
+    });
+    box.appendChild(grid);
+    groups.appendChild(box);
+  });
+
+  // The films follow the theme of the page: the look of the app in light or dark.
+  function look() {
+    var t = root.getAttribute("data-theme");
+    return t === "dark" || (t !== "light" && dark.matches) ? "dark" : "light";
+  }
+  var videos = Array.prototype.slice.call(document.querySelectorAll("video[data-clip]"));
+  function load(v) {
+    var src = look() + "/" + v.dataset.clip + ".mp4";
+    if (v.dataset.src !== src) {
+      v.dataset.src = src;
+      v.src = src;
+    }
+    v.playbackRate = rate;
+  }
+  function play(v) {
+    if (v.dataset.held) return;
+    var p = v.play();
+    if (p && p.catch) p.catch(function () {});
+  }
+  var seen = "IntersectionObserver" in window ? new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      var v = e.target;
+      if (e.isIntersecting) { v.dataset.near = "1"; load(v); play(v); } else { delete v.dataset.near; v.pause(); }
+    });
+  }, { rootMargin: "300px 0px" }) : null;
+  videos.forEach(function (v) {
+    v.muted = true;
+    if (seen) seen.observe(v); else { load(v); play(v); }
+    var film = v.parentNode;
+    if (film.getAttribute("role") !== "button") return;
+    function toggle() {
+      if (v.dataset.held) { delete v.dataset.held; film.classList.remove("paused"); play(v); }
+      else { v.dataset.held = "1"; film.classList.add("paused"); v.pause(); }
+    }
+    film.addEventListener("click", toggle);
+    film.addEventListener("keydown", function (e) { if (e.key === " " || e.key === "Enter") { e.preventDefault(); toggle(); } });
+  });
+  function retheme() {
+    videos.forEach(function (v) { if (v.dataset.src) { load(v); if (v.dataset.near) play(v); } });
+  }
+  if (dark.addEventListener) dark.addEventListener("change", retheme); else if (dark.addListener) dark.addListener(retheme);
+  new MutationObserver(retheme).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+
+  function pair(onId, offId, apply) {
+    var on = document.getElementById(onId), off = document.getElementById(offId);
+    function set(first) {
+      on.setAttribute("aria-pressed", String(first));
+      off.setAttribute("aria-pressed", String(!first));
+      apply(first);
+    }
+    on.addEventListener("click", function () { set(true); });
+    off.addEventListener("click", function () { set(false); });
+  }
+  pair("mode-dual", "mode-solo", function (dual) { page.classList.toggle("solo", !dual); });
+  pair("speed-1", "speed-half", function (normal) {
+    rate = normal ? 1 : 0.4;
+    videos.forEach(function (v) { v.playbackRate = rate; });
+  });
+})();
+</script>
