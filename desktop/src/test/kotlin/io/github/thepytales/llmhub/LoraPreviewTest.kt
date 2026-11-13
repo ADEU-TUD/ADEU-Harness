@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.toAwtImage
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import io.github.thepytales.llmhub.ui.LORA_BLEND_MS
@@ -32,6 +33,11 @@ import kotlin.test.Test
  *
  * LORA_PREVIEW_ONLY=WAVE,IDLE limits it to these actions (and leaves out the long films), LORA_PREVIEW_FPS sets the
  * frames per second (60). The films are lossless (.mkv), one folder per look of the app (light, dark).
+ *
+ * LORA_STRIP_DIR=/tmp/strips writes picture strips instead (no ffmpeg needed, a few seconds): some moments of every
+ * action side by side, several actions per picture – to look through all actions quickly. LORA_PREVIEW_ONLY limits the
+ * actions, LORA_STRIP_N sets the moments per action (6), LORA_STRIP_W the width of one moment in pixels (260),
+ * LORA_STRIP_FROM and LORA_STRIP_TO the part of the round (0 to 1), LORA_STRIP_LOOK=dark the dark look.
  */
 class LoraPreviewTest {
     private class Look(val name: String, val colors: LoraColors, val card: Color, val page: Color)
@@ -82,6 +88,45 @@ class LoraPreviewTest {
             // The whole figure as small as under an answer of the chat (30 × 21 dp, here at four times the pixels).
             val small = LoraDirector(listOf(LoraAction.CHEER, LoraAction.IDLE, LoraAction.NOD, LoraAction.WAVE), LoraAction.CHEER, 1500)
             film(File(out, "small.mkv"), 120, 84, fps, 13_800, look.card) { t -> drawLora(small.frame(t), t, look.colors) }
+        }
+    }
+
+    @Test
+    fun strips() {
+        val dir = System.getenv("LORA_STRIP_DIR")?.takeIf { it.isNotBlank() }?.let(::File) ?: return
+        fun number(name: String, default: Float) = System.getenv(name)?.toFloatOrNull() ?: default
+        val only = System.getenv("LORA_PREVIEW_ONLY")?.split(',')?.map { it.trim() }?.filter { it.isNotEmpty() }.orEmpty()
+        val n = number("LORA_STRIP_N", 6f).toInt()
+        val w = number("LORA_STRIP_W", 260f).toInt()
+        val h = w * 7 / 10
+        val from = number("LORA_STRIP_FROM", 0f)
+        val to = number("LORA_STRIP_TO", 1f)
+        val look = looks.first { it.name == (System.getenv("LORA_STRIP_LOOK") ?: "light") }
+        val cols = minOf(n, 1560 / w)
+        val rowsOfAction = (n + cols - 1) / cols
+        val actions = LoraAction.entries.filter { only.isEmpty() || it.name in only }
+        dir.mkdirs()
+        actions.chunked(maxOf(1, 4 / rowsOfAction)).forEachIndexed { index, chunk ->
+            val img = java.awt.image.BufferedImage(w * cols, h * rowsOfAction * chunk.size, java.awt.image.BufferedImage.TYPE_INT_RGB)
+            val g = img.createGraphics()
+            chunk.forEachIndexed { row, action ->
+                for (i in 0 until n) {
+                    val phase = from + (to - from) * (i + 0.5f) / n
+                    val t = (phase * action.periodMs).toLong()
+                    val bitmap = ImageBitmap(w, h)
+                    CanvasDrawScope().draw(Density(w / 280f), LayoutDirection.Ltr, Canvas(bitmap), Size(w.toFloat(), h.toFloat())) {
+                        drawRect(look.card)
+                        drawLora(LoraFrame(action, phase, t, action, (t / LORA_BLEND_MS.toFloat()).coerceAtMost(1f)), 20_000 + t, look.colors)
+                    }
+                    val x = (i % cols) * w
+                    val y = (row * rowsOfAction + i / cols) * h
+                    g.drawImage(bitmap.toAwtImage(), x, y, null)
+                    g.color = java.awt.Color.GRAY
+                    g.drawString(if (i == 0) "${action.name} %.2f".format(phase) else "%.2f".format(phase), x + 4, y + 12)
+                }
+            }
+            g.dispose()
+            javax.imageio.ImageIO.write(img, "png", File(dir, "strip-${look.name}-%02d.png".format(index)))
         }
     }
 

@@ -1154,6 +1154,29 @@ sie gleich groß bleiben. Neu `LoraPreviewTest` (Filme aller Aktionen, nur mit `
 3. Vorschau danach neu rendern und unter derselben Adresse aktualisieren.
 4. Beim Ausgeben der Symbole prüfen, dass im Benachrichtigungssymbol (`ic_notification`) nichts den Rand berührt (der
    Lichthof des Sterns reicht höher als der alte Stern).
+**Mängelliste (Durchsicht aller 51 Aktionen am 13.11.2026, Bildstreifen je sechs Momente; ☐ offen, ☑ behoben)** –
+Arbeitszweig ab hier `ccr-3356efb4-jqscvr` (enthält `ccr-591efb5e-siqh68` vollständig):
+- *Benutzung falsch*: ☐ **MICROSCOPE** Auge liegt links neben dem Okular, Mikroskop klein und nur aus Strichen ·
+  ☐ **TELESCOPE** Auge trifft das Okular nicht, das Rohr läuft am Kopf vorbei, keine Hand am Rohr · ☐ **SEARCH** Lupe
+  ohne erkennbaren Griff und ohne Glas (ein Ring an der Hand), sie schaut nie hindurch · ☐ **COFFEE** Tasse liegt beim
+  Trinken auf Auge und Wange statt am Mund, Tasse winzig · ☐ **GLOBE** Globus halb hinter Lora, sie schaut weg statt
+  hin · ☐ **NOTES** Klemmbrett ist ein grauer Kasten, kein Stift zu sehen · ☐ **READ** schaut meist nach vorn statt ins
+  Buch · ☐ **TYPE** Hände nicht zu sehen, Laptop nur ein Rechteck.
+- *Kaum zu erkennen*: ☐ **FOLDER** Ordner in Körperfarbe vor dem Körper · ☐ **LOCK** Schloss und Schlüssel winzig ·
+  ☐ **DIG** Schaufel kaum sichtbar, Erdhügel grau wie ein Stein · ☐ **PAINT** Pinsel und Palette kaum sichtbar ·
+  ☐ **SCISSORS** Schere winzig und grau · ☐ **HIGHLIGHT** Marker winzig · ☐ **WATER** Gießkanne winzig · ☐ **NET**
+  Kescher klein · ☐ **CHART**, **CALENDAR** Tafel teils hinter Lora.
+- *Flach neben der neuen Lora* (kein Schatten am Boden, kein Licht und Schatten): ☐ Tische (STAPLER, STAMP), Tafeln und
+  Staffeleien (CHART, CALENDAR, PAINT, SLIDES, SHEET, PUZZLE), Regal (SHELF), Karteikasten (CARDS), Blumentopf (WATER),
+  Globus, Kolben (FLASK), Bälle (JUGGLE), Bücher (READ, BOOKS), Tasse, Laptop, Rechenrahmen (ABACUS), Umschlag (MAIL).
+- *Laufen* (WALK, auch BOOKS, SEARCH, SHELF): ☐ sie läuft seitwärts wie eine Krabbe (Körper nur 36° gedreht, Beine so
+  breit wie im Stand, Knie knicken nach außen statt in Laufrichtung) · ☐ viele winzige Schritte (Schrittlänge 9, Tempo
+  schwankt als Sinus, an den Wendepunkten rutschen die Füße) · ☐ beide Arme schwingen zur selben Seite.
+- *Ohne Befund*: JUGGLE, DANCE, THINK, EUREKA, RADAR, BINOCULARS, PUZZLE, PLANE, HEADPHONES, TWIRL, STAPLER, STAMP,
+  MAIL, SLIDES, SHEET, TRANSLATE, WAVE, LOOK, SLEEP, STRETCH, FLY, IDLE, NOD, CHEER, SHRUG, SCRATCH, POINT (Bewegung
+  und Benutzung stimmen; die Gegenstände darin fallen nur unter „flach“).
+- *Werkzeug dafür*: `LORA_STRIP_DIR=/pfad ./gradlew -p desktop cleanTest test --tests '*LoraPreviewTest.strips*'`
+  schreibt in Sekunden Bildstreifen statt Filme (siehe `tools/lora-vorschau/README.md`).
 **Nach der Freigabe**: Pull Request von diesem Zweig, App-Symbole neu ausgeben und kopieren (README › *Logo ändern*, auch
 `app.icns`), README-Abschnitte *Logo und Startanimation* und *Lora, das Maskottchen* anpassen, Paket abhaken.
 Veröffentlicht wird nur auf ausdrücklichen Wunsch.

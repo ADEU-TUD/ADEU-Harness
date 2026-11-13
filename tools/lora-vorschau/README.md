@@ -20,6 +20,10 @@ private Seite: <https://claude.ai/artifact/1BiJ6Nwn1GyU5mvZhS7f51> (nur für den
 
 ## Prüfen ohne Filme
 
+- **Bildstreifen** (schnellster Weg, Sekunden, kein ffmpeg): `LORA_STRIP_DIR=/pfad ./gradlew -p desktop cleanTest test
+  --tests '*LoraPreviewTest.strips*'` schreibt je vier Aktionen ein Bild mit sechs Momenten der Runde. Feiner:
+  `LORA_PREVIEW_ONLY=WALK LORA_STRIP_N=18 LORA_STRIP_FROM=0 LORA_STRIP_TO=0.5` (18 Momente der ersten Hälfte),
+  `LORA_STRIP_W=520` (größer), `LORA_STRIP_LOOK=dark`. `cleanTest` ist nötig, sonst überspringt Gradle den Lauf.
 - `./gradlew -p desktop test --tests '*LoraFigureTest*'` schreibt Bildbögen aller Aktionen nach
   `desktop/build/lora.png` und `lora-dark.png` (je Aktion eine Zeile) und prüft, dass nichts über den Rand ragt.
 - Einzelne Aktionen: `LORA_PREVIEW_ONLY=WALK,SEARCH` vor dem Befehl aus Schritt 1; Bildfolgen daraus mit
