@@ -155,6 +155,13 @@ dialog button { position: fixed; top: 14px; right: 18px; }
     <div class="kpi"><b>89</b><span>Befunde · 23 hoch · 40 mittel</span></div>
   </div>
 
+
+  <div class="answer" style="border-color:color-mix(in srgb, var(--mittel) 45%, var(--line))">
+    <h3><span class="i" style="color:var(--mittel)">straighten</span> Nachtrag: Fenstergröße im Test</h3>
+    <p style="margin:0">Die Bilder stammen aus dem kleinen Maßstab des Design-Arbeitsplans, 1366 × 768 bei 150 % (911 × 512 dp). Die App öffnet aber mit 1180 × 820 dp. Nachgeprüft in fünf echten Fenstergrößen: Seitenleiste nur als Overlay, leere Startseite und knappe Schreibfläche gibt es <b>nur im kleinen Fenster</b>; Erstellen und Wortbrüche nur in Handy-Breite. US-Datum und HTTP-401-Fehler kommen vom englischen Testrechner und vom Beispielschlüssel. <b>Bestätigt bei üblichen Größen:</b> der Gestalten-Editor (auch bei 1920 × 1080 bei 150 % und im Standardfenster) und die Willkommenskarte. Sie verliert unter ≈ 950 dp Höhe unten unsichtbar den Teil „alles auf diesem Gerät“, während Rahmen und Ecken vollständig aussehen. Die Befunde zu Einheitlichkeit, Farben, Texten und leeren Zuständen gelten unabhängig von der Größe.</p>
+    <p class="note" style="margin:0">Offene Frage: Welche Bildschirme und Skalierungen sind bei euch üblich? Danach richtet sich, wie wichtig die Befunde für kleine Fenster sind.</p>
+  </div>
+
   <h2>Das Wichtigste in sechs Sätzen</h2>
   <ol class="points">
     <li><b>Solides Fundament, aber noch kein Gesamtprodukt.</b> Knöpfe, Dialoge und Felder sind seit AP-123 einheitlich – darüber baut jeder Bildschirm seinen eigenen Kopf, seine eigene Hauptaktion, seinen eigenen leeren Zustand und seine eigenen Farben.</li>
@@ -273,19 +280,19 @@ const GRADES = [
 ];
 
 const FINDS = [
-  { id: "C-01", sev: "hoch", pk: "APD-05", title: "Die PC-Startseite ist fast leer", img: ["bilder/pc-start.png"],
+  { id: "C-01", sev: "mittel", pk: "APD-05 · nur kleines Fenster", title: "Im kleinen Fenster ist die Startseite fast leer", img: ["bilder/pc-start.png"],
     what: "Bei 512 dp Höhe blendet die Startseite Startaktionen, „Zuletzt“ und Loras Ideen aus. Übrig bleiben eine kleine Lora, der Gruß und viel Weiß – genau „langweilig“.",
     prop: "Kompaktes Layout statt Ausblenden: Lora groß neben dem Gruß, Aktionen in einer Reihe, „Weiter, wo du warst“ als Karten (siehe Entwurf)." },
-  { id: "R-01", sev: "hoch", pk: "APD-06", title: "Die Seitenleiste ist am PC nie da", img: ["bilder/pc-seitenleiste.png"],
+  { id: "R-01", sev: "mittel", pk: "APD-06 · nur kleines Fenster", title: "Unter 1000 dp Breite ist die Seitenleiste nie da", img: ["bilder/pc-seitenleiste.png"],
     what: "Bei 1366 × 768 @ 150 % ist das Fenster 911 dp breit, die Seitenleiste bleibt erst ab 1000 dp stehen. Auf der Hauptplattform kommt sie also immer als Overlay – jeder Chat-Wechsel kostet zwei Klicks; Chats sieht man erst nach Scrollen.",
     prop: "Ab 840 dp dauerhaft (260 dp breit), darunter eine Symbol-Leiste; kompakte Zeilen, „Neuer Chat“ als Knopf." },
-  { id: "I-10", sev: "hoch", pk: "APD-02", title: "Gestalten-Editor bricht bei 1366 × 768", img: ["bilder/pc-gestalten.png"],
+  { id: "I-10", sev: "hoch", pk: "APD-02", title: "Gestalten-Editor bricht – auch bei üblichen Größen", img: ["bilder/groesse-b-1920x1080-150-gestalten.png", "bilder/pc-gestalten.png"],
     what: "„Exportieren“ steht senkrecht Buchstabe für Buchstabe, die Seite ist winzig, der Titel steckt als großes Feld in der Leiste.",
     prop: "Kopfleiste umbrechen, Export unter 1000 dp als Symbol-Knopf, Titel als Text (Klick = umbenennen)." },
-  { id: "I-07", sev: "hoch", pk: "APD-02", title: "Erstellen am Handy zerbrochen", img: ["bilder/handy-erstellen.png"],
+  { id: "I-07", sev: "hoch", pk: "APD-02 · nur Handy-Breite", title: "Erstellen am Handy zerbrochen", img: ["bilder/handy-erstellen.png"],
     what: "Hinweis einwortig untereinander, Beschreibung gequetscht, die Überschrift „Diagramme“ läuft Buchstabe für Buchstabe nach unten; schwebende Lora und „Neue Vorlage“ teilen sich die Ecke.",
     prop: "Unter 600 dp untereinander statt nebeneinander; danach Erstellen mit Abschnitts-Reitern aufräumen (APD-10). Die TU-Vorlagen selbst bleiben unverändert." },
-  { id: "Q-08", sev: "hoch", pk: "APD-02", title: "Rohe Fehlermeldung mit Token-Hash", img: ["bilder/pc-modelle.png"],
+  { id: "Q-08", sev: "mittel", pk: "APD-02 · bei ungültigem Schlüssel", title: "Rohe Fehlermeldung mit Token-Hash", img: ["bilder/pc-modelle.png"],
     what: "Modelle zeigt „HTTP 401 … Key Hash (Token) = c5714… LiteLLM_VerificationTokenTable“ – Interna auf dem Bildschirm.",
     prop: "Klartext („Der Schlüssel wurde nicht angenommen“), Knopf „Schlüssel prüfen“, Details zugeklappt zum Kopieren." },
   { id: "Q-06", sev: "hoch", pk: "APD-03", title: "Feste Farben verschwinden im Dunkeln", img: ["bilder/kontrast-dunkel-dateien.png"],
@@ -303,8 +310,8 @@ const FINDS = [
   { id: "I-13", sev: "hoch", pk: "APD-10", title: "Whiteboard: alles in zwei Chip-Reihen", img: ["bilder/pc-whiteboard.png"],
     what: "Diagrammart, Werkzeuge und Aktionen stehen gemischt in Chip-Reihen, „Rückgängig“ ist grauer Text, für die Zeichenfläche bleibt wenig Platz.",
     prop: "Werkzeugleiste links mit Symbolen, Art als Auswahl, Aktionen im Kopf, Lora-Prompt als ausklappbare Leiste." },
-  { id: "C-02", sev: "hoch", pk: "APD-02", title: "Ohne Schlüssel: Willkommen abgeschnitten", img: ["bilder/pc-start-ohne-schluessel.png"],
-    what: "Am PC zeigt die Willkommenskarte nur Titel und einen Knopf – die Schritte, „API-Key eintragen“ und „alles auf diesem Gerät“ sind weg.",
+  { id: "C-02", sev: "hoch", pk: "APD-02", title: "Willkommenskarte schneidet unten unsichtbar ab", img: ["bilder/groesse-c-standardfenster-willkommen.png", "bilder/pc-start-ohne-schluessel.png"],
+    what: "Die Karte passt erst ab ≈ 950 dp Fensterhöhe ganz. Im Standardfenster (links) fehlt unten „Oder ganz ohne Schlüssel“ mit seinem Knopf, im kleinen Fenster (rechts) fast alles. Rahmen und Ecken bleiben vollständig, deshalb fällt es nicht auf.",
     prop: "Karte kompakt und scrollbar: ein Hauptknopf „Einrichten“, zwei Nebenwege als Zeilen." },
   { id: "Q-01", sev: "hoch", pk: "APD-04", title: "Die Hauptaktion steht an vier Orten", img: ["bilder/pc-aufgaben.png", "bilder/pc-lernspiele-leer.png"],
     what: "Text-Knopf im Kopf („+ Neues Lernspiel“), hellvioletter FAB unten („Neue Aufgabe“), großer dunkelblauer FAB (Dateien) oder graue Text-Aktion („Speichern“). Am Handy schneidet die Kopfaktion den Titel ab.",

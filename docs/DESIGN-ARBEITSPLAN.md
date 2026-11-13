@@ -168,6 +168,11 @@ stehen und der Hauptnutzer Richtung und Reihenfolge auf der Übersichtsseite fre
   mit Chat, Dateien und einer Baukasten-Tafel: [`docs/design/entwuerfe/`](design/entwuerfe/).
 - ☑ **Pakete** APD-02 bis APD-14 unter *Danach*, nach Nutzen geordnet.
 - ◐ **Übersichtsseite** (Artefakt) liegt dem Hauptnutzer zur Freigabe von Richtung und Reihenfolge vor.
+- ☑ **Nachtrag Fenstergrößen** (Rückfrage Hauptnutzer): Viele „abgeschnitten“-Befunde gibt es nur im Review-Fenster
+  911 × 512 dp oder in Handy-Breite; US-Datum und Rohfehler waren zum Teil Testartefakte. Bestätigt bei üblichen
+  Größen: Gestalten-Editor und die unten unsichtbar abgeschnittene Willkommenskarte. Abgleich in fünf Fenstergrößen
+  (`DesignReviewTest.sizes`) im Review unter *Nachtrag*. **Offen**: welche Bildschirme und Skalierungen der Maßstab
+  sind (Grundsatz *Plattformen*) – danach werden C-01, R-01, R-09 und I-11 eingestuft.
 
 ---
 
@@ -183,8 +188,8 @@ Entwürfe in `design/entwuerfe/`). TU-Dresden-Vorlagen und ihre Ausgabe bleiben 
 ### APD-02 ☐ Sofort-Korrekturen · S–M
 **Befund**: Fehler, die heute im Alltag stören und keinen Baukasten brauchen: Gestalten-Editor bricht bei 1366 × 768
 („Exportieren“ senkrecht, I-10), Erstellen am Handy zerbrochen (I-07), Wörter brechen mitten im Wort (Q-17),
-Willkommenskarte ohne Schlüssel am PC abgeschnitten (C-02), rohe Fehlermeldung mit Token-Hash in Modelle (Q-08), Datum
-und Uhrzeit im US-Format (Q-09), „nicht verbunden“ in Mail als roter Absatz und Hinweis mit rotem Fehler-Symbol in
+Willkommenskarte ohne Schlüssel unter ≈ 950 dp Höhe unten unsichtbar abgeschnitten (C-02), rohe Fehlermeldung mit
+Token-Hash bei ungültigem Schlüssel (Q-08), Datum und Uhrzeit nach Systemsprache statt App-Sprache (Q-09), „nicht verbunden“ in Mail als roter Absatz und Hinweis mit rotem Fehler-Symbol in
 Aufgaben (Q-07, W-05).
 **Ziel**: Nichts mehr, was kaputt oder erschreckend aussieht – auf der Hauptplattform und am Handy.
 **Vorschläge**: Kopfleiste des Design-Editors umbrechen/Symbol-Knopf unter 1000 dp; `FlowRow`/Spalte unter 600 dp in

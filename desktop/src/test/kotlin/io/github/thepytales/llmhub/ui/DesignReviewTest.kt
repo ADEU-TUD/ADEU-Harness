@@ -282,6 +282,26 @@ class DesignReviewTest {
         }
     }
 
+    /**
+     * The same states in the window sizes people really have (content area, title bar and taskbar taken off), to see
+     * from which size on something is cut off: build/design-review/groessen/<size>-<state>.png.
+     */
+    @Test
+    fun sizes() {
+        if (!wanted) return
+        File(out, "schrift.txt").writeText(
+            "Standardschrift im Test: " + org.jetbrains.skia.FontMgr.default.legacyMakeTypeface("", org.jetbrains.skia.FontStyle.NORMAL)?.familyName + "\n",
+        )
+        val sizes = listOf(
+            "a-1366x768-150" to (911 to 450), "b-1920x1080-150" to (1280 to 650), "c-app-standard-1180x820" to (1180 to 790),
+            "d-1366x768-100" to (1366 to 690), "e-1920x1080-125" to (1536 to 790),
+        )
+        sizes.forEach { (name, wh) ->
+            shoot("groessen-$name", wh.first, wh.second, 1.5f, data = false, routes = listOf("start"))
+            shoot("groessen-$name-daten", wh.first, wh.second, 1.5f, routes = listOf("start", "chat:main", "templates", "files"), extra = { c -> editors(c).let { listOf(it[0], it[3]) } })
+        }
+    }
+
     /** First start: the setup window, then the empty states (no key, no data). */
     @Test fun firstStart() = shoot("pc-erster-start", 911, 512, 1.5f, data = false, firstStart = true, routes = listOf("start"))
     @Test fun wideFirstStart() = shoot("breit-erster-start", 1600, 900, 1f, data = false, firstStart = true, routes = listOf("start"))
