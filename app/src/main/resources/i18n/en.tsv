@@ -7230,3 +7230,13 @@ Link entfernen	Remove link
 Mit Lora überarbeiten …	Revise with Lora …
 Strg+J	Ctrl+J
 Strg+A	Ctrl+A
+# Autokorrektur (AP-125)
+Autokorrektur …	AutoCorrect …
+Autokorrektur	AutoCorrect
+Beim Tippen in Dokumenten. Strg+Z direkt danach nimmt eine Korrektur zurück.	While typing in documents. Ctrl+Z right after it takes a correction back.
+„Anführungszeichen“ und Apostroph ’	“Smart quotes” and apostrophe ’
+-- wird –, ... wird …	-- becomes –, ... becomes …
+(c) wird ©, (r) wird ®, -> wird →	(c) becomes ©, (r) becomes ®, -> becomes →
+Satzanfang groß	Capitalise first letter of sentences
+ZWei GRoßbuchstaben am Wortanfang	TWo INitial CApitals
+Häufige Tippfehler (udn → und)	Common typos (teh → the)

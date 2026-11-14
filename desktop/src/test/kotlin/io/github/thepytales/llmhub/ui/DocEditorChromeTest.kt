@@ -179,6 +179,24 @@ class DocEditorChromeTest {
         assertTrue("**Fett**" in rich, rich)
     }
 
+    /** Autokorrektur (AP-125): typed character by character; Strg+Z right after takes back only the correction. */
+    @Test
+    fun autocorrectWhileTypingAndUndoTakesItBack() = runSkikoComposeUiTest(Size(1300f, 900f), Density(1f)) {
+        val id = open("# Antrag\n\nErster Absatz.\n")
+        val field = onAllNodesWithContentDescription("Dokumenttext").onFirst()
+        field.performClick()
+        // At the start of a paragraph: a typo, then quotes – each character on its own, as typed.
+        "udn \"gut\"".forEach { ch -> field.performTextInput(ch.toString()); settle(1) }
+        settle(10)
+        var md = c.docs.get(id)!!.tabs.first().markdown
+        assertTrue("Und „gut“Erster" in md, md)
+        // Strg+Z right after a correction takes back only the correction: the straight quote is back.
+        field.performKeyInput { withKeyDown(Key.CtrlLeft) { pressKey(Key.Z) } }
+        settle(10)
+        md = c.docs.get(id)!!.tabs.first().markdown
+        assertTrue("Und „gut\"Erster" in md, md)
+    }
+
     private fun SkikoComposeUiTest.has(text: String, substring: Boolean) =
         onAllNodesWithText(text, substring = substring).fetchSemanticsNodes().isNotEmpty()
 }

@@ -152,6 +152,7 @@ import io.github.thepytales.llmhub.docs.DocComment
 import io.github.thepytales.llmhub.docs.DocStyle
 import io.github.thepytales.llmhub.docs.LiveDoc
 import io.github.thepytales.llmhub.docs.text.Align
+import io.github.thepytales.llmhub.docs.text.AutoCorrect
 import io.github.thepytales.llmhub.docs.text.PageLayout
 import io.github.thepytales.llmhub.docs.text.CharFormat
 import io.github.thepytales.llmhub.docs.text.ParaFormat
@@ -1533,6 +1534,7 @@ private fun FlowMenus(
     var tablePick by remember { mutableStateOf(false) }
     var sectionFor by remember { mutableStateOf<DocMarkup.Section?>(null) }
     var special by remember { mutableStateOf(false) }
+    var autoCorrect by remember { mutableStateOf(false) }
     // Diagramme und Whiteboard (AP-61).
     var newDiagram by remember { mutableStateOf<String?>(null) }
     @Composable
@@ -1647,6 +1649,7 @@ private fun FlowMenus(
             item("Markierung mit Lora überarbeiten …", onClick = onRevise, close = close)
             item("Lora fragen", onClick = host.onAskAi, close = close)
             item("Rechtschreibung prüfen", onClick = host.onSpell, close = close)
+            item("Autokorrektur …", onClick = { autoCorrect = true }, close = close)
             host.onSpellAi?.let { item("Rechtschreibung prüfen (KI)", onClick = it, close = close) }
             host.onTrack?.let { item("Änderungen nachverfolgen", onClick = it, close = close) }
             item("Wortzahl", onClick = {
@@ -1663,6 +1666,7 @@ private fun FlowMenus(
         state.insertBlock(DocBlocks.table(listOf(List(cols) { tr("Spalte {0}", it + 1) }) + List(rows - 1) { List(cols) { "" } }))
     }
     if (special) SpecialCharsDialog(onDismiss = { special = false }) { ch -> special = false; state.insertText(ch) }
+    if (autoCorrect) AutoCorrectDialog(c, onDismiss = { autoCorrect = false })
     newDiagram?.let { kind ->
         DiagramEditorDialog(if (kind == "board") io.github.thepytales.llmhub.docs.Diagram(kind = "board", manual = true) else starterDiagram(kind), onDismiss = { newDiagram = null }) { d ->
             newDiagram = null
@@ -1703,6 +1707,38 @@ private fun insertFootnote(state: FlowState) {
 }
 
 /** Raster to choose the size of a new table (Einfügen › Tabelle). */
+/** Extras › Autokorrektur (AP-125): each rule on or off, for all documents. */
+@Composable
+private fun AutoCorrectDialog(c: AppContainer, onDismiss: () -> Unit) {
+    var off by remember { mutableStateOf(AutoCorrect.rulesOff(c.settings.current.docAutocorrectOff)) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(tr("Autokorrektur")) },
+        text = {
+            Column {
+                HintText(tr("Beim Tippen in Dokumenten. Strg+Z direkt danach nimmt eine Korrektur zurück."))
+                Spacer(Modifier.height(8.dp))
+                AutoCorrect.Rule.entries.forEach { rule ->
+                    Row(
+                        Modifier.fillMaxWidth().clickable { off = if (rule in off) off - rule else off + rule }.padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(tr(rule.label), Modifier.weight(1f))
+                        Switch(checked = rule !in off, onCheckedChange = { on -> off = if (on) off - rule else off + rule })
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                c.settings.update { it.copy(docAutocorrectOff = AutoCorrect.setting(off)) }
+                onDismiss()
+            }) { Text(tr("Übernehmen")) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
+    )
+}
+
 @Composable
 private fun TablePickDialog(onDismiss: () -> Unit, onPick: (Int, Int) -> Unit) {
     var hover by remember { mutableStateOf(3 to 3) }
@@ -2536,12 +2572,26 @@ private fun FlowField(
                     typing = r.chars.getOrNull(inner.last)?.let { if (bold != null) it.copy(bold = false) else it.copy(italic = false) }
                 }
             }
+            // Autokorrektur (AP-125): one typed character, nothing else changed, no input method composing.
+            val typedAt = sel.start - 1
+            val fix = if (v.text.length == old.text.length + 1 && sel.collapsed && typedAt >= 0 && r.text == v.text && v.composition == null) {
+                val code = r.chars.getOrNull(typedAt)?.code == true || r.paras[r.paraAt(typedAt)].kind == ParaKind.CODE
+                AutoCorrect.after(r.text, sel.start, r.text[typedAt], AutoCorrect.rulesOff(c.settings.current.docAutocorrectOff), code)
+            } else null
             state.checkpoint(group = true)
             seg.rich = r
             seg.selection = sel
             seg.composition = v.composition
             seg.typing = typing
             state.changed()
+            if (fix != null) {
+                // Its own step: Rückgängig right after it takes back only the correction (like Word).
+                state.checkpoint()
+                val fmt = r.chars.getOrNull(fix.range.first)?.stored ?: CharFormat.PLAIN
+                seg.rich = seg.rich.replace(fix.range, fix.text, fmt)
+                seg.selection = TextRange(fix.cursor)
+                state.changed()
+            }
         } else {
             if (v.selection != seg.selection) seg.typing = null
             var sel = v.selection

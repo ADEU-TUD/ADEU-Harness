@@ -63,6 +63,8 @@ data class AppSettings(
     val tudUnit: String = DEFAULT_TUD_UNIT,
     /** Formatvorlagen for documents without their own (AP-46 „Als Standard speichern“): their setting lines. */
     val docStyleLines: String = "",
+    /** Autokorrektur in documents (AP-125): the rules switched off (ids of docs/text/AutoCorrect, comma-separated). */
+    val docAutocorrectOff: String = "",
     /** Put the default logo into every document. */
     val autoLogo: Boolean = false,
     /** Own details for letters and e-mails (name, function, phone, e-mail, room); prefills the "Absender" fields of templates. */
@@ -341,6 +343,7 @@ class SettingsStore(context: Context) {
             .putString("docFooter", next.docFooter)
             .putString("tudUnit", next.tudUnit)
             .putString("docStyleLines", next.docStyleLines)
+            .putString("docAutocorrectOff", next.docAutocorrectOff)
             .putBoolean("autoLogo", next.autoLogo)
             .putString("senderInfo", next.senderInfo)
             .putString("favoriteTemplates", next.favoriteTemplates.joinToString("\n"))
@@ -471,6 +474,7 @@ class SettingsStore(context: Context) {
             docFooter = prefs.getString("docFooter", d.docFooter) ?: d.docFooter,
             tudUnit = prefs.getString("tudUnit", d.tudUnit) ?: d.tudUnit,
             docStyleLines = prefs.getString("docStyleLines", d.docStyleLines) ?: d.docStyleLines,
+            docAutocorrectOff = prefs.getString("docAutocorrectOff", d.docAutocorrectOff) ?: d.docAutocorrectOff,
             autoLogo = prefs.getBoolean("autoLogo", d.autoLogo),
             senderInfo = prefs.getString("senderInfo", d.senderInfo) ?: d.senderInfo,
             favoriteTemplates = prefs.getString("favoriteTemplates", "").orEmpty().lines().filter { it.isNotBlank() },
