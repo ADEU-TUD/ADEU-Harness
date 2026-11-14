@@ -37,6 +37,35 @@ class FlowBlocksTest {
     }
 
     @Test
+    fun textWrapAroundThePictureLikeWord() {
+        val img = DocMarkup.Image("Abb. 2", "a.png", 40, wrap = "right")
+        assertEquals("![Abb. 2](a.png){width=40% wrap=right}", img.markdown())
+        assertEquals(img, DocMarkup.image(img.markdown()))
+        // On, the picture goes to its edge and gets room for the text; off, it keeps that edge in a line of its own.
+        val on = io.github.thepytales.llmhub.ui.wrapped(DocMarkup.Image("A", "a.png", null, align = "left"), true)
+        assertEquals("left", on.wrap)
+        assertEquals(40, on.width)
+        assertEquals("left", io.github.thepytales.llmhub.ui.wrapped(on, false).align)
+        assertNull(io.github.thepytales.llmhub.ui.placed(on, null).wrap)
+        // The PDF lets it float.
+        val dir = Files.createTempDirectory("adeu-ap125e").toFile()
+        val png = File(dir, "a.png")
+        javax.imageio.ImageIO.write(java.awt.image.BufferedImage(40, 20, java.awt.image.BufferedImage.TYPE_INT_RGB), "png", png)
+        val md = DocMarkup.Image("Abb. 2", png.absolutePath, 40, wrap = "right").markdown() + "\n\nText daneben.\n"
+        val out = File(dir, "a.docx")
+        MarkdownDocx.write(out, "Test", md)
+        val xml = ZipFile(out).use { z -> z.getInputStream(z.getEntry("word/document.xml")).readBytes().decodeToString() }
+        // Word: picture and caption in a text box at the right margin with „Quadrat“, as Word itself does it.
+        assertTrue("<wp:wrapSquare wrapText=\"bothSides\"/>" in xml && "<wp:align>right</wp:align>" in xml, "verankert rechts mit Umbruch")
+        val box = xml.substringAfter("<w:txbxContent>").substringBefore("</w:txbxContent>")
+        assertTrue("<pic:pic" in box && "Abb. 2" in box, "Bild und Unterschrift im Textfeld")
+        javax.xml.parsers.DocumentBuilderFactory.newInstance().apply { isNamespaceAware = true }.newDocumentBuilder().parse(xml.byteInputStream())
+        val html = io.github.thepytales.llmhub.docs.DocumentWriter.toHtml("Test", md)
+        assertTrue("float:right" in html, html.take(400))
+        dir.deleteRecursively()
+    }
+
+    @Test
     fun columnWidthsInTheLineUnderTheHeader() {
         val rows = listOf(listOf("Phase", "Zeitraum", "Ergebnis"), listOf("1", "2026", "Modul"))
         val md = DocBlocks.table(rows, listOf(20, 30, 50))

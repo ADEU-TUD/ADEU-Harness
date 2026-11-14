@@ -36,6 +36,8 @@ object MarkdownDocx {
         val charts = mutableListOf<ChartPart>()
         var landscape = false
         var drawingId = 10
+        /** A picture with Textumbruch (AP-125 e) was written: the next block of its own starts below it. */
+        var floating = false
         /** Headings for an Inhaltsverzeichnis (AP-16). */
         var headings: List<Pair<Int, String>> = emptyList()
         /** Page margins in twips (AP-16). */
@@ -421,11 +423,41 @@ object MarkdownDocx {
         val caption = img.alt.isNotBlank()
         // Ausrichtung of the picture and its caption (AP-125 d).
         val jc = when (img.align) { "left" -> "left"; "right" -> "right"; else -> "center" }
+        val pictureRun = "<w:r>" + drawing(media.rel, id, "Bild $n", img.altText.ifBlank { "Bild $n" }, cx, cy) + "</w:r>"
+        img.wrap?.let { side -> return floatingPicture(side, pictureRun, if (caption) runs(img.alt) else null, cx, cy) }
         val picture = para(
-            "<w:r>" + drawing(media.rel, id, "Bild $n", img.altText.ifBlank { "Bild $n" }, cx, cy) + "</w:r>",
+            pictureRun,
             (if (caption) "<w:keepNext/>" else "") + "<w:spacing w:before=\"120\" w:after=\"${if (caption) 60 else 160}\"/><w:jc w:val=\"$jc\"/>",
         )
         return picture + if (caption) para(runs(img.alt), "<w:pStyle w:val=\"Caption\"/><w:jc w:val=\"$jc\"/>") else ""
+    }
+
+    /**
+     * Textumbruch (AP-125 e), as Word does it for a picture with a caption: picture and caption in a text box without
+     * border, anchored at the left or right margin with „Quadrat“; the text after it runs on beside it. The anchor sits in
+     * a paragraph of almost no height, so the text starts level with the picture.
+     */
+    private fun floatingPicture(side: String, pictureRun: String, captionRuns: String?, cx: Long, cy: Long): String {
+        val c = ctx
+        c.floating = true
+        val id = c.drawingId++
+        val gap = 114300L
+        val content = para(pictureRun, "<w:spacing w:before=\"0\" w:after=\"${if (captionRuns != null) 60 else 0}\"/><w:jc w:val=\"center\"/>") +
+            (captionRuns?.let { para(it, "<w:pStyle w:val=\"Caption\"/><w:spacing w:before=\"0\" w:after=\"0\"/><w:jc w:val=\"center\"/>") }.orEmpty())
+        val boxH = cy + if (captionRuns != null) 320000L else 0L
+        val shape = "<wp:anchor distT=\"0\" distB=\"$gap\" distL=\"${if (side == "right") gap else 0}\" distR=\"${if (side == "left") gap else 0}\" simplePos=\"0\" relativeHeight=\"$id\" behindDoc=\"0\" locked=\"0\" layoutInCell=\"1\" allowOverlap=\"0\">" +
+            "<wp:simplePos x=\"0\" y=\"0\"/><wp:positionH relativeFrom=\"margin\"><wp:align>$side</wp:align></wp:positionH>" +
+            "<wp:positionV relativeFrom=\"paragraph\"><wp:posOffset>0</wp:posOffset></wp:positionV>" +
+            "<wp:extent cx=\"$cx\" cy=\"$boxH\"/><wp:effectExtent l=\"0\" t=\"0\" r=\"0\" b=\"0\"/><wp:wrapSquare wrapText=\"bothSides\"/>" +
+            "<wp:docPr id=\"$id\" name=\"Bild mit Beschriftung $id\"/><wp:cNvGraphicFramePr/>" +
+            "<a:graphic xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\"><a:graphicData uri=\"http://schemas.microsoft.com/office/word/2010/wordprocessingShape\">" +
+            "<wps:wsp><wps:cNvSpPr txBox=\"1\"/><wps:spPr><a:xfrm><a:off x=\"0\" y=\"0\"/><a:ext cx=\"$cx\" cy=\"$boxH\"/></a:xfrm>" +
+            "<a:prstGeom prst=\"rect\"><a:avLst/></a:prstGeom><a:noFill/><a:ln><a:noFill/></a:ln></wps:spPr>" +
+            "<wps:txbx><w:txbxContent>$content</w:txbxContent></wps:txbx>" +
+            "<wps:bodyPr rot=\"0\" vert=\"horz\" wrap=\"square\" lIns=\"0\" tIns=\"0\" rIns=\"0\" bIns=\"0\" anchor=\"t\" anchorCtr=\"0\"><a:spAutoFit/></wps:bodyPr>" +
+            "</wps:wsp></a:graphicData></a:graphic></wp:anchor>"
+        val run = "<w:r><mc:AlternateContent><mc:Choice Requires=\"wps\"><w:drawing>$shape</w:drawing></mc:Choice></mc:AlternateContent></w:r>"
+        return "<w:p><w:pPr><w:spacing w:before=\"0\" w:after=\"0\" w:line=\"20\" w:lineRule=\"exact\"/></w:pPr>$run</w:p>"
     }
 
     private fun esc(s: String) = s
@@ -574,7 +606,9 @@ object MarkdownDocx {
     private fun StringBuilder.head(theme: DocTheme, withLogo: Boolean) {
         append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n")
         append("<w:document xmlns:w=\"$W_NS\" xmlns:r=\"$R_NS\" ")
-        append("xmlns:m=\"${LatexOmml.NS}\" xmlns:wp=\"http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing\"><w:body>")
+        append("xmlns:m=\"${LatexOmml.NS}\" xmlns:wp=\"http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing\" ")
+        // Text boxes (Textumbruch ums Bild, AP-125 e).
+        append("xmlns:wps=\"http://schemas.microsoft.com/office/word/2010/wordprocessingShape\" xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\"><w:body>")
         if (withLogo) append(logoParagraph(theme))
         if (theme.style == DocStyle.TUD && theme.unit.isNotBlank()) {
             val lines = theme.unit.lines().map { it.trim() }.filter { it.isNotEmpty() }
@@ -757,6 +791,15 @@ object MarkdownDocx {
     }
 
     private fun StringBuilder.block(b: Block, theme: DocTheme) {
+        // Textumbruch (AP-125 e): only running text goes on beside a picture; a table, another picture … starts below it,
+        // as in the editor: the last paragraph before it ends with Word's „Textumbruch“ break that goes below the picture.
+        val flows = b is Block.Heading || b is Block.Item || b is Block.Quote ||
+            b is Block.Paragraph && !DocMarkup.isPageBreak(b.text) && DocMarkup.image(b.text) == null && !DocMarkup.isComment(b.text)
+        if (ctx.floating && !flows) {
+            val end = lastIndexOf("</w:p>")
+            if (end >= 0) insert(end, "<w:r><w:br w:type=\"textWrapping\" w:clear=\"all\"/></w:r>")
+            ctx.floating = false
+        }
         val accent = accentOf(theme)
         val headFont = headFontOf(theme)
         run {

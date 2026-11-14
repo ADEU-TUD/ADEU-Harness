@@ -333,11 +333,19 @@ object DocMarkup {
      * ([align] "left" or "right", null: centred) and an Alternativtext of its own ([description]; without one the
      * caption is the alternative text, as before): `![Abb. 1](Bilder/a.png){width=50% align=right alt="Ein Hörsaal"}`.
      */
-    data class Image(val alt: String, val src: String, val width: Int? = null, val align: String? = null, val description: String? = null) {
+    data class Image(
+        val alt: String, val src: String, val width: Int? = null, val align: String? = null, val description: String? = null,
+        /**
+         * Textumbruch (AP-125 e, like Word's „Quadrat“): "left" or "right" – the picture stands at that edge and the text
+         * after it runs on beside it; null: the picture has a line of its own ([align]).
+         */
+        val wrap: String? = null,
+    ) {
         fun markdown(): String {
             val attrs = listOfNotNull(
                 width?.let { "width=$it%" },
-                align?.takeIf { it == "left" || it == "right" }?.let { "align=$it" },
+                align?.takeIf { (it == "left" || it == "right") && wrap == null }?.let { "align=$it" },
+                wrap?.takeIf { it == "left" || it == "right" }?.let { "wrap=$it" },
                 description?.takeIf { it.isNotBlank() }?.let { "alt=\"" + it.replace("\"", "'").replace("}", ")").replace("\n", " ") + "\"" },
             )
             return "![${alt.replace("]", ")").replace("\n", " ")}]($src)" + if (attrs.isEmpty()) "" else attrs.joinToString(" ", "{", "}")
@@ -351,6 +359,7 @@ object DocMarkup {
     private val WIDTH = Regex("width\\s*=\\s*\"?(\\d{1,3})\\s*%?", RegexOption.IGNORE_CASE)
     private val ALIGN = Regex("align\\s*=\\s*\"?(left|center|right)", RegexOption.IGNORE_CASE)
     private val DESCRIPTION = Regex("alt\\s*=\\s*\"([^\"]*)\"", RegexOption.IGNORE_CASE)
+    private val WRAP = Regex("wrap\\s*=\\s*\"?(left|right)", RegexOption.IGNORE_CASE)
 
     /** The image if [text] (a line or block) is exactly one image. */
     fun image(text: String): Image? {
@@ -361,7 +370,8 @@ object DocMarkup {
         val rest = DESCRIPTION.replace(attrs, "")
         val width = rest.takeIf { it.isNotEmpty() }?.let { WIDTH.find(it)?.groupValues?.get(1)?.toIntOrNull()?.coerceIn(5, 100) }
         val align = ALIGN.find(rest)?.groupValues?.get(1)?.lowercase()?.takeIf { it != "center" }
-        return Image(m.groupValues[1].trim(), m.groupValues[2], width, align, description?.takeIf { it.isNotBlank() })
+        val wrap = WRAP.find(rest)?.groupValues?.get(1)?.lowercase()
+        return Image(m.groupValues[1].trim(), m.groupValues[2], width, align.takeIf { wrap == null }, description?.takeIf { it.isNotBlank() }, wrap)
     }
 
     private const val MAX_IMAGE = 30L * 1024 * 1024

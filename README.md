@@ -463,6 +463,10 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     zusammen. Tabellen sind ein Gitter über die Textbreite: Tab springt in die nächste Zelle (in der letzten entsteht eine
     neue Zeile), Spaltengrenzen lassen sich ziehen, der Rechtsklick fügt Zeilen und Spalten ein oder löscht sie.
     Spaltenbreiten und Bildausrichtung kommen so in Word und PDF an.
+  - **Text ums Bild wie in Word** (ab 1.0.72, AP-125 e): *Text daneben* in der Leiste des Bildes (oder Rechtsklick ›
+    *Links, Text rechts daneben* bzw. *Rechts, Text links daneben*) stellt das Bild an den Rand, der Text läuft daneben
+    weiter und darunter wieder über die ganze Breite. In Word steht es wie dort üblich als verankertes Bild mit
+    Bildunterschrift und Umbruch „Quadrat“, im PDF genauso.
   - Nebenbei: *Datei › Exportieren* nahm den Stand beim Öffnen – jetzt den aktuellen.
   Tests `DocEditorChromeTest`, `DocEditorLookTest` (Vorher/Nachher-Bilder), `AppShortcutsTest`, `AutoCorrectTest`,
   `WordKeysTest`, `DocEditorKeysTest`, `FlowBlocksTest`, `DocEditorBlocksTest`, `DocBlocksLookTest` (Bilder).

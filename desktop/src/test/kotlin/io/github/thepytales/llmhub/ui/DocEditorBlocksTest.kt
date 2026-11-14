@@ -6,6 +6,7 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SkikoComposeUiTest
 import androidx.compose.ui.test.click
+import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
@@ -116,6 +117,53 @@ class DocEditorBlocksTest {
         settle(10)
         assertFalse("![" in md(id), md(id))
         assertTrue("Erster Absatz." in md(id) && "Letzter Absatz." in md(id), md(id))
+    }
+
+    private fun androidx.compose.ui.test.SemanticsNodeInteraction.textLayout(): androidx.compose.ui.text.TextLayoutResult {
+        val out = mutableListOf<androidx.compose.ui.text.TextLayoutResult>()
+        fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsActions.GetTextLayoutResult].action!!.invoke(out)
+        return out.first()
+    }
+
+    /**
+     * Textumbruch (AP-125 e): with „Text daneben“ the text after the picture runs on beside it – its lines next to the
+     * picture end before it, below it they have the whole width; a click beside the picture lands in the text.
+     */
+    @Test
+    fun textRunsBesideAWrappedPicture() = runSkikoComposeUiTest(Size(1300f, 900f), Density(1f)) {
+        val src = picture().absolutePath
+        val long = List(30) { "Ein Satz neben dem Bild, der weiterläuft." }.joinToString(" ")
+        val id = open("![Hörsaal](${src}){width=40%}\n\n$long\n\nDanach.\n")
+        onAllNodesWithContentDescription("Hörsaal").onFirst().performClick()
+        settle()
+        onAllNodesWithText("Text daneben").onFirst().performClick()
+        settle(12)
+        assertTrue("wrap=right" in md(id), md(id))
+        val pic = onAllNodesWithContentDescription("Hörsaal").onFirst().getBoundsInRoot()
+        // The text after the picture (the first field is the empty line before it).
+        val field = onAllNodesWithContentDescription("Dokumenttext")[1]
+        val box = field.getBoundsInRoot()
+        val layout = field.textLayout()
+        // The first line ends before the picture, a line below it reaches further.
+        assertTrue((box.left.value + layout.getLineRight(0)) <= pic.left.value + 1f, "erste Zeile endet vor dem Bild: ${layout.getLineRight(0)} / ${pic.left}")
+        val below = (0 until layout.lineCount).filter { box.top.value + layout.getLineTop(it) > pic.bottom.value + 20f }
+        assertTrue(below.isNotEmpty(), "Zeilen unter dem Bild")
+        assertTrue(below.maxOf { box.left.value + layout.getLineRight(it) } > pic.left.value + 20f, "unter dem Bild volle Breite")
+        // A click into the text beside the picture puts the cursor there (the picture does not take the click).
+        field.performMouseInput { click(androidx.compose.ui.geometry.Offset(4f, 6f)) }
+        settle(2)
+        field.performTextInput("Neu: ")
+        settle(10)
+        assertTrue("Neu: Ein Satz" in md(id), md(id))
+        // Left: the lines beside it start after the picture.
+        onAllNodesWithContentDescription("Hörsaal").onFirst().performClick()
+        settle()
+        onAllNodesWithContentDescription("Bild links").onFirst().performClick()
+        settle(12)
+        assertTrue("wrap=left" in md(id), md(id))
+        val l2 = onAllNodesWithContentDescription("Dokumenttext")[1].textLayout()
+        val pic2 = onAllNodesWithContentDescription("Hörsaal").onFirst().getBoundsInRoot()
+        assertTrue(box.left.value + l2.getLineLeft(0) >= pic2.right.value - 1f, "erste Zeile beginnt nach dem Bild")
     }
 
     @Test

@@ -286,9 +286,13 @@ object DocumentWriter {
         val bytes = DocMarkup.imageBytes(img.src)
         val src = bytes?.let { DocMarkup.dataUrl(it) } ?: img.src.takeIf { it.startsWith("https://", true) || it.startsWith("http://", true) }
             ?: return "<p class=\"meta\">[Bild: ${esc(img.alt.ifBlank { img.src.substringAfterLast('/') })}]</p>\n"
-        val width = img.width?.let { " style=\"width:$it%\"" }.orEmpty()
+        val width = if (img.wrap != null) " style=\"width:100%\"" else img.width?.let { " style=\"width:$it%\"" }.orEmpty()
         // Ausrichtung (AP-125 d): the picture and its caption at the left or right edge instead of centred.
-        val align = img.align?.let { " style=\"text-align:$it\"" }.orEmpty()
+        val align = when {
+            // Textumbruch (AP-125 e): the picture floats at its edge, the text after it runs on beside it.
+            img.wrap != null -> " style=\"float:${img.wrap};width:${img.width ?: 40}%;margin:2pt ${if (img.wrap == "left") "12pt 6pt 0" else "0 6pt 12pt"};text-align:center\""
+            else -> img.align?.let { " style=\"text-align:$it\"" }.orEmpty()
+        }
         return "<figure class=\"img\"$align><img src=\"$src\" alt=\"${esc(img.altText)}\"$width>" +
             (if (img.alt.isBlank()) "" else "<figcaption>${htmlInline(img.alt)}</figcaption>") + "</figure>\n"
     }
@@ -366,6 +370,8 @@ object DocumentWriter {
             append("pre{background:#f6f8fa;border:1px solid #e5e7eb;border-radius:6pt;padding:8pt 10pt;white-space:pre-wrap;font-size:8.5pt;break-inside:avoid}")
             append("pre code{background:none;padding:0}")
             append("table{border-collapse:collapse;width:100%;margin:8pt 0 12pt;font-size:9.5pt;break-inside:auto}")
+            // Textumbruch (AP-125 e): only running text goes on beside a floating picture; blocks start below it.
+            append("table,pre,hr,figure{clear:both}")
             append("thead{display:table-header-group}")
             append("tr{break-inside:avoid}th,td{padding:5pt 7pt;text-align:left;vertical-align:top}")
             append("hr{border:none;border-top:1px solid #d9dde3;margin:14pt 0}")
