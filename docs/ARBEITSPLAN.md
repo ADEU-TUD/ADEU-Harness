@@ -160,7 +160,19 @@ Menüzeilen mit Tasten in eigener Spalte (`MenuRow`, auch in den Leistenmenüs).
 Pfeile, Satzanfang groß (nicht nach Abkürzungen, Zahlen, Initialen), ZWei GRoßbuchstaben, häufige Tippfehler; nicht in Code;
 jede Korrektur ein eigener Schritt, Strg+Z direkt danach nimmt nur sie zurück; *Extras › Autokorrektur …* schaltet jede
 Regel (`docAutocorrectOff`). Tests `AutoCorrectTest`, `DocEditorChromeTest`. Offen: eigene Ersetzungen (Liste) später.
-Weiter mit (c) und (d).
+**(c) ☑ Tasten und Markieren** (14.11.2026): `ui/FlowKeys.kt`, `docs/text/WordKeys.kt` – Strg+←/→ zum Anfang des nächsten
+bzw. vorigen Worts wie Word unter Windows (Satzzeichen eigene Wörter, „geht’s“ ein Wort), Strg+↑/↓ zum Absatzanfang,
+Strg+Pos1/Ende an Anfang/Ende des **ganzen** Dokuments, alles mit Umschalt zum Markieren und über Tabellen, Bilder und
+Stücke langer Texte hinweg (`jumpTo`, auch für die Pfeile aus AP-44); Strg+Rück/Entf löscht ein Wort; Alt+Umschalt+↑/↓
+verschiebt Absätze (auch über eine Tabelle in den Text dahinter); Umschalt+F3 klein → Erster Groß → GROSS → klein;
+Strg+Umschalt+> / < Schrift in Words Stufen (deutsche Tastatur: Taste neben Umschalt, mit Umschalt größer, Strg+<
+kleiner; sonst Strg+Umschalt+. und , wie Docs – darum öffnet Strg+Umschalt+, nicht mehr die Einstellungen, Strg+,
+weiterhin); Strg+Umschalt+C/Strg+Alt+C Format kopieren, Strg+Alt+V einfügen (Strg+Umschalt+V bleibt *Nur Text
+einfügen*); Strg+Enter Seitenumbruch; F7 Rechtschreibung; Strg+Klick markiert den Satz, auf einem Link öffnet er ihn;
+Doppel-/Dreifachklick Wort/Absatz (Compose, geprüft). Neu im Menü *Format*: Schrift größer/kleiner,
+Groß-/Kleinschreibung; Tasten an *Seitenumbruch* und *Rechtschreibung prüfen*; Tastenübersicht (Strg+/) mit Abschnitt
+*Im Dokument (wie in Word)*. Tests `WordKeysTest`, `ui/DocEditorKeysTest` (echte Tasten und Klicks), `AppShortcutsTest`.
+Weiter mit (d).
 
 ### AP-126 ☐ Dokumente: Funktionsumfang wie Word und Google Docs · XL (Wunsch Hauptnutzer 14.11.2026, in Stufen)
 **Ziel**: Für die Arbeit an der TU Dresden (Briefe, Protokolle, Anträge, Hausarbeiten bis Dissertation, Skripte) braucht
