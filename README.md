@@ -428,7 +428,7 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   | ![Bedienelemente vorher](docs/bilder/bedienung-elemente-vorher.png) | ![Bedienelemente nachher](docs/bilder/bedienung-elemente-nachher.png) |
 
   ![Hinweis-Banner: Fehler, Rückgängig, Ergebnis](docs/bilder/bedienung-hinweise.png)
-- **Dokument-Editor aufgeräumt wie Google Docs** (nach 1.0.71, APD-15 und AP-125): Mehr Platz für die Seite und alles
+- **Dokument-Editor aufgeräumt wie Google Docs** (seit 1.0.71, APD-15 und AP-125): Mehr Platz für die Seite und alles
   erreichbar – auf dem Laptop (1366 × 768 bei 150 %) beginnt der Text bei 215 statt 320 dp.
   - **Kopf wie Docs**: Titel (Klick: umbenennen) mit *Gespeichert*, die Menüs *Datei · Bearbeiten · Ansicht · Einfügen ·
     Format · Extras* direkt darunter; rechts Kommentare, Lora und **Exportieren**. Alles aus dem früheren „⋮“ steht unter
@@ -443,12 +443,19 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     Gestalten (vorher nahm die App beide Tasten für Seitenleiste und Dateien – außerhalb von Texten bleiben sie das).
     Ausrichtung: Strg+Umschalt+E zentriert, Strg+R rechtsbündig, Strg+Umschalt+J Blocksatz; Strg+K bleibt die
     Befehlssuche, Strg+E die KI.
+  - **Rechtsklick-Menü wie in Word**: Rechtschreibvorschläge für das Wort unter der Maus (*Zum Wörterbuch
+    hinzufügen*), Ausschneiden, Kopieren, Einfügen, **Nur Text einfügen** (auch Strg+Umschalt+V), Link, Kommentar, Lora,
+    Format übertragen, Formatierung entfernen, Alles auswählen – mit den Tasten daneben; Menütaste und Umschalt+F10 öffnen
+    es am Cursor.
+  - **Autokorrektur beim Tippen**: „Anführungszeichen“ und ’, -- wird –, ... wird …, (c) wird ©, -> wird →, Satzanfang groß
+    (nicht nach z. B., Zahlen oder Initialen), ZWei GRoßbuchstaben, häufige Tippfehler (udn → und). Strg+Z direkt danach
+    nimmt nur die Korrektur zurück; jede Regel lässt sich unter *Extras › Autokorrektur …* abschalten.
   - Nebenbei: *Datei › Exportieren* nahm den Stand beim Öffnen – jetzt den aktuellen.
-  Tests `DocEditorChromeTest`, `DocEditorLookTest` (Vorher/Nachher-Bilder), `AppShortcutsTest`.
+  Tests `DocEditorChromeTest`, `DocEditorLookTest` (Vorher/Nachher-Bilder), `AppShortcutsTest`, `AutoCorrectTest`.
 
-  | Vorher | Nachher | Datei-Menü |
-  | --- | --- | --- |
-  | ![Dokument-Editor vorher](docs/bilder/apd15-vorher.png) | ![Dokument-Editor nachher](docs/bilder/apd15-nachher.png) | ![Menü Datei](docs/bilder/apd15-datei.png) |
+  | Vorher | Nachher | Datei-Menü | Rechtsklick |
+  | --- | --- | --- | --- |
+  | ![Dokument-Editor vorher](docs/bilder/apd15-vorher.png) | ![Dokument-Editor nachher](docs/bilder/apd15-nachher.png) | ![Menü Datei](docs/bilder/apd15-datei.png) | ![Rechtsklick-Menü](docs/bilder/apd15-rechtsklick.png) |
 - **Videoeditor für Einsteiger** (seit 1.0.70, AP-121): Der Editor erklärt sich jetzt selbst – für alle, die noch nie ein
   Video geschnitten haben, ohne eigene „Einfach-Ansicht“. **Startseite** mit zwei großen Karten (*Video schneiden*,
   *Bildschirm aufnehmen*), die vier Schritte darunter, Projekte mit *Öffnen*, *Umbenennen*, *Kopie anlegen*, *Löschen*;
