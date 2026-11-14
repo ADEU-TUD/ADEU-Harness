@@ -190,6 +190,31 @@ class DocBlocksLookTest {
         runCatching { io.github.thepytales.llmhub.docs.HtmlPdf.renderBuiltIn(html, File(out, "export.pdf")) }
     }
 
+    /** Blocksatz (AP-125 e): the same with justified paragraphs, in the editor, as Word file and as HTML for the PDF. */
+    @Test
+    fun justifiedWrapForTheComparison() = runSkikoComposeUiTest(Size(1920f, 1080f), Density(1.25f)) {
+        mainClock.autoAdvance = false
+        val text = """
+            <!--a:j-->Die Vorlesung *Einführung in die Statistik* hat jedes Semester rund 400 Teilnehmende. Die Übungen sind überlaufen, und viele Studierende brechen das Modul im ersten Semester ab.
+
+            ![Abb. 1: Der Hörsaal im HSZ](${picture().absolutePath}){width=40% wrap=right}
+
+            <!--a:j-->Mit dem Vorhaben sollen Selbstlernmodule entstehen, die an die Vorlesung anschließen und in OPAL bereitstehen. Jedes Modul behandelt ein Thema der Vorlesung, erklärt es an Beispielen aus der Forschung der TU Dresden und endet mit Aufgaben, die sofort ausgewertet werden. So können sich die Studierenden im eigenen Tempo vorbereiten und sehen, wo sie noch Lücken haben.
+
+            <!--a:j-->Die Module werden in drei Phasen entwickelt: Konzept, Umsetzung und Erprobung mit Studierenden. Die Evaluation erfolgt gemeinsam mit dem Zentrum für interdisziplinäres Lernen und Lehren, die Ergebnisse fließen in die zweite Fassung ein.
+        """.trimIndent() + "\n"
+        io.github.thepytales.llmhub.docs.MarkdownDocx.write(File(out, "blocksatz.docx"), "Antrag", text)
+        File(out, "blocksatz.html").writeText(io.github.thepytales.llmhub.docs.DocumentWriter.toHtml("Antrag", text, print = true))
+        val doc = DocsHandoff.open(c, "Antrag Lehrinnovation", text)
+        setContent {
+            androidx.compose.runtime.CompositionLocalProvider(androidx.lifecycle.compose.LocalLifecycleOwner provides owner) {
+                LlmHubTheme(AppSettings()) { androidx.compose.material3.Surface { DocPane(c, doc.id, onClose = {}) } }
+            }
+        }
+        settle(16)
+        shot("12-blocksatz")
+    }
+
     /** Strg+/ (the Tastenübersicht of the window) with the new part „Im Dokument (wie in Word)“. */
     @Test
     fun shortcutsOverview() = runSkikoComposeUiTest(Size(1920f, 1080f), Density(1.25f)) {

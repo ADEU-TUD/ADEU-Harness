@@ -166,6 +166,29 @@ class DocEditorBlocksTest {
         assertTrue(box.left.value + l2.getLineLeft(0) >= pic2.right.value - 1f, "erste Zeile beginnt nach dem Bild")
     }
 
+    /** Blocksatz beside a wrapped picture: the lines there reach the edge before the picture (but the last one). */
+    @Test
+    fun justifiedTextBesideAPictureReachesItsEdge() = runSkikoComposeUiTest(Size(1300f, 900f), Density(1f)) {
+        val src = picture().absolutePath
+        val long = List(30) { "Ein Satz neben dem Bild, der im Blocksatz weiterläuft." }.joinToString(" ")
+        open("![Hörsaal](${src}){width=40% wrap=right}\n\n<!--a:j-->$long\n")
+        settle(6)
+        val pic = onAllNodesWithContentDescription("Hörsaal").onFirst().getBoundsInRoot()
+        val field = onAllNodesWithContentDescription("Dokumenttext")[1]
+        val box = field.getBoundsInRoot()
+        val layout = field.textLayout()
+        val text = layout.layoutInput.text.text
+        val beside = (0 until layout.lineCount).filter { box.top.value + layout.getLineBottom(it) < pic.bottom.value - 4f }.dropLast(1)
+        assertTrue(beside.size >= 3, "Zeilen neben dem Bild: ${beside.size}")
+        val edge = pic.left.value - 14f
+        for (i in beside) {
+            var e = layout.getLineEnd(i)
+            while (e > layout.getLineStart(i) && text[e - 1].isWhitespace()) e--
+            val right = box.left.value + layout.getBoundingBox(e - 1).right
+            assertTrue(right > edge - 8f && right <= edge + 1f, "Zeile $i endet bei $right, Kante $edge")
+        }
+    }
+
     @Test
     fun tableAsAGridWithTabMenuAndColumnWidths() = runSkikoComposeUiTest(Size(1300f, 900f), Density(1f)) {
         val id = open("Vorher.\n\n| Raum | Plätze |\n| --- | --- |\n| HSZ 02 | 400 |\n\nNachher.\n")

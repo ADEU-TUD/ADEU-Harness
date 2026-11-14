@@ -281,6 +281,17 @@ object DocumentWriter {
         }
     }
 
+    /**
+     * The paragraph's Ausrichtung from its marker (`<!--a:c-->` zentriert, `r` rechtsbündig, `j` Blocksatz) as a style
+     * attribute, so PDFs look like the editor and the Word file; "" for left.
+     */
+    private fun alignStyle(text: String): String = when (io.github.thepytales.llmhub.ui.ALIGN_MARK.find(text.trimStart())?.groupValues?.get(1)) {
+        "c" -> " style=\"text-align:center\""
+        "r" -> " style=\"text-align:right\""
+        "j" -> " style=\"text-align:justify;hyphens:auto\""
+        else -> ""
+    }
+
     /** A picture of the document: embedded as data URL (local files) or linked (web addresses). */
     private fun figure(img: DocMarkup.Image): String {
         val bytes = DocMarkup.imageBytes(img.src)
@@ -620,7 +631,7 @@ object DocumentWriter {
             if (b !is Block.Item) closeList()
             if (i == closingAt) append("<div class=\"closing\">\n")
             when (b) {
-                is Block.Heading -> append("<h${b.level}>${inl(b.text)}</h${b.level}>\n")
+                is Block.Heading -> append("<h${b.level}${alignStyle(b.text)}>${inl(b.text)}</h${b.level}>\n")
                 is Block.Paragraph -> {
                     val lines = b.text.lines()
                     val turn = DocMarkup.orientation(b.text)
@@ -651,7 +662,7 @@ object DocumentWriter {
                                 ?.let { io.github.thepytales.llmhub.docs.text.ParaFormat.fromMarker(io.github.thepytales.llmhub.docs.text.ParaFormat(), it).tabs }.orEmpty()
                             append(lines.joinToString("") { "<p class=\"tabs\">${tabbed(it, stops, ::inl)}</p>\n" })
                         }
-                        else -> append("<p>${lines.joinToString("<br>\n") { inl(it) }}</p>\n")
+                        else -> append("<p${alignStyle(b.text)}>${lines.joinToString("<br>\n") { inl(it) }}</p>\n")
                     }
                 }
                 is Block.Item -> {

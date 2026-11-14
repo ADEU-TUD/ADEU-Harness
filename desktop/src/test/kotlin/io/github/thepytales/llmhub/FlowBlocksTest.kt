@@ -62,6 +62,9 @@ class FlowBlocksTest {
         javax.xml.parsers.DocumentBuilderFactory.newInstance().apply { isNamespaceAware = true }.newDocumentBuilder().parse(xml.byteInputStream())
         val html = io.github.thepytales.llmhub.docs.DocumentWriter.toHtml("Test", md)
         assertTrue("float:right" in html, html.take(400))
+        // Ausrichtung of paragraphs reaches the PDF (it used to be left out there): zentriert, rechtsbündig, Blocksatz.
+        val aligned = io.github.thepytales.llmhub.docs.DocumentWriter.toHtml("Test", "<!--a:c-->Mitte.\n\n<!--a:r-->Rechts.\n\n<!--a:j-->Block.\n")
+        assertTrue("<p style=\"text-align:center\">" in aligned && "<p style=\"text-align:right\">" in aligned && "text-align:justify" in aligned, aligned.takeLast(400))
         dir.deleteRecursively()
     }
 
