@@ -526,7 +526,7 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                     Key.Z -> { if (flow) { if (e.isShiftPressed) flowHost.redo?.invoke() else flowHost.undo?.invoke() } else if (e.isShiftPressed) redoOnce() else undoOnce(); true }
                     Key.Y -> { if (flow) flowHost.redo?.invoke() else redoOnce(); true }
                     Key.F, Key.H -> { if (flow && e.isShiftPressed && e.key == Key.F) menusHidden = !menusHidden else if (flow) flowHost.find?.invoke() else findOpen = true; true }
-                    Key.E -> { togglePanel(DocPanel.AI); true }
+                    Key.E -> if (flow && e.isShiftPressed) false else { togglePanel(DocPanel.AI); true }
                     else -> false
                 }
             },

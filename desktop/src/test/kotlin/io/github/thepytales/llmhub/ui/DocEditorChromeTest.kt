@@ -119,6 +119,20 @@ class DocEditorChromeTest {
         assertTrue(has("Datei"), "Menüs wieder da")
     }
 
+    /** Ausrichtung with keys no app-wide shortcut uses (Strg+E stays the KI): Strg+Umschalt+E, Strg+R, Strg+Umschalt+J. */
+    @Test
+    fun alignmentKeysDoNotOverlapTheApp() = runSkikoComposeUiTest(Size(1300f, 900f), Density(1f)) {
+        val id = open("# Antrag\n\nErster Absatz.\n")
+        val field = onAllNodesWithContentDescription("Dokumenttext").onFirst()
+        field.performClick()
+        field.performKeyInput { withKeyDown(Key.CtrlLeft) { withKeyDown(Key.ShiftLeft) { pressKey(Key.E) } } }
+        settle(10)
+        assertTrue("<!--a:c" in c.docs.get(id)!!.tabs.first().markdown, c.docs.get(id)!!.tabs.first().markdown)
+        field.performKeyInput { withKeyDown(Key.CtrlLeft) { pressKey(Key.R) } }
+        settle(10)
+        assertTrue("<!--a:r" in c.docs.get(id)!!.tabs.first().markdown, c.docs.get(id)!!.tabs.first().markdown)
+    }
+
     private fun SkikoComposeUiTest.has(text: String, substring: Boolean) =
         onAllNodesWithText(text, substring = substring).fetchSemanticsNodes().isNotEmpty()
 }

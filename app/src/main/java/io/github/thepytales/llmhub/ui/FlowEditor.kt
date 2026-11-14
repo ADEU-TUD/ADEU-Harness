@@ -1832,9 +1832,9 @@ private fun FlowToolbar(c: AppContainer, doc: LiveDoc, state: FlowState, host: F
             var alignMenu by remember { mutableStateOf(false) }
             val aligns = listOf(
                 Align.LEFT to (Icons.AutoMirrored.Outlined.FormatAlignLeft to "Linksbündig"),
-                Align.CENTER to (Icons.Outlined.FormatAlignCenter to "Zentriert"),
-                Align.RIGHT to (Icons.AutoMirrored.Outlined.FormatAlignRight to "Rechtsbündig"),
-                Align.JUSTIFY to (Icons.Outlined.FormatAlignJustify to "Blocksatz"),
+                Align.CENTER to (Icons.Outlined.FormatAlignCenter to "Zentriert (Strg+Umschalt+E)"),
+                Align.RIGHT to (Icons.AutoMirrored.Outlined.FormatAlignRight to "Rechtsbündig (Strg+R)"),
+                Align.JUSTIFY to (Icons.Outlined.FormatAlignJustify to "Blocksatz (Strg+Umschalt+J)"),
             )
             Box {
                 val (icon, _) = aligns.firstOrNull { it.first == p.align }?.second ?: aligns.first().second
@@ -2479,7 +2479,12 @@ private fun FlowField(
                         cmd && !e.isAltPressed && e.key == Key.B -> { state.toggle({ it.bold }) { f, on -> f.copy(bold = on) }; true }
                         cmd && !e.isAltPressed && e.key == Key.I -> { state.toggle({ it.italic }) { f, on -> f.copy(italic = on) }; true }
                         cmd && !e.isAltPressed && e.key == Key.U -> { state.toggle({ it.underline }) { f, on -> f.copy(underline = on) }; true }
-                        cmd && e.key == Key.J -> { onWrite(); true }
+                        cmd && !e.isShiftPressed && e.key == Key.J -> { onWrite(); true }
+                        // Ausrichtung (AP-125): keys that no app-wide shortcut uses (Strg+E stays the KI, Strg+L Lora,
+                        // Strg+Umschalt+L Literatur) – Zentriert and Blocksatz like Google Docs, Rechtsbündig like Word.
+                        cmd && e.isShiftPressed && e.key == Key.E -> { state.paragraph { it.copy(align = Align.CENTER) }; true }
+                        cmd && e.isShiftPressed && e.key == Key.J -> { state.paragraph { it.copy(align = Align.JUSTIFY) }; true }
+                        cmd && !e.isShiftPressed && e.key == Key.R -> { state.paragraph { it.copy(align = Align.RIGHT) }; true }
                         cmd && (e.key == Key.F || e.key == Key.H) -> { onFind(); true }
                         cmd && e.key == Key.Backslash -> { state.clearFormat(); true }
                         // Zwischenablage mit Formatierung (AP-43): HTML for Word and the browser, HTML from them.

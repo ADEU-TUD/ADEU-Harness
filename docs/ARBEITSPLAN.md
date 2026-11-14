@@ -130,8 +130,14 @@ soweit der gemeinsame Text-Kern (AP-43) es trägt.
   Dreifachklick Absatz, Strg+Klick Satz; Strg+Rück/Entf löscht ein Wort; Strg+Enter Seitenumbruch; Strg+L/R/J
   Ausrichtung; Strg+Umschalt+>/< Schrift größer/kleiner; Umschalt+F3 Groß-/Kleinschreibung; F7 Rechtschreibung;
   Strg+Umschalt+7/8 Listen (Docs); Strg+Umschalt+C/V Format kopieren/einfügen (Word); Alt+Umschalt+↑/↓ Absatz
-  verschieben; Tab/Umschalt+Tab Listenebene; Pos1/Ende, Strg+Pos1/Ende. **Offene Frage**: Strg+K öffnet in der App die
-  Befehlssuche, in Word/Docs einen Link; Strg+E ruft in der App die KI, in Word/Docs zentriert es.
+  verschieben; Tab/Umschalt+Tab Listenebene; Pos1/Ende, Strg+Pos1/Ende. **Entscheidung (Hauptnutzer 14.11.2026)**: keine
+  Überschneidungen, die App-Kürzel bleiben ungestört – Strg+K bleibt überall die Befehlssuche, Strg+E die KI; Word-
+  Funktionen bekommen Tasten, die nichts in der App belegt: Zentriert Strg+Umschalt+E und Blocksatz Strg+Umschalt+J
+  (wie Google Docs), Rechtsbündig Strg+R (wie Word); Link über Leiste, Menü und Rechtsklick. Linksbündig hat keine Taste
+  (Strg+L ist Lora, Strg+Umschalt+L Literatur). Schon belegt sind auch Strg+B (Seitenleiste ↔ Fett) und Strg+D (Dateien ↔
+  Duplizieren in Folien/Gestalten) – das Fenster fängt sie vor dem Editor ab (mit einem echten Fenster unter Xvfb
+  geprüft: der Tastendruck erreicht das Textfeld nicht), Fett per Strg+B geht im Hauptfenster also nicht; ebenso Strg+K
+  im Markdown-Editor. Lösung beim Hauptnutzer angefragt.
 - **(d) Bilder und Tabellen anfassen**: Bild anklicken → Rahmen mit Griffen (Größe, Seitenverhältnis bleibt), an eine
   andere Stelle ziehen, schwebende Leiste *Mit Text in Zeile · Links · Rechts · Oben und unten*, Ausrichtung,
   Bildunterschrift, Zuschneiden, Alternativtext; Tabellen: Spaltenbreite und Zeilenhöhe ziehen, Tab springt in die nächste
