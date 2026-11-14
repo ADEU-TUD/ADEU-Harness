@@ -21,7 +21,8 @@ internal object AppShortcuts {
     /** Before the focused element: Strg+N, Strg+, Strg+K, Strg+/, Strg+L, Strg+Umschalt+L, Strg+T. */
     fun early(e: KeyEvent): String? = if (e.type != KeyEventType.KeyDown || !e.isCmd) null else when (e.key) {
         Key.N -> "chat"
-        Key.Comma -> "settings"
+        // Strg+Umschalt+, is Schrift kleiner in the document (AP-125 c, like Google Docs).
+        Key.Comma -> if (e.isShiftPressed) null else "settings"
         Key.K -> "palette"
         Key.Slash, Key.NumPadDivide -> "shortcuts"
         Key.L -> if (e.isShiftPressed) "literature" else "lora"

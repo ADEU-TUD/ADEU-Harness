@@ -220,21 +220,8 @@ fun FlowState.pieceKey(c: io.github.thepytales.llmhub.AppContainer, t: FlowSeg.T
         e.key == Key.Delete && sel.collapsed && sel.start == len -> return joinWithNext(t)
         else -> return false
     }
-    if (!e.isShiftPressed) {
-        focusPiece(target, TextRange(offset), keepSpan = false)
-        return true
-    }
     // Umschalt: the selection goes on into the next field (it began where the cursor stood).
-    val anchor = spanAnchor ?: (t to sel.start)
-    if (anchor.first === target) {
-        spanAnchor = null
-        focusPiece(target, TextRange(anchor.second, offset), keepSpan = false)
-        return true
-    }
-    spanAnchor = anchor
-    val edge = if (segs.indexOf(anchor.first) < segs.indexOf(target)) 0 else target.rich.text.length
-    focusPiece(target, TextRange(edge, offset), keepSpan = true)
-    return true
+    return jumpTo(t, target, offset, extend = e.isShiftPressed)
 }
 
 private val ARROWS = setOf(Key.DirectionUp, Key.DirectionDown, Key.DirectionLeft, Key.DirectionRight, Key.MoveHome, Key.MoveEnd, Key.PageUp, Key.PageDown)

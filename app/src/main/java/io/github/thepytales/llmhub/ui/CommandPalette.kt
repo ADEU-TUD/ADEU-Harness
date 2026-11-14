@@ -21,6 +21,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -272,20 +274,35 @@ fun ShortcutsDialog(onDismiss: () -> Unit) {
         "@" to tr("Dateien, Literatur und Dokumente erwähnen"),
         tr("Esc") to tr("Menü schließen bzw. zurück"),
     )
+    // Tasten im Dokument wie in Word (AP-125 c).
+    val document = listOf(
+        tr("Strg+← / →, Strg+↑ / ↓") to tr("Wort- bzw. absatzweise (mit Umschalt: markieren)"),
+        tr("Strg+Pos1 / Strg+Ende") to tr("Anfang bzw. Ende des Dokuments"),
+        tr("Strg+Rück / Strg+Entf") to tr("Wort löschen"),
+        tr("Alt+Umschalt+↑ / ↓") to tr("Absatz verschieben"),
+        tr("Umschalt+F3") to tr("Groß-/Kleinschreibung"),
+        tr("Strg+Umschalt+> / <") to tr("Schrift größer / kleiner"),
+        tr("Strg+Umschalt+C · Strg+Alt+V") to tr("Format kopieren und einfügen"),
+        tr("Strg+Enter") to tr("Seitenumbruch"),
+        "F7" to tr("Rechtschreibung prüfen"),
+        tr("Strg+Klick") to tr("Satz markieren bzw. Link öffnen"),
+    )
     Dialog(onDismissRequest = onDismiss) {
         Surface(shape = RoundedCornerShape(20.dp), tonalElevation = 6.dp, modifier = Modifier.widthIn(max = 480.dp)) {
-            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(Modifier.verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(tr("Tastenkürzel"), style = MaterialTheme.typography.titleLarge)
                 HorizontalDivider(Modifier.padding(vertical = 6.dp))
-                shortcuts.forEach { (key, what) ->
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Surface(shape = RoundedCornerShape(6.dp), color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier.widthIn(min = 72.dp)) {
-                            Text(key, style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp))
-                        }
-                        Spacer(Modifier.size(12.dp))
-                        Text(tr(what), style = MaterialTheme.typography.bodyMedium)
+                @Composable
+                fun row(key: String, what: String) = Row(verticalAlignment = Alignment.CenterVertically) {
+                    Surface(shape = RoundedCornerShape(6.dp), color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier.widthIn(min = 72.dp)) {
+                        Text(key, style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp))
                     }
+                    Spacer(Modifier.size(12.dp))
+                    Text(what, style = MaterialTheme.typography.bodyMedium)
                 }
+                shortcuts.forEach { (key, what) -> row(key, what) }
+                Text(tr("Im Dokument (wie in Word)"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 10.dp))
+                document.forEach { (key, what) -> row(key, what) }
                 TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) { Text(tr("Schließen")) }
             }
         }
