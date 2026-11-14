@@ -60,7 +60,8 @@ internal sealed interface Block {
     data class Heading(val level: Int, val text: String) : Block
     data class Item(val indent: Int, val marker: String, val text: String) : Block
     data class Quote(val text: String) : Block
-    data class Table(val rows: List<List<String>>) : Block
+    /** [widths]: Spaltenbreiten in percent (AP-125 d), null: all equal. */
+    data class Table(val rows: List<List<String>>, val widths: List<Int>? = null) : Block
     data class Paragraph(val text: String) : Block
     data object Rule : Block
 }
@@ -119,14 +120,16 @@ internal fun parseBlocks(src: String): List<Block> {
             t.startsWith("|") -> {
                 flush()
                 val rows = mutableListOf<List<String>>()
+                var widths: List<Int>? = null
                 var j = i
                 while (j < lines.size && lines[j].trim().startsWith("|")) {
                     val cells = lines[j].trim().trim('|').split("|").map { it.trim() }
                     if (!cells.all { it.matches(Regex(":?-{2,}:?")) }) rows += cells
+                    else if (widths == null) widths = io.github.thepytales.llmhub.docs.DocBlocks.widthsOf(cells.map { c -> c.count { it == '-' } })
                     j++
                 }
                 i = j - 1
-                out += Block.Table(rows)
+                out += Block.Table(rows, widths)
             }
             LIST_ITEM.matches(line) -> {
                 flush()

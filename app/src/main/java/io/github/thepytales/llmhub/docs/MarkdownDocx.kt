@@ -419,11 +419,13 @@ object MarkdownDocx {
         }
         val id = c.drawingId++
         val caption = img.alt.isNotBlank()
+        // Ausrichtung of the picture and its caption (AP-125 d).
+        val jc = when (img.align) { "left" -> "left"; "right" -> "right"; else -> "center" }
         val picture = para(
-            "<w:r>" + drawing(media.rel, id, "Bild $n", img.alt.ifBlank { "Bild $n" }, cx, cy) + "</w:r>",
-            (if (caption) "<w:keepNext/>" else "") + "<w:spacing w:before=\"120\" w:after=\"${if (caption) 60 else 160}\"/><w:jc w:val=\"center\"/>",
+            "<w:r>" + drawing(media.rel, id, "Bild $n", img.altText.ifBlank { "Bild $n" }, cx, cy) + "</w:r>",
+            (if (caption) "<w:keepNext/>" else "") + "<w:spacing w:before=\"120\" w:after=\"${if (caption) 60 else 160}\"/><w:jc w:val=\"$jc\"/>",
         )
-        return picture + if (caption) para(runs(img.alt), "<w:pStyle w:val=\"Caption\"/>") else ""
+        return picture + if (caption) para(runs(img.alt), "<w:pStyle w:val=\"Caption\"/><w:jc w:val=\"$jc\"/>") else ""
     }
 
     private fun esc(s: String) = s
@@ -799,22 +801,24 @@ object MarkdownDocx {
                         )
                     }
                 }
-                is Block.Table -> table(b.rows, accent)
+                is Block.Table -> table(b.rows, accent, b.widths)
                 Block.Rule -> append(para("", "<w:pBdr><w:bottom w:val=\"single\" w:sz=\"6\" w:space=\"1\" w:color=\"BBBBBB\"/></w:pBdr>"))
             }
         }
     }
 
-    private fun StringBuilder.table(rows: List<List<String>>, accent: String?) {
+    private fun StringBuilder.table(rows: List<List<String>>, accent: String?, widths: List<Int>? = null) {
         if (rows.isEmpty()) return
         val width = ctx.width
         val cols = rows.maxOf { it.size }
-        val colW = width / cols
+        // Spaltenbreiten from the editor (AP-125 d), otherwise all equal.
+        val w = widths?.takeIf { it.size == cols }
+        fun colW(c: Int) = if (w != null) width * w[c] / 100 else width / cols
         val border = listOf("top", "left", "bottom", "right", "insideH", "insideV")
             .joinToString("") { "<w:$it w:val=\"single\" w:sz=\"4\" w:space=\"0\" w:color=\"BBBBBB\"/>" }
         append("<w:tbl><w:tblPr><w:tblW w:w=\"$width\" w:type=\"dxa\"/><w:tblBorders>$border</w:tblBorders></w:tblPr>")
         append("<w:tblGrid>")
-        repeat(cols) { append("<w:gridCol w:w=\"$colW\"/>") }
+        repeat(cols) { append("<w:gridCol w:w=\"${colW(it)}\"/>") }
         append("</w:tblGrid>")
         rows.forEachIndexed { r, row ->
             // The head row repeats on every page and is announced as column header by screen readers.
@@ -822,7 +826,7 @@ object MarkdownDocx {
             for (c in 0 until cols) {
                 val fill = if (accent != null) accent else "F1F3F5"
                 val shade = if (r == 0) "<w:shd w:val=\"clear\" w:color=\"auto\" w:fill=\"$fill\"/>" else ""
-                append("<w:tc><w:tcPr><w:tcW w:w=\"$colW\" w:type=\"dxa\"/>$shade</w:tcPr>")
+                append("<w:tc><w:tcPr><w:tcW w:w=\"${colW(c)}\" w:type=\"dxa\"/>$shade</w:tcPr>")
                 val headColor = if (r == 0 && accent != null) "FFFFFF" else null
                 append(para(runs(row.getOrNull(c).orEmpty(), RunStyle(bold = r == 0, color = headColor))))
                 append("</w:tc>")

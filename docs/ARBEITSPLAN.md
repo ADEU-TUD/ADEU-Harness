@@ -160,7 +160,36 @@ Menüzeilen mit Tasten in eigener Spalte (`MenuRow`, auch in den Leistenmenüs).
 Pfeile, Satzanfang groß (nicht nach Abkürzungen, Zahlen, Initialen), ZWei GRoßbuchstaben, häufige Tippfehler; nicht in Code;
 jede Korrektur ein eigener Schritt, Strg+Z direkt danach nimmt nur sie zurück; *Extras › Autokorrektur …* schaltet jede
 Regel (`docAutocorrectOff`). Tests `AutoCorrectTest`, `DocEditorChromeTest`. Offen: eigene Ersetzungen (Liste) später.
-Weiter mit (c) und (d).
+**(c) ☑ Tasten und Markieren** (14.11.2026): `ui/FlowKeys.kt`, `docs/text/WordKeys.kt` – Strg+←/→ zum Anfang des nächsten
+bzw. vorigen Worts wie Word unter Windows (Satzzeichen eigene Wörter, „geht’s“ ein Wort), Strg+↑/↓ zum Absatzanfang,
+Strg+Pos1/Ende an Anfang/Ende des **ganzen** Dokuments, alles mit Umschalt zum Markieren und über Tabellen, Bilder und
+Stücke langer Texte hinweg (`jumpTo`, auch für die Pfeile aus AP-44); Strg+Rück/Entf löscht ein Wort; Alt+Umschalt+↑/↓
+verschiebt Absätze (auch über eine Tabelle in den Text dahinter); Umschalt+F3 klein → Erster Groß → GROSS → klein;
+Strg+Umschalt+> / < Schrift in Words Stufen (deutsche Tastatur: Taste neben Umschalt, mit Umschalt größer, Strg+<
+kleiner; sonst Strg+Umschalt+. und , wie Docs – darum öffnet Strg+Umschalt+, nicht mehr die Einstellungen, Strg+,
+weiterhin); Strg+Umschalt+C/Strg+Alt+C Format kopieren, Strg+Alt+V einfügen (Strg+Umschalt+V bleibt *Nur Text
+einfügen*); Strg+Enter Seitenumbruch; F7 Rechtschreibung; Strg+Klick markiert den Satz, auf einem Link öffnet er ihn;
+Doppel-/Dreifachklick Wort/Absatz (Compose, geprüft). Neu im Menü *Format*: Schrift größer/kleiner,
+Groß-/Kleinschreibung; Tasten an *Seitenumbruch* und *Rechtschreibung prüfen*; Tastenübersicht (Strg+/) mit Abschnitt
+*Im Dokument (wie in Word)*. Tests `WordKeysTest`, `ui/DocEditorKeysTest` (echte Tasten und Klicks), `AppShortcutsTest`.
+**(d) ☑ Bilder und Tabellen anfassen** (14.11.2026, vom Hauptnutzer freigegeben): `ui/FlowBlocks.kt` – **Bild**:
+Klick wählt es (Rahmen, vier Griffe ziehen die Breite, Seitenverhältnis bleibt, Prozent beim Ziehen), schwebende Leiste
+über dem Bild (links/mittig/rechts, Bildunterschrift, Alternativtext, Ersetzen, Löschen), Bildunterschrift direkt unter dem
+Bild tippen, Rechtsklick-Menü (Bild ersetzen, Breite 25–100 %, Ausrichtung, verschieben, Als Markdown, Löschen), Entf/Esc,
+Alt+Umschalt+↑/↓ verschiebt Bild und Tabelle wie einen Absatz; neue Bilder ohne Platzhalter-Unterschrift. Speicherung
+`{width=50% align=right alt="…"}` (`DocMarkup.Image`, ohne eigenen Alternativtext gilt die Unterschrift wie bisher); Word:
+`w:jc` und `descr`, PDF/HTML: `text-align`. **Tabelle**: echtes Gitter über die Textbreite (Kopfzeile grau und fett, Text oben
+in der Zelle, alle Zellen einer Zeile gleich hoch), Zellen mit Formatierung wie in Tabellen (AP-48, `SheetRichText`),
+Tab/Umschalt+Tab, Pfeile und Enter von Zelle zu Zelle (am Rand zurück in den Text), Tab in der letzten Zelle hängt eine
+Zeile an, Strg+B/I/U in der Zelle, Alt+Umschalt+↑/↓ verschiebt die Zeile, Spaltengrenzen ziehen – Breiten als Zahl der
+Striche in der Trennzeile (`DocBlocks.tableWidths`, wie Pandoc), in Word `w:gridCol`, im PDF `<colgroup>`; Rechtsklick-Menü
+(Ausschneiden/Kopieren/Einfügen, Zeile/Spalte einfügen und löschen, Breiten angleichen, Zeile/Tabelle verschieben, Tabelle
+löschen); „+ Zeile/+ Spalte“ unter der Tabelle beim Überfahren. Tippen in Zellen ist ein Rückgängig-Schritt je Pause
+(`setRaw(group)`). Tests `FlowBlocksTest`, `ui/DocEditorBlocksTest`, Bilder `ui/DocBlocksLookTest`. Offen: Zuschneiden,
+Bild mit der Maus verschieben, Zellen über Ziehen markieren, Zeilenhöhe ziehen, Formatleiste in Zellen.
+**(e) ☐ Textumbruch ums Bild wie Word** (Entscheidung Hauptnutzer 14.11.2026: „genau wie Word“, eigene Stufe): *Links* und
+*Rechts* – der Text nach dem Bild läuft daneben weiter, die Zeilen neben dem Bild sind schmaler, darunter wieder voll
+breit; in Word als verankertes Bild mit Umbruch „Quadrat“, im PDF umfließend. Vorher/Nachher-Bilder vor dem PR.
 
 ### AP-126 ☐ Dokumente: Funktionsumfang wie Word und Google Docs · XL (Wunsch Hauptnutzer 14.11.2026, in Stufen)
 **Ziel**: Für die Arbeit an der TU Dresden (Briefe, Protokolle, Anträge, Hausarbeiten bis Dissertation, Skripte) braucht

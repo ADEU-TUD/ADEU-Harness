@@ -287,7 +287,9 @@ object DocumentWriter {
         val src = bytes?.let { DocMarkup.dataUrl(it) } ?: img.src.takeIf { it.startsWith("https://", true) || it.startsWith("http://", true) }
             ?: return "<p class=\"meta\">[Bild: ${esc(img.alt.ifBlank { img.src.substringAfterLast('/') })}]</p>\n"
         val width = img.width?.let { " style=\"width:$it%\"" }.orEmpty()
-        return "<figure class=\"img\"><img src=\"$src\" alt=\"${esc(img.alt)}\"$width>" +
+        // Ausrichtung (AP-125 d): the picture and its caption at the left or right edge instead of centred.
+        val align = img.align?.let { " style=\"text-align:$it\"" }.orEmpty()
+        return "<figure class=\"img\"$align><img src=\"$src\" alt=\"${esc(img.altText)}\"$width>" +
             (if (img.alt.isBlank()) "" else "<figcaption>${htmlInline(img.alt)}</figcaption>") + "</figure>\n"
     }
 
@@ -692,6 +694,8 @@ object DocumentWriter {
                 is Block.Table -> {
                     // The header row in <thead>: printed again at the top of every page the table goes on (AP-43).
                     append("<table>\n")
+                    // Spaltenbreiten from the editor (AP-125 d).
+                    b.widths?.let { w -> append("<colgroup>").append(w.joinToString("") { "<col style=\"width:$it%\">" }).append("</colgroup>\n") }
                     b.rows.forEachIndexed { r, row ->
                         val cell = if (r == 0) "th scope=\"col\"" else "td"
                         val close = if (r == 0) "th" else "td"

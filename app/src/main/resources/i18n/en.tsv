@@ -7240,3 +7240,54 @@ Beim Tippen in Dokumenten. Strg+Z direkt danach nimmt eine Korrektur zurück.	Wh
 Satzanfang groß	Capitalise first letter of sentences
 ZWei GRoßbuchstaben am Wortanfang	TWo INitial CApitals
 Häufige Tippfehler (udn → und)	Common typos (teh → the)
+Strg+← / →, Strg+↑ / ↓	Ctrl+← / →, Ctrl+↑ / ↓
+Wort- bzw. absatzweise (mit Umschalt: markieren)	By word or paragraph (with Shift: select)
+Strg+Pos1 / Strg+Ende	Ctrl+Home / Ctrl+End
+Anfang bzw. Ende des Dokuments	Start or end of the document
+Strg+Rück / Strg+Entf	Ctrl+Backspace / Ctrl+Delete
+Wort löschen	Delete word
+Alt+Umschalt+↑ / ↓	Alt+Shift+↑ / ↓
+Absatz verschieben	Move paragraph
+Umschalt+F3	Shift+F3
+Groß-/Kleinschreibung	Change case
+Strg+Umschalt+> / <	Ctrl+Shift+> / <
+Strg+Umschalt+>	Ctrl+Shift+>
+Strg+Umschalt+<	Ctrl+Shift+<
+Schrift größer / kleiner	Font size up / down
+Schrift größer	Increase font size
+Schrift kleiner	Decrease font size
+Strg+Umschalt+C · Strg+Alt+V	Ctrl+Shift+C · Ctrl+Alt+V
+Format kopieren und einfügen	Copy and paste formatting
+Strg+Enter	Ctrl+Enter
+Strg+Klick	Ctrl+click
+Satz markieren bzw. Link öffnen	Select sentence or open link
+Im Dokument (wie in Word)	In documents (like Word)
+Format kopiert – mit Strg+Alt+V auf eine Markierung übertragen.	Formatting copied – apply it to a selection with Ctrl+Alt+V.
+Zuerst ein Format kopieren (Strg+Umschalt+C).	First copy some formatting (Ctrl+Shift+C).
+Größe ändern	Resize
+Alternativtext	Alt text
+Bild löschen	Delete image
+Bildunterschrift hinzufügen	Add a caption
+Bild ersetzen …	Replace image …
+Bildunterschrift bearbeiten	Edit caption
+Alternativtext …	Alt text …
+Breite {0} %	Width {0} %
+Nach oben verschieben	Move up
+Alt+Umschalt+↑	Alt+Shift+↑
+Nach unten verschieben	Move down
+Alt+Umschalt+↓	Alt+Shift+↓
+Als Markdown bearbeiten …	Edit as Markdown …
+Zelle {0}, {1}	Cell {0}, {1}
+Spaltenbreite ändern	Resize column
+Zeile oberhalb einfügen	Insert row above
+Zeile unterhalb einfügen	Insert row below
+Spalte löschen	Delete column
+Spaltenbreiten angleichen	Distribute columns evenly
+Zeile nach oben	Move row up
+Zeile nach unten	Move row down
+Tabelle nach oben verschieben	Move table up
+Tabelle nach unten verschieben	Move table down
+Tabelle löschen	Delete table
+Bild links	Image left
+Bild zentriert	Image centred
+Bild rechts	Image right

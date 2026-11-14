@@ -90,9 +90,19 @@ class AppShortcutsTest {
         assertNull(route, "Strg+B im Text öffnet nicht die Seitenleiste")
         val md = c.docs.get(doc.id)!!.tabs.first().markdown
         assertTrue("**Fett**" in md, md)
+        // Tasten wie Word (AP-125 c) reach the text, not the app: Strg+Umschalt+, (Schrift kleiner) is not the
+        // Einstellungen, Strg+Umschalt+C, Strg+Alt+V, Alt+Umschalt+↑ and Strg+Enter open nothing.
+        field.performKeyInput { withKeyDown(Key.CtrlLeft) { withKeyDown(Key.ShiftLeft) { pressKey(Key.Comma); pressKey(Key.C) } } }
+        field.performKeyInput { withKeyDown(Key.CtrlLeft) { withKeyDown(Key.AltLeft) { pressKey(Key.V) } } }
+        field.performKeyInput { withKeyDown(Key.AltLeft) { withKeyDown(Key.ShiftLeft) { pressKey(Key.DirectionUp) } } }
+        assertNull(route, "Tasten wie Word bleiben im Text")
         // Strg+K stays the Befehlssuche, also in the document.
         field.performKeyInput { withKeyDown(Key.CtrlLeft) { pressKey(Key.K) } }
         assertEquals("palette", route)
+        // Strg+, stays the Einstellungen.
+        route = null
+        field.performKeyInput { withKeyDown(Key.CtrlLeft) { pressKey(Key.Comma) } }
+        assertEquals("settings", route)
         // Outside a text Strg+B is the Seitenleiste and Strg+D the Dateien, as before.
         route = null
         runOnIdle { other.requestFocus() }
