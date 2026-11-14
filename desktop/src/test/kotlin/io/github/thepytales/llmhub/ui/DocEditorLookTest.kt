@@ -16,6 +16,8 @@ import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performMouseInput
+import androidx.compose.ui.test.rightClick
 import androidx.compose.ui.test.runSkikoComposeUiTest
 import androidx.compose.ui.unit.Density
 import io.github.thepytales.llmhub.AppContainer
@@ -85,7 +87,7 @@ class DocEditorLookTest {
         Die Module werden nach Projektende von der Professur weitergeführt und jedes Semester aktualisiert.
     """.trimIndent()
 
-    private fun shoot(name: String, widthDp: Int, heightDp: Int, density: Float, style: String = "ADEU", mode: String = "LIGHT", openFile: Boolean = false) {
+    private fun shoot(name: String, widthDp: Int, heightDp: Int, density: Float, style: String = "ADEU", mode: String = "LIGHT", openFile: Boolean = false, rightClick: Boolean = false) {
         c.settings.update {
             AppSettings().copy(
                 appStyle = style, themeMode = mode, startAnimation = false, loraIntroDone = true, modelsIntroDone = true,
@@ -112,6 +114,11 @@ class DocEditorLookTest {
                 onAllNodesWithText("Datei").onFirst().performClick()
                 settle(6)
             }
+            // Rechtsklick-Menü (AP-125), on a word of the first paragraph.
+            if (rightClick) {
+                onAllNodesWithContentDescription("Dokumenttext").onFirst().performMouseInput { rightClick(androidx.compose.ui.geometry.Offset(width * 0.3f, height * 0.42f)) }
+                settle(6)
+            }
             ImageIO.write(captureToImage().toAwtImage(), "png", File(out, "$name.png"))
         }
         assertTrue(File(out, "$name.png").isFile)
@@ -122,5 +129,6 @@ class DocEditorLookTest {
     @Test fun laptopContrast() = shoot("laptop-kontrast", 911, 512, 1.5f, style = "CONTRAST")
     @Test fun laptopFileMenu() = shoot("laptop-datei", 911, 512, 1.5f, openFile = true)
     @Test fun fullHd() = shoot("fullhd-hell", 1536, 864, 1.25f)
+    @Test fun laptopRightClick() = shoot("laptop-rechtsklick", 911, 512, 1.5f, rightClick = true)
     @Test fun large() = shoot("gross-hell", 2048, 1152, 1.25f)
 }

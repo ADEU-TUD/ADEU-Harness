@@ -1558,10 +1558,8 @@ private fun FlowMenus(
         }
     }
     @Composable
-    fun item(label: String, shortcut: String = "", enabled: Boolean = true, onClick: () -> Unit, close: () -> Unit) = DropdownMenuItem(
-        text = { Row { Text(tr(label), Modifier.weight(1f, fill = false)); if (shortcut.isNotEmpty()) { Spacer(Modifier.width(24.dp)); Text(tr(shortcut), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall) } } },
-        enabled = enabled, onClick = { close(); onClick() },
-    )
+    fun item(label: String, shortcut: String = "", enabled: Boolean = true, onClick: () -> Unit, close: () -> Unit) =
+        MenuRow(tr(label), if (shortcut.isNotEmpty()) tr(shortcut) else "", enabled) { close(); onClick() }
     Row(Modifier.then(if (compact) Modifier else Modifier.fillMaxWidth()).horizontalScroll(rememberScrollState()).padding(horizontal = if (compact) 0.dp else 6.dp), verticalAlignment = Alignment.CenterVertically) {
         menu("Datei") { close ->
             val file = host.fileMenu
@@ -2330,22 +2328,15 @@ private fun FlowTextMenu(
     val link = seg.rich.chars.getOrNull(sel.start.coerceAtMost(text.length - 1).coerceAtLeast(0))?.link?.takeIf { text.isNotEmpty() }
     val uri = androidx.compose.ui.platform.LocalUriHandler.current
     @Composable
-    fun entry(label: String, keys: String = "", enabled: Boolean = true, onClick: () -> Unit) = DropdownMenuItem(
-        text = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(label, Modifier.weight(1f, fill = false))
-                if (keys.isNotEmpty()) { Spacer(Modifier.width(24.dp)); Text(keys, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall) }
-            }
-        },
-        enabled = enabled, onClick = { onDismiss(); onClick() },
-    )
+    fun entry(label: String, keys: String = "", enabled: Boolean = true, onClick: () -> Unit) =
+        MenuRow(label, keys, enabled) { onDismiss(); onClick() }
     DropdownMenu(true, onDismiss) {
         val w = word
         suggestions?.let { list ->
             if (w != null) {
                 if (list.isEmpty()) Text(tr("Keine Vorschläge"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
                 list.forEach { s ->
-                    DropdownMenuItem(text = { Text(s, fontWeight = FontWeight.SemiBold) }, onClick = {
+                    DropdownMenuItem(modifier = MENU_ROW, text = { Text(s, fontWeight = FontWeight.SemiBold) }, onClick = {
                         onDismiss()
                         state.checkpoint()
                         seg.rich = seg.rich.replace(w.first until w.last + 1, s, seg.rich.chars.getOrNull(w.first)?.stored ?: CharFormat.PLAIN.stored)
@@ -2389,6 +2380,30 @@ private fun FlowTextMenu(
         entry(tr("Alles auswählen"), tr("Strg+A")) {
             // Several fields: the selection over all of them; one field: its whole text.
             if (!state.selectAllPieces()) state.focusPiece(seg, TextRange(0, seg.rich.text.length), keepSpan = false)
+        }
+    }
+}
+
+/** Rows of the editor's menus: compact for the mouse on the PC (like Word and Docs), finger-sized on the phone. */
+private val MENU_ROW: Modifier = if (DESKTOP) Modifier.height(36.dp) else Modifier
+
+/**
+ * A row of the editor's menus (APD-15/AP-125): the word on one line, its keys right-aligned in their own column – like
+ * Word and Docs, and without the 280 dp limit of Material's menu rows (long keys such as Strg+Umschalt+V fit).
+ */
+@Composable
+private fun MenuRow(label: String, keys: String, enabled: Boolean, onClick: () -> Unit) {
+    val color = MaterialTheme.colorScheme.onSurface.let { if (enabled) it else it.copy(alpha = 0.38f) }
+    Row(
+        Modifier.fillMaxWidth().widthIn(min = 180.dp).heightIn(min = if (DESKTOP) 36.dp else 48.dp)
+            .clickable(enabled = enabled, role = androidx.compose.ui.semantics.Role.Button, onClick = onClick)
+            .padding(horizontal = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(label, Modifier.weight(1f), color = color, style = MaterialTheme.typography.bodyMedium, maxLines = 1, softWrap = false)
+        if (keys.isNotEmpty()) {
+            Spacer(Modifier.width(32.dp))
+            Text(keys, color = MaterialTheme.colorScheme.onSurfaceVariant.let { if (enabled) it else it.copy(alpha = 0.38f) }, style = MaterialTheme.typography.bodySmall, maxLines = 1, softWrap = false)
         }
     }
 }
