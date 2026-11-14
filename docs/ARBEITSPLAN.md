@@ -1,6 +1,6 @@
 # Arbeitsplan Lora (bis 1.0.43 „ADEU LLM“) – Runde 2
 
-Stand: 13.11.2026 (neu: **Design-Arbeitsplan** [`DESIGN-ARBEITSPLAN.md`](DESIGN-ARBEITSPLAN.md) mit Paketen APD-xx für Aussehen und Bedienbarkeit; AP-124 dorthin verschoben als APD-01) · 13.11.2026 (AP-123 Bedienelemente aus einem Guss freigegeben und in `main`, für 1.0.71; Prüfung am Gerät offen) · 13.11.2026 (AP-122 Lora neu gezeichnet und lebendiger: vom Hauptnutzer freigegeben, in der App, für 1.0.70 zusammen mit AP-121; Prüfung am Gerät offen) · 13.11.2026 (AP-121 Videoeditor für Einsteiger in der App, für 1.0.70; Prüfung am Gerät offen) · 11.11.2026 (Sitzung Dateiwerkzeuge: AP-90 Rest, AP-91, AP-93, AP-97 bis AP-100, AP-107 Rest, neu AP-119 und AP-120 in der App, Prüfung am Gerät offen) · 11.11.2026 (AP-112 und AP-116 in der App, Messung am Gerät offen; AP-117 erledigt; AP-118 Server-Terminal in der App, am eigenen Server zu prüfen) · 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen; neu: AP-116 lokale Modelle auf dem Handy zu langsam, nicht abbrechbar, Gerät heiß) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
+Stand: 14.11.2026 (neu: **Office und Video wie Google Docs und Word** – AP-125 bis AP-130, Oberfläche dazu als APD-15 bis APD-17 im [Design-Arbeitsplan](DESIGN-ARBEITSPLAN.md); kommen vor den übrigen Paketen) · 13.11.2026 (neu: **Design-Arbeitsplan** [`DESIGN-ARBEITSPLAN.md`](DESIGN-ARBEITSPLAN.md) mit Paketen APD-xx für Aussehen und Bedienbarkeit; AP-124 dorthin verschoben als APD-01) · 13.11.2026 (AP-123 Bedienelemente aus einem Guss freigegeben und in `main`, für 1.0.71; Prüfung am Gerät offen) · 13.11.2026 (AP-122 Lora neu gezeichnet und lebendiger: vom Hauptnutzer freigegeben, in der App, für 1.0.70 zusammen mit AP-121; Prüfung am Gerät offen) · 13.11.2026 (AP-121 Videoeditor für Einsteiger in der App, für 1.0.70; Prüfung am Gerät offen) · 11.11.2026 (Sitzung Dateiwerkzeuge: AP-90 Rest, AP-91, AP-93, AP-97 bis AP-100, AP-107 Rest, neu AP-119 und AP-120 in der App, Prüfung am Gerät offen) · 11.11.2026 (AP-112 und AP-116 in der App, Messung am Gerät offen; AP-117 erledigt; AP-118 Server-Terminal in der App, am eigenen Server zu prüfen) · 10.11.2026 (1.0.67 veröffentlicht: AP-86, AP-103, AP-111 und AP-115 erledigt; AP-90, AP-95, AP-105 bis AP-108 und AP-110 in der App, Messungen bzw. Tests am Gerät offen; AP-67 offen; neu: AP-116 lokale Modelle auf dem Handy zu langsam, nicht abbrechbar, Gerät heiß) · Lebendes Dokument: Status hier pflegen, erledigte Pakete abhaken und in der README beschreiben.
 Runde 1 (AP-01 bis AP-37) ist erledigt und steht ausführlich in [`ARBEITSPLAN-RUNDE-1.md`](ARBEITSPLAN-RUNDE-1.md).
 
 **Design steht im Design-Arbeitsplan** (seit 13.11.2026): Pakete zu Aussehen, Bedienbarkeit und Nutzerfreundlichkeit
@@ -32,7 +32,7 @@ Funktionen.
 | --- | --- |
 | Für wen | Ich bin Hauptnutzer und entscheide über die Funktionen. Das Team ist gleichberechtigt, bekommt die App kostenlos und gibt Feedback (über *Problem melden*). Keine Umfragen, keine Usability-Tests, keine Teamverwaltung. |
 | Priorität | **Täglicher Nutzen** entscheidet. |
-| Umfang der Werkzeuge | **Alltagsumfang**: die Funktionen, die den Großteil der Arbeit abdecken. Die Vorbilder (pdf24 + Xodo, Word/Excel/PowerPoint, Canva, DaVinci Resolve) geben die Richtung vor, nicht den vollen Umfang. Ausbau nur bei konkretem Bedarf. **Ausnahme seit Runde 2**: Dokumente, Tabellen und Folien sollen so nah wie möglich an Google Docs/Sheets/Slides (und Word-/PowerPoint-/Excel-Treue) heranreichen, der Videoeditor so nah wie möglich an DaVinci Resolve für den Alltag – ohne Fusion, Color Grading und Fairlight, eigenständig im Lora-Stil in **einer** Ansicht. Dokument, Folien und Gestalten teilen sich einen Editor-Kern (Text-Kern AP-43, Leinwand AP-50). |
+| Umfang der Werkzeuge | **Alltagsumfang**: die Funktionen, die den Großteil der Arbeit abdecken. Die Vorbilder (pdf24 + Xodo, Word/Excel/PowerPoint, Canva, DaVinci Resolve) geben die Richtung vor, nicht den vollen Umfang. Ausbau nur bei konkretem Bedarf. **Ausnahme seit Runde 2**: Dokumente, Tabellen und Folien sollen so nah wie möglich an Google Docs/Sheets/Slides (und Word-/PowerPoint-/Excel-Treue) heranreichen, der Videoeditor im Funktionsumfang so nah wie möglich an DaVinci Resolve für den Alltag – ohne Fusion, Color Grading und Fairlight, eigenständig im Lora-Stil in **einer** Ansicht. **Aufbau des Videoeditors seit 14.11.2026 (APD-17a, Entscheidung „A mit B“)**: wie Clipchamp/CapCut (Leiste mit Wörtern links, Galerien zum Hineinziehen, Eigenschaften nur für das Gewählte, Zeitleiste ohne Fachsprache) mit den Profi-Wegen aus dem bisherigen Aufbau (Spurnamen, Sperren und Stummschalten beim Überfahren, genaue Zahlen unter den Reglern, Mehrkamera-Ansicht für Interviews, alle Tasten). Dokument, Folien und Gestalten teilen sich einen Editor-Kern (Text-Kern AP-43, Leinwand AP-50). |
 | Übersichtlichkeit | Die App darf durch neue Funktionen nicht unübersichtlich werden: große Werkzeuge sind **einschaltbar** (anfangs aus, Lora schlägt sie passend vor), eingeschaltete Fortgeschrittene stehen in der Seitenleiste unter **„Mehr“**. Jedes neue Werkzeug fügt sich in AP-02 ein. Keine Einfach-/Expertenansicht. „Mehr“ bleibt eine flache Liste; **jeder Bereich lässt sich ausblenden** (außer *Erstellen* und *Dateien*), erreichbar bleibt er über Strg+K und Lora (seit AP-24). |
 | Inhalte | Zwei feste Orte für Inhalte: **Dateien** (was es gibt) und **Erstellen** (was neu entsteht: TU Vorlagen und Gestalten mit „Meine Designs“). Jederzeit kann man stattdessen Lora sagen, was entstehen soll (seit AP-24). |
 | Plattformen | **Windows-PC ist die Hauptplattform.** Android zieht nur Funktionen nach, die dort sinnvoll sind – **kein** Videoeditor, **kein** Kreativbereich. macOS und Linux sind da (AP-31); die Website steht in den Ideen. |
@@ -76,6 +76,7 @@ Fairlight).
 | ~~Lora im Alltag~~ ☑ | AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen (erledigt 10.11.2026, siehe *Erledigt*) |
 | **Danach** | ~~AP-86 Lokale Modelle auf dem Mac laden~~ ☑ (10.11.2026, 1.0.67) |
 | **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung ◐ · AP-106 Modellkatalog in feinen Stufen, nach Zweck ◐ · AP-107 Suche nach Bedeutung auf dem Gerät ◐ (Rest in der App) · AP-108 Lange Texte lokal ◐ · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal ◐ · AP-111 Sprachausgabe lokal ☑ · AP-112 Offline-Schiene in der Oberfläche ◐ · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 ☑ · **AP-116 Lokale Modelle: Tempo, Abbruch, Hitze ◐** (Fehler aus 1.0.67, vor AP-109) · ~~AP-117 Eigene Modelle aktualisieren, auf GitHub~~ ☑ (11.11.2026) |
+| **Neu (14.11.2026, Office und Video)** | **AP-125 Dokumente verhalten sich wie Word ◐** · **AP-126 Dokumente: Funktionsumfang wie Word und Google Docs ☐** · **AP-127 Folien, Gestalten, Whiteboard: anfassen wie PowerPoint und Canva ☐** · **AP-128 Video: Datenschutz in Unterrichtsvideos ☐** · **AP-129 Video: was im Alltag fehlt ☐** · **AP-130 Video: flüssige Vorschau ☐** (Oberfläche dazu: APD-15 bis APD-17 im [Design-Arbeitsplan](DESIGN-ARBEITSPLAN.md); vor den übrigen Paketen) |
 | **Neu (13.11.2026, Bedienung)** | ~~AP-124 Die ganze App weiter verbessern~~ → **APD-01** im [Design-Arbeitsplan](DESIGN-ARBEITSPLAN.md) · **AP-123 Bedienelemente aus einem Guss ◐** (Knöpfe nach Stil, Dialoge mit Hauptknopf und Enter/Esc, rote Lösch-Knöpfe, Tooltips an Symbol-Knöpfen, Passwort-Auge, Hinweis-Banner, Bildlaufleisten am PC; freigegeben, Prüfung am Gerät offen) |
 | **Neu (13.11.2026)** | **AP-121 Videoeditor für Einsteiger ◐** (Startseite, „So entsteht dein Video“, einfach schneiden, Rechtsklick, klarere Leisten; Prüfung am Gerät offen) |
 | **Neu (12.11.2026)** | **AP-122 Lora: neues Aussehen und lebendigere Animationen ☑** (Wunsch Hauptnutzer; am 13.11.2026 freigegeben, in der App, für 1.0.70) |
@@ -101,6 +102,115 @@ ebenfalls in einem eigenen Chat; auch dort kommt der Messkorpus vor jedem Traini
 ---
 
 ## Jetzt
+
+**Office und Video (14.11.2026, Wunsch Hauptnutzer)**: Dokumente, Folien, Gestalten/Whiteboard und der Videoeditor
+sollen flüssiger und intuitiver werden, „wie Google Docs und Word“. Ziel für Dokumente: **ein vollwertiges Produkt** –
+„Nutzende sollen keinen Grund mehr haben, Word oder Docs zu nutzen; dazu muss es viele Funktionen haben, gut organisiert
+und intuitiv sein“. Die Funktionen stehen hier (AP-125 bis AP-130), die Oberfläche der Editoren im
+[Design-Arbeitsplan](DESIGN-ARBEITSPLAN.md) (APD-15 bis APD-17, dort auch die Antworten auf die Rückfragen und die
+Reihenfolge über beide Pläne). **Diese Pakete kommen vor den übrigen unter *Jetzt***: APD-17a → APD-15 + AP-125 → AP-126
+→ APD-16 + AP-127 → APD-17b + AP-130 → AP-128 → AP-129.
+
+### AP-125 ◐ Dokumente verhalten sich wie Word · L (Wunsch Hauptnutzer 14.11.2026, in Stufen)
+**Befund**: Der Fließtext-Editor (AP-43 bis AP-47) kann viel, verhält sich aber an vielen Stellen anders als Word und
+Docs: kein Rechtsklick-Menü, keine Autokorrektur (nur Markdown-Kürzel), Bilder sind Blöcke mit Stift und Papierkorb
+daneben (Bearbeiten = Markdown-Dialog), Tabellen ohne Spaltenbreite zum Ziehen.
+**Ziel**: Wer Word oder Docs kennt, muss nichts neu lernen. Alles gilt auch für Text in Tabellen, Folien und Gestalten,
+soweit der gemeinsame Text-Kern (AP-43) es trägt.
+- **(a) Rechtsklick-Menü** in Klartext, passend zur Stelle: Text (Ausschneiden, Kopieren, Einfügen, *Nur Text einfügen*,
+  Link, Kommentar, Lora fragen, Formatierung entfernen, Absatz-/Listen-Optionen), Rechtschreibvorschläge oben bei einem
+  markierten Wort (*Zum Wörterbuch hinzufügen*, *Ignorieren*), Tabelle (Zeile/Spalte einfügen und löschen, verbinden,
+  Kopfzeile wiederholen), Bild (Größe, Umbruch, Bildunterschrift, Alternativtext, Ersetzen), Link (Öffnen, Bearbeiten,
+  Entfernen). Einfügen-Optionen: Strg+Umschalt+V = nur Text.
+- **(b) Autokorrektur beim Tippen** (abschaltbar und einzeln wählbar unter *Extras › Autokorrektur*): Großschreibung am
+  Satzanfang, ZWei GRoßbuchstaben, „deutsche Anführungszeichen“ (englische nach Sprache des Absatzes), `--` → –,
+  `...` → …, `(c)` → ©, `->` → →, häufige Tippfehler (Liste, erweiterbar), automatische Listen (wie heute). Rückgängig
+  (Strg+Z) direkt danach nimmt nur die Korrektur zurück, wie in Word.
+- **(c) Tasten und Markieren wie Word**: Strg+←/→ (Wort), Strg+↑/↓ (Absatz), mit Umschalt markieren; Doppelklick Wort,
+  Dreifachklick Absatz, Strg+Klick Satz; Strg+Rück/Entf löscht ein Wort; Strg+Enter Seitenumbruch; Strg+L/R/J
+  Ausrichtung; Strg+Umschalt+>/< Schrift größer/kleiner; Umschalt+F3 Groß-/Kleinschreibung; F7 Rechtschreibung;
+  Strg+Umschalt+7/8 Listen (Docs); Strg+Umschalt+C/V Format kopieren/einfügen (Word); Alt+Umschalt+↑/↓ Absatz
+  verschieben; Tab/Umschalt+Tab Listenebene; Pos1/Ende, Strg+Pos1/Ende. **Entscheidung (Hauptnutzer 14.11.2026)**: keine
+  Überschneidungen, die App-Kürzel bleiben ungestört – Strg+K bleibt überall die Befehlssuche, Strg+E die KI; Word-
+  Funktionen bekommen Tasten, die nichts in der App belegt: Zentriert Strg+Umschalt+E und Blocksatz Strg+Umschalt+J
+  (wie Google Docs), Rechtsbündig Strg+R (wie Word); Link über Leiste, Menü und Rechtsklick. Linksbündig hat keine Taste
+  (Strg+L ist Lora, Strg+Umschalt+L Literatur). Schon belegt sind auch Strg+B (Seitenleiste ↔ Fett) und Strg+D (Dateien ↔
+  Duplizieren in Folien/Gestalten) – das Fenster fängt sie vor dem Editor ab (mit einem echten Fenster unter Xvfb
+  geprüft: der Tastendruck erreicht das Textfeld nicht), Fett per Strg+B ging im Hauptfenster also nicht. **Entscheidung
+  (Hauptnutzer 14.11.2026, Variante A): im Text gewinnt der Text** – `AppShortcuts` (desktop): Strg+N, Strg+,, Strg+K, Strg+/, Strg+L und
+  Strg+T vor dem fokussierten Element, Strg+B (Seitenleiste) und Strg+D (Dateien) erst danach; im Dokument, in Tabellen, Folien und
+  Gestalten machen sie fett bzw. duplizieren, überall sonst (auch im Videoeditor: Teilen ist S) bleiben sie die App-Kürzel.
+  Tastenübersicht (Strg+/) entsprechend. Test `AppShortcutsTest`.
+- **(d) Bilder und Tabellen anfassen**: Bild anklicken → Rahmen mit Griffen (Größe, Seitenverhältnis bleibt), an eine
+  andere Stelle ziehen, schwebende Leiste *Mit Text in Zeile · Links · Rechts · Oben und unten*, Ausrichtung,
+  Bildunterschrift, Zuschneiden, Alternativtext; Tabellen: Spaltenbreite und Zeilenhöhe ziehen, Tab springt in die nächste
+  Zelle (in der letzten: neue Zeile), Zellen über Ziehen markieren und gemeinsam formatieren, „+“ am Rand fügt Zeile/Spalte
+  ein. Alles kommt unverändert in Word und PDF an (Word-Treue AP-45, `PruefsammlungTest` grün).
+**Fertig, wenn**: jemand, der Word gewohnt ist, einen Antrag mit Tabelle und Bild schreibt, ohne über das Verhalten zu
+stolpern; Tests für Menü, Autokorrektur, Tasten, Bildgriffe und Tabellen (Muster `FlowEditorUiTest`).
+◐ *Stand 14.11.2026*: aus (c) vorab mit APD-15 behoben – Strg+Z/Y nehmen im Fließtext Tastendruck für Tastendruck
+zurück (vorher fing das Fenster sie ab), Strg+F/H öffnen die Suche des Editors (Test `ui/DocEditorChromeTest`); Ausrichtung
+mit Strg+Umschalt+E/J und Strg+R; Strg+B/Strg+D erreichen die Editoren (`AppShortcuts`, siehe Entscheidung oben). Weiter mit (a).
+
+### AP-126 ☐ Dokumente: Funktionsumfang wie Word und Google Docs · XL (Wunsch Hauptnutzer 14.11.2026, in Stufen)
+**Ziel**: Für die Arbeit an der TU Dresden (Briefe, Protokolle, Anträge, Hausarbeiten bis Dissertation, Skripte) braucht
+niemand mehr Word oder Docs. Neue Funktionen fügen sich in die Menüs von APD-15 ein (gut organisiert, nichts doppelt).
+- **(a) Lückenliste**: jede Funktion aus den Menüs von Word (Start, Einfügen, Layout, Referenzen, Überprüfen, Ansicht) und
+  Google Docs gegen den Editor – vorhanden / fehlt / bewusst nicht –, mit Nutzen fürs Team; Ergebnis in
+  `docs/office-luecken.md`, daraus die Reihenfolge der weiteren Stufen.
+- **(b) Grundausstattung**: *Datei* vollständig (Neu, Kopie anlegen, Umbenennen, Herunterladen als, Drucken, Details,
+  Sprache), *Bearbeiten* mit Ausschneiden/Kopieren/Einfügen/Nur Text einfügen, Statusleiste (aus APD-15), Seitenzahlen
+  einfügen, Kopf-/Fußzeile per Doppelklick direkt auf dem Blatt bearbeiten.
+- **(c) Wissenschaft**: Beschriftungen mit Nummer (Abbildung 1, Tabelle 1), Querverweise, Abbildungs- und
+  Tabellenverzeichnis, nummerierte Überschriften (1, 1.1, 1.1.1), Endnoten, Lesezeichen.
+- **(d) Absatz und Seite**: Dialog *Absatz* (Abstand vor/nach, mit nächstem zusammenhalten, Einzüge), Listen-Optionen
+  (Zeichen, Format, neu beginnen/fortsetzen, mehrstufig), Spalten, Rahmen und Schattierung, Hoch-/Querformat je
+  Abschnitt, Wasserzeichen, Seitenfarbe, Groß-/Kleinschreibung ändern.
+- **(e) Überprüfen**: Rechtschreibung und Grammatik **beim Tippen** auf dem Gerät (Wellenlinien, Vorschläge im
+  Rechtsklick), Thesaurus, zwei Fassungen vergleichen, Vorlesen.
+- **(f) Docs-Komfort**: @-Menü (Datum, Datei, Person, Baustein, Tabelle, Überschrift), eigene Bausteine, Textfeld und
+  einfache Formen, Steuerzeichen anzeigen (¶), Fokusmodus.
+- Jede Stufe: in Word-Datei und PDF wie am Bildschirm; Word-Treue (AP-45) bleibt.
+**Fertig, wenn**: die Lückenliste keine Funktion mit hohem Nutzen mehr als „fehlt“ führt.
+
+### AP-127 ☐ Folien, Gestalten, Whiteboard: anfassen wie PowerPoint und Canva · L (Wunsch Hauptnutzer 14.11.2026, Eigenregie)
+Der Hauptnutzer hat diese Editoren wenig selbst genutzt; Maßstab sind PowerPoint, Google Slides und Canva.
+- **(a) Bestandsaufnahme** wie AP-126 (a), für die gemeinsame Leinwand (AP-50) und das Whiteboard (AP-61).
+- **(b) Objekte anfassen**: Griffe für Größe und Drehen (Umschalt: Seitenverhältnis bzw. 15°-Schritte), Strg-Ziehen
+  kopiert, Pfeiltasten verschieben (Umschalt: weiter), Mehrfachauswahl per Rahmen und Umschalt-Klick, **intelligente
+  Hilfslinien** (Mitte, Kanten, gleiche Abstände, mit Maß), Gruppieren (Strg+G), Ausrichten und Verteilen, Ebenen,
+  Format übertragen, Rechtsklick-Menü wie AP-125 (a).
+- **(c) Text in Objekten** wie im Dokument: Doppelklick bearbeitet, Esc wählt ab, Tasten und Autokorrektur aus AP-125.
+- **(d) Folien**: Folienleiste mit Ziehen und Rechtsklick, Layouts als Galerie, Referentenansicht prüfen.
+**Fertig, wenn**: eine Folie und ein Poster lassen sich so flüssig bauen wie in PowerPoint/Canva; Tests je Stufe.
+
+### AP-128 ☐ Video: Datenschutz in Unterrichtsvideos · M (Wunsch Hauptnutzer 14.11.2026, D)
+Gesichter verpixeln und Stimme verfremden gibt es (AP-54). Neu, alles auf dem Gerät:
+- **Namen piepen oder stummschalten**: Namen im Transkript finden (Namensschutz AP-67 plus eigene Liste, z. B. die
+  Teilnehmerliste einfügen), Liste der Fundstellen zum Prüfen und Abhaken, je Stelle *Piepen · Stumm · Stimme
+  verfremden*; Untertitel und Transkript zeigen „[Name]“. Lora-Aktion dazu.
+- **Prüfliste vor dem Export**: vor jedem Export eine kurze Liste – Gesichter in nicht verpixelten Clips, Namen im Ton
+  oder in Untertiteln – je Punkt *Zeigen* und *Beheben*, dazu *Trotzdem exportieren*; abschaltbar je Projekt, Hinweis im
+  Exportprotokoll.
+**Fertig, wenn**: ein Unterrichtsvideo mit drei Namen und zwei Gesichtern sich in wenigen Klicks sauber exportieren lässt;
+Tests mit Beispielton und -bild.
+
+### AP-129 ☐ Video: was im Alltag fehlt · L (Wunsch Hauptnutzer 14.11.2026, D, in Stufen)
+Für **Vorlesungsaufzeichnungen**, **Interviews/Gespräche**, **kurze Clips** und **Unterrichtsvideos**. Vieles gibt es
+schon (Übergänge, Bauchbinden, Kapitel, Rohschnitt nach Pausen und Füllwörtern, Ton synchronisieren, Lautheit).
+- **(a) Lückenliste** gegen Clipchamp, CapCut und DaVinci für diese vier Zwecke, mit Nutzen fürs Team.
+- Kandidaten: Musik automatisch leiser, wenn gesprochen wird (Ducking); Mehrkamera-Schnitt nach Sprecher bei Interviews;
+  Hochformat/Quadrat mit Bildausschnitt, der der Person folgt; Untertitel-Stile für kurze Clips; Höhepunkte aus einer
+  langen Aufnahme als Clip; Vorlagen für Titel und Abspann (TUD-Vorlagen unverändert).
+**Fertig, wenn**: die Lückenliste für die vier Zwecke nichts mit hohem Nutzen mehr als „fehlt“ führt.
+
+### AP-130 ☐ Video: flüssige Vorschau · M (Wunsch Hauptnutzer 14.11.2026, D)
+**Befund**: Die Vorschau ruckelt (Hauptnutzer). **Vorgehen**: zuerst messen (Abspielen, Spulen, Abspielkopf ziehen,
+Zoomen der Zeitleiste – kurze und 90-minütige Aufnahme, 1080p und 4K, mit und ohne Effekte), dann die Ursachen beheben
+(Vorschaudateien früher und sichtbar erzeugen, Bildpuffer, zwischengespeicherte Vorschaubilder der Zeitleiste, beim
+Ziehen sofort ein nahes Bild und das genaue nach dem Loslassen).
+**Fertig, wenn**: der Abspielkopf der Maus ohne spürbare Verzögerung folgt und 1080p ohne Ruckeln abspielt; Messwerte
+vorher/nachher im Test.
 
 **Design (13.11.2026)**: AP-123 (Bedienelemente aus einem Guss) ist freigegeben, reicht dem Hauptnutzer aber noch
 nicht. Weiter geht es im [Design-Arbeitsplan](DESIGN-ARBEITSPLAN.md) mit **APD-01 Umfassendes UI-Review** (vorher

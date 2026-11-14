@@ -574,10 +574,13 @@ fun AiPromptBar(kind: DocKind, working: Boolean, onOpen: () -> Unit) {
 /** Small round tool button for the formatting bars. */
 @Composable
 fun ToolIcon(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, active: Boolean = false, enabled: Boolean = true, onClick: () -> Unit) {
-    IconButton(onClick = onClick, enabled = enabled, modifier = Modifier.size(40.dp).then(if (active) Modifier.background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(10.dp)) else Modifier)) {
+    IconButton(onClick = onClick, enabled = enabled, modifier = Modifier.size(LocalToolIconSize.current).then(if (active) Modifier.background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(10.dp)) else Modifier)) {
         Icon(icon, contentDescription = label, modifier = Modifier.size(20.dp))
     }
 }
+
+/** Size of a [ToolIcon]: 40 dp, smaller in the compact Formatleiste of the document (APD-15). */
+val LocalToolIconSize = androidx.compose.runtime.staticCompositionLocalOf { 40.dp }
 
 /** Clickable text label in toolbars (e.g. "Absatz ▾"). */
 @Composable

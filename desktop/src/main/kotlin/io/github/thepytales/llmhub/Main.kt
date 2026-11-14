@@ -31,7 +31,6 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.isCtrlPressed
-import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalWindowInfo
@@ -289,7 +288,7 @@ private fun ApplicationScope.App(startHidden: Boolean, selfTest: File?, showRequ
             if (e.type == KeyEventType.KeyDown && e.key == Key.Escape) {
                 Navigation.openRoute.value = "back"
                 true
-            } else false
+            } else AppShortcuts.late(e)?.let { Navigation.openRoute.value = it; true } ?: false
         },
     ) {
         DesktopActions.window = window
@@ -359,8 +358,9 @@ private fun zoom(step: Int) {
 }
 
 /**
- * Strg+N new chat, Strg+, settings, Strg++/Strg+−/Strg+0 zoom, Strg+B side menu, Strg+K command palette, Strg+L Lora,
- * Strg+Umschalt+L literature, Strg+/ shortcut overview (see ShortcutsDialog).
+ * Strg+N new chat, Strg+, settings, Strg++/Strg+−/Strg+0 zoom, Strg+K command palette, Strg+L Lora,
+ * Strg+Umschalt+L literature, Strg+/ shortcut overview (see ShortcutsDialog); Strg+B side menu and Strg+D files only
+ * after the focused element (AppShortcuts).
  */
 private fun shortcut(e: KeyEvent): Boolean {
     if (e.type != KeyEventType.KeyDown || !e.isCmd) return false
@@ -369,17 +369,8 @@ private fun shortcut(e: KeyEvent): Boolean {
         Key.Minus, Key.NumPadSubtract -> { zoom(-1); return true }
         Key.Zero, Key.NumPad0 -> { zoom(0); return true }
     }
-    Navigation.openRoute.value = when (e.key) {
-        Key.N -> "chat"
-        Key.Comma -> "settings"
-        Key.B -> "drawer"
-        Key.K -> "palette"
-        Key.Slash, Key.NumPadDivide -> "shortcuts"
-        Key.L -> if (e.isShiftPressed) "literature" else "lora"
-        Key.D -> "files"
-        Key.T -> "transcripts"
-        else -> return false
-    }
+    // Strg+B and Strg+D come after the focused element (Fett, Duplizieren in the editors): see AppShortcuts.late.
+    Navigation.openRoute.value = AppShortcuts.early(e) ?: return false
     return true
 }
 

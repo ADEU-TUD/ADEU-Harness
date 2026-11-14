@@ -112,7 +112,7 @@ internal fun FlowOutline(state: FlowState, onJump: (Int) -> Unit, onClose: () ->
             HintText(tr("Überschriften erscheinen hier. Mit „Überschrift 1–4“ (Strg+Alt+1…4) entsteht die Gliederung."), Modifier.padding(top = 6.dp))
             return@Column
         }
-        HintText(tr("Klicken springt hin, ⠿ ziehen verschiebt den ganzen Abschnitt."), Modifier.padding(bottom = 6.dp))
+        // APD-15: no explanation above the list – the handle ⠿ says it in its tooltip (less text, more room).
         Column(Modifier.verticalScroll(rememberScrollState())) {
             shown.forEachIndexed { row, i ->
                 val h = heads[i]

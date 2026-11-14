@@ -76,11 +76,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.KeyboardArrowUp
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -244,6 +249,8 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
     var citing by remember { mutableStateOf(false) }
     var spellFor by remember { mutableStateOf<String?>(null) }
     var deckFromDoc by remember { mutableStateOf(false) }
+    /** Menüs ausblenden (APD-15, Strg+Umschalt+F like Google Docs): only the Formatleiste stays above the page. */
+    var menusHidden by rememberSaveable { mutableStateOf(false) }
     /** Changes of the model the user has accepted (block texts), per version of the model. */
     val acceptedAi = remember(doc?.versions?.lastOrNull { it.byAi }?.id) { mutableStateListOf<String>() }
     val undo = remember(doc?.id) { mutableStateListOf<List<DocTab>>() }
@@ -422,6 +429,82 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
 
     fun togglePanel(p: DocPanel) { panel = if (panel == p) DocPanel.NONE else p }
 
+    // Fließtext-Editor (AP-44) for text documents; the block view stays for reviewing changes of the model.
+    // Änderungen nachverfolgen shows in the running text too (AP-44), unless tables, pictures or formulas changed.
+    val trackInFlow = trackBase != null && remember(trackBase, tab?.markdown) { FlowState.trackable(trackBase, tab?.markdown.orEmpty()) }
+    val flow = kind == DocKind.DOC && doc != null && mode == TextMode.EDIT && !showingDraft && !writing &&
+        (if (trackBase != null) trackInFlow else review == null || review.changes.isEmpty() && review.removed.isEmpty())
+    /** The document as it is now (callbacks remembered once per document must not export or copy an old state). */
+    val liveDoc by rememberUpdatedState(doc)
+    val closeNow by rememberUpdatedState(onClose)
+    /** What *Datei* of the Fließtext-Editor does (APD-15): the former „⋮“ menu, on the document as it is now. */
+    val fileActions = remember(doc?.id) {
+        DocFileActions(
+            rename = { renaming = true },
+            duplicate = {
+                liveDoc?.let { d ->
+                    val copy = LiveDoc.create(d.title + tr(" (Kopie)"), d.markdown(), "Sie", kind = d.docKind)
+                        .copy(tabs = d.tabs.map { it.copy(id = java.util.UUID.randomUUID().toString()) }, vault = d.vault)
+                    c.docs.save(copy)
+                    DocsHandoff.show(copy.id)
+                }
+            },
+            star = { liveDoc?.let { d -> c.docs.update(d.id) { it.copy(starred = !it.starred) } } },
+            vault = { chooseVault = true },
+            export = { tabOnly ->
+                liveDoc?.let { d ->
+                    val t = d.tab(tabId)
+                    export = if (tabOnly && t != null) "${d.title} – ${t.title}" to DocMarkup.resolveImages(exportMarkdown(d, t.id), docBase)
+                    else d.title to DocMarkup.resolveImages(exportMarkdown(d, null), docBase)
+                }
+            },
+            sendToChat = { sendToChat = true },
+            shareText = { liveDoc?.let { d -> shareText(context, exportMarkdown(d, null), d.title) } },
+            deck = { deckFromDoc = true },
+            pageSetup = { pageSetup = true },
+            design = { chooseStyle = true },
+            history = { showHistory = true },
+            delete = {
+                liveDoc?.let { d ->
+                    c.docs.delete(d.id)
+                    closeNow()
+                    Notices.undo(tr("{0} gelöscht", d.docKind.label), restore = { c.docs.save(d) })
+                }
+            },
+        )
+    }
+    // The Fließtext-Editor's connection to this window (APD-15): made before the header, which shows the editor's
+    // menus and Formatleiste through it.
+    val hostNow = remember(doc?.id, tabId) {
+        FlowHost(
+            onComment = { commentOn = it },
+            onImage = pickImage,
+            onCitation = { citing = true },
+            onFind = { findOpen = true },
+            onExport = { liveDoc?.let { d -> export = d.title to DocMarkup.resolveImages(exportMarkdown(d, null), docBase) } },
+            onPageSetup = { pageSetup = true },
+            onHistory = { showHistory = true },
+            onOutline = { panel = DocPanel.OUTLINE },
+            onSource = { mode = TextMode.SOURCE },
+            onRead = { mode = TextMode.READ },
+            onSpell = { spellLocal = true },
+            onTrack = { if (liveDoc?.trackBase == null) save(note = tr("Änderungen nachverfolgen an")) { d -> d.copy(trackBase = d.tabs.associate { it.id to it.markdown }) } else stopTracking = true },
+            onAskAi = { panel = DocPanel.AI },
+            onShowComments = { panel = DocPanel.COMMENTS },
+            // APD-15: everything of the former „⋮“ menu in *Datei*, like Google Docs.
+            fileMenu = { close -> liveDoc?.let { d -> FlowFileMenu(c, d, liveTab = tabId, close = close, actions = fileActions) } },
+            onAddTab = {
+                liveDoc?.let { d ->
+                    val new = DocTab(title = tr("Tab {0}", d.tabs.size + 1))
+                    save { x -> x.copy(tabs = x.tabs + new) }
+                    tabId = new.id
+                }
+            },
+            onSpellAi = { spellFor = (flowHost.markdown?.invoke() ?: liveDoc?.tab(tabId)?.markdown).orEmpty().replace(EMPTY_BLOCK, "") },
+        )
+    }
+    if (flowHost !== hostNow) flowHost = hostNow
+
     BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerLow)) {
         val narrow = maxWidth < 600.dp
         val wide = maxWidth > 980.dp
@@ -437,16 +520,28 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
         Column(
             Modifier.fillMaxSize().onPreviewKeyEvent { e ->
                 if (e.type != KeyEventType.KeyDown || !e.isCmd || doc == null) return@onPreviewKeyEvent false
+                // In the Fließtext-Editor Strg+Z/Y undo keystroke by keystroke and Strg+F/H open its search (like Word); the
+                // window's own Rückgängig (whole saved states) is for the other kinds of documents (APD-15).
                 when (e.key) {
-                    Key.Z -> { if (e.isShiftPressed) redoOnce() else undoOnce(); true }
-                    Key.Y -> { redoOnce(); true }
-                    Key.F, Key.H -> { findOpen = true; true }
-                    Key.E -> { togglePanel(DocPanel.AI); true }
+                    Key.Z -> { if (flow) { if (e.isShiftPressed) flowHost.redo?.invoke() else flowHost.undo?.invoke() } else if (e.isShiftPressed) redoOnce() else undoOnce(); true }
+                    Key.Y -> { if (flow) flowHost.redo?.invoke() else redoOnce(); true }
+                    Key.F, Key.H -> { if (flow && e.isShiftPressed && e.key == Key.F) menusHidden = !menusHidden else if (flow) flowHost.find?.invoke() else findOpen = true; true }
+                    Key.E -> if (flow && e.isShiftPressed) false else { togglePanel(DocPanel.AI); true }
                     else -> false
                 }
             },
         ) {
             // ── Header: title, status, actions ──
+            if (flow && doc != null) { if (!menusHidden) FlowDocHeader(
+                doc = doc, narrow = narrow, inSidePanel = inSidePanel, onClose = onClose, onRename = { renaming = true },
+                status = (if (aiWorking) tr("KI arbeitet am {0} …", tr(kind.label)) else tr("Gespeichert") + (doc.vault?.let { v -> c.docs.vault(v)?.let { tr(" in „{0}“", it.name) } }.orEmpty()) + " · " + time(doc.updatedAt)),
+                busy = aiWorking,
+                tracking = doc.trackBase?.let { io.github.thepytales.llmhub.docs.Tracking.pending(doc) },
+                onAcceptAll = { save(note = tr("Alle Änderungen angenommen")) { d -> d.copy(trackBase = d.tabs.associate { it.id to it.markdown }) } },
+                menus = flowHost.menus,
+                onComments = { togglePanel(DocPanel.COMMENTS) }, onAi = { togglePanel(DocPanel.AI) },
+                onExport = { (liveDoc ?: doc).let { d -> export = d.title to DocMarkup.resolveImages(exportMarkdown(d, null), docBase) } },
+            ) } else
             Row(Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp, top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onClose) { Icon(if (inSidePanel) Icons.Outlined.Close else Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = if (inSidePanel) tr("Schließen") else tr("Zurück")) }
                 Column(Modifier.weight(1f).clickable(enabled = doc != null) { renaming = true }) {
@@ -572,7 +667,7 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                 }
             }
             // ── Tabs (sheets of a table) ──
-            if (doc != null && (kind != DocKind.SLIDES || doc.tabs.size > 1)) {
+            if (doc != null && (if (flow) doc.tabs.size > 1 else kind != DocKind.SLIDES || doc.tabs.size > 1)) {
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 2.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                     doc.tabs.forEach { t ->
                         var tabMenu by remember { mutableStateOf(false) }
@@ -612,7 +707,8 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                         editing.index = null
                         tabId = new.id
                     }, modifier = Modifier.size(32.dp)) { Icon(Icons.Outlined.Add, contentDescription = if (kind == DocKind.SHEET) tr("Tabellenblatt hinzufügen") else tr("Tab hinzufügen"), modifier = Modifier.size(18.dp)) }
-                    if (doc?.trackBase != null) {
+                    if (flow) Unit
+                    else if (doc?.trackBase != null) {
                         Spacer(Modifier.width(8.dp))
                         val open = io.github.thepytales.llmhub.docs.Tracking.pending(doc)
                         StatusPill(if (open == 0) tr("Änderungen werden nachverfolgt") else tr("{0} Änderungen offen · alle annehmen", open), PillTone.ACCENT, Modifier.clickable(enabled = open > 0) {
@@ -639,12 +735,21 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                     IconButton(onClick = { findOpen = false; find = ""; replace = "" }) { Icon(Icons.Outlined.Close, contentDescription = tr("Suche schließen")) }
                 }
             }
-            // Fließtext-Editor (AP-44) for text documents; the block view stays for reviewing changes of the model.
-            // Änderungen nachverfolgen shows in the running text too (AP-44), unless tables, pictures or formulas changed.
-            val trackInFlow = trackBase != null && remember(trackBase, tab?.markdown) { FlowState.trackable(trackBase, tab?.markdown.orEmpty()) }
-            val flow = kind == DocKind.DOC && doc != null && mode == TextMode.EDIT && !showingDraft && !writing &&
-                (if (trackBase != null) trackInFlow else review == null || review.changes.isEmpty() && review.removed.isEmpty())
             // ── Toolbar of text documents (slides and tables bring their own) ──
+            if (flow) flowHost.toolbar?.let { bar ->
+                Surface(color = MaterialTheme.colorScheme.surfaceContainer, shape = RoundedCornerShape(20.dp), modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 2.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.weight(1f)) { bar() }
+                        // Like Google Docs: the arrow at the end of the Formatleiste hides and shows title and menus.
+                        CompositionLocalProvider(LocalToolIconSize provides 34.dp) {
+                            ToolIcon(
+                                if (menusHidden) Icons.Outlined.KeyboardArrowDown else Icons.Outlined.KeyboardArrowUp,
+                                if (menusHidden) tr("Menüs einblenden (Strg+Umschalt+F)") else tr("Menüs ausblenden (Strg+Umschalt+F)"),
+                            ) { menusHidden = !menusHidden }
+                        }
+                    }
+                }
+            }
             if (kind == DocKind.DOC && doc != null && mode == TextMode.EDIT && !showingDraft && !flow) {
                 TextToolbar(
                     editing, blocks, leading = undoRedo,
@@ -698,26 +803,9 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                         kind == DocKind.MARKDOWN && doc != null && !showingDraft -> MarkdownBody(markdown, tab?.id, narrow, leading = undoRedo, onChange = ::setMarkdown)
                         mode == TextMode.SOURCE && doc != null -> SourceEditor(markdown, tab?.id, ::setMarkdown)
                         flow && doc != null -> {
-                            val host = remember(doc.id, tab?.id) {
-                                FlowHost(
-                                    onComment = { commentOn = it },
-                                    onImage = pickImage,
-                                    onCitation = { citing = true },
-                                    onFind = { findOpen = true },
-                                    onExport = { export = doc.title to DocMarkup.resolveImages(exportMarkdown(doc, null), docBase) },
-                                    onPageSetup = { pageSetup = true },
-                                    onHistory = { showHistory = true },
-                                    onOutline = { panel = DocPanel.OUTLINE },
-                                    onSource = { mode = TextMode.SOURCE },
-                                    onRead = { mode = TextMode.READ },
-                                    onSpell = { spellLocal = true },
-                                    onTrack = { if (doc.trackBase == null) save(note = tr("Änderungen nachverfolgen an")) { d -> d.copy(trackBase = d.tabs.associate { it.id to it.markdown }) } else stopTracking = true },
-                                    onAskAi = { panel = DocPanel.AI },
-                                    onShowComments = { panel = DocPanel.COMMENTS },
-                                ).also { flowHost = it }
-                            }
+                            val host = flowHost
                             FlowEditor(
-                                c, doc, tab?.id, markdown, narrow, host, onChange = ::setMarkdown,
+                                c, doc, tab?.id, markdown, narrow, host, onChange = ::setMarkdown, chromeInHost = true,
                                 trackBase = trackBase,
                                 onTrackBase = { next -> tab?.id?.let { id -> save(note = trLater("Änderung angenommen")) { d -> d.copy(trackBase = d.trackBase.orEmpty() + (id to next)) } } },
                             )
@@ -737,7 +825,7 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
                             )
                         }
                     }
-                    if (doc != null && (kind == DocKind.DOC || kind == DocKind.MARKDOWN) && panel == DocPanel.NONE && mode != TextMode.SOURCE) {
+                    if (doc != null && !flow && (kind == DocKind.DOC || kind == DocKind.MARKDOWN) && panel == DocPanel.NONE && mode != TextMode.SOURCE) {
                         Box(Modifier.align(Alignment.BottomCenter)) { AiPromptBar(kind, aiWorking || writing) { panel = DocPanel.AI } }
                     }
                 }
@@ -897,6 +985,101 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
 }
 
 /** Markdown for export: tables with computed values (the .xlsx export keeps the formulas). */
+/** What the *Datei* menu of the Fließtext-Editor does (APD-15). */
+internal class DocFileActions(
+    val rename: () -> Unit, val duplicate: () -> Unit, val star: () -> Unit, val vault: () -> Unit, val export: (tabOnly: Boolean) -> Unit,
+    val sendToChat: () -> Unit, val shareText: () -> Unit, val deck: () -> Unit, val pageSetup: () -> Unit, val design: () -> Unit,
+    val history: () -> Unit, val delete: () -> Unit,
+)
+
+/**
+ * Header of a text document in the Fließtext-Editor (APD-15, like Google Docs): back, the document symbol, the title
+ * (click: rename) with its status, the menus right under the title; at the right Kommentare, Lora and *Exportieren*.
+ */
+@Composable
+private fun FlowDocHeader(
+    doc: LiveDoc, narrow: Boolean, inSidePanel: Boolean, onClose: () -> Unit, onRename: () -> Unit,
+    status: String, busy: Boolean, tracking: Int?, onAcceptAll: () -> Unit,
+    menus: (@Composable () -> Unit)?, onComments: () -> Unit, onAi: () -> Unit, onExport: () -> Unit,
+) {
+    Row(Modifier.fillMaxWidth().padding(start = 4.dp, end = 8.dp, top = 4.dp, bottom = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+        IconButton(onClick = onClose) { Icon(if (inSidePanel) Icons.Outlined.Close else Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = if (inSidePanel) tr("Schließen") else tr("Zurück")) }
+        if (!narrow) Icon(Icons.Outlined.Description, contentDescription = null, tint = LocalChatLook.current.brand, modifier = Modifier.padding(end = 4.dp).size(30.dp))
+        Column(Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    doc.title, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false).clip(RoundedCornerShape(6.dp))
+                        .clickable(onClickLabel = tr("Umbenennen"), onClick = onRename).padding(horizontal = 6.dp, vertical = 1.dp),
+                )
+                Text(
+                    status, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    color = if (busy) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f, fill = false).padding(start = 6.dp).semantics { liveRegion = LiveRegionMode.Polite },
+                )
+                if (tracking != null) {
+                    Spacer(Modifier.width(8.dp))
+                    StatusPill(
+                        if (tracking == 0) tr("Änderungen werden nachverfolgt") else tr("{0} Änderungen offen · alle annehmen", tracking), PillTone.ACCENT,
+                        Modifier.clickable(enabled = tracking > 0, onClick = onAcceptAll),
+                    )
+                }
+            }
+            menus?.invoke()
+        }
+        IconButton(onClick = onComments) {
+            BadgedBox(badge = { if (doc.openComments > 0) Badge { Text("${doc.openComments}") } }) {
+                Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = tr("Kommentare"))
+            }
+        }
+        IconButton(onClick = onAi) { Icon(Icons.Outlined.AutoAwesome, contentDescription = tr("KI-Assistent (Strg+E)"), tint = MaterialTheme.colorScheme.primary) }
+        if (narrow) IconButton(onClick = onExport) { Icon(Icons.Outlined.FileDownload, contentDescription = tr("Exportieren …")) }
+        else {
+            Spacer(Modifier.width(4.dp))
+            Button(onClick = onExport, contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp)) {
+                Icon(Icons.Outlined.FileDownload, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(tr("Exportieren"))
+            }
+        }
+    }
+}
+
+/** The *Datei* menu of the Fließtext-Editor (APD-15): file, sharing, page and versions – what „⋮“ held before. */
+@Composable
+private fun FlowFileMenu(c: AppContainer, d: LiveDoc, liveTab: String?, close: () -> Unit, actions: DocFileActions) {
+    @Composable
+    fun entry(label: String, icon: androidx.compose.ui.graphics.vector.ImageVector?, danger: Boolean = false, onClick: () -> Unit) {
+        // Every entry with a symbol or the room of one, so all words start in one column.
+        val lead: @Composable () -> Unit = { if (icon != null) Icon(icon, contentDescription = null) else Spacer(Modifier.size(24.dp)) }
+        if (danger) DropdownMenuItem(colors = dangerMenuColors(), text = { Text(label) }, leadingIcon = lead, onClick = { close(); onClick() })
+        else DropdownMenuItem(text = { Text(label) }, leadingIcon = lead, onClick = { close(); onClick() })
+    }
+    entry(tr("Umbenennen …"), Icons.Outlined.Edit, onClick = actions.rename)
+    entry(tr("Kopie anlegen"), Icons.Outlined.ContentCopy, onClick = actions.duplicate)
+    entry(if (d.starred) tr("Nicht mehr anheften") else tr("Anheften"), if (d.starred) Icons.Outlined.Star else Icons.Outlined.StarBorder, onClick = actions.star)
+    if (FolderAccess.SUPPORTED || d.vault != null) entry(tr("Ablageort …"), Icons.Outlined.Folder, onClick = actions.vault)
+    HorizontalDivider()
+    entry(tr("Exportieren …"), Icons.Outlined.FileDownload) { actions.export(false) }
+    val tab = d.tab(liveTab)
+    if (d.tabs.size > 1 && tab != null) entry(tr("Nur „{0}“ exportieren", tab.title), null) { actions.export(true) }
+    // In Word öffnen und zurück (AP-59, Windows): the real file in its program.
+    val real = remember(d.id, d.path) { c.docs.realFile(d)?.takeIf { it.isFile } }
+    if (real != null && ExternalOffice.opener != null) ExternalOffice.program(real)?.let { prog ->
+        entry(tr("In {0} öffnen", prog), null) { if (ExternalOffice.opener?.invoke(real) != true) Notices.error(tr("„{0}“ ließ sich nicht öffnen.", real.name)) }
+    }
+    entry(tr("Word mit Änderungsverfolgung …"), null, onClick = actions.history)
+    entry(tr("In Chat senden …"), Icons.AutoMirrored.Outlined.Send, onClick = actions.sendToChat)
+    entry(tr("Als Text teilen"), Icons.Outlined.IosShare, onClick = actions.shareText)
+    entry(tr("Präsentation aus Dokument …"), Icons.Outlined.Slideshow, onClick = actions.deck)
+    HorizontalDivider()
+    entry(tr("Seite einrichten …"), null, onClick = actions.pageSetup)
+    entry(tr("Design: ") + (DocStyle.parse(d.style)?.label ?: tr("wie in den Einstellungen")), Icons.Outlined.Palette, onClick = actions.design)
+    entry(tr("Versionsverlauf"), Icons.Outlined.History, onClick = actions.history)
+    HorizontalDivider()
+    entry(tr("Löschen"), Icons.Outlined.Delete, danger = true, onClick = actions.delete)
+}
+
 private fun exportMarkdown(doc: LiveDoc, tabId: String?): String {
     val tabs = if (tabId != null) doc.tabs.filter { it.id == tabId } else doc.tabs
     return when (doc.docKind) {
