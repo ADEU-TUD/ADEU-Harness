@@ -7215,3 +7215,28 @@ Seitenleiste ein/aus (im Text: fett)	Sidebar on/off (in text: bold)
 Dateien (in Folien und Gestalten: duplizieren)	Files (in slides and designs: duplicate)
 Strg+Umschalt+E · Strg+R · Strg+Umschalt+J	Ctrl+Shift+E · Ctrl+R · Ctrl+Shift+J
 Im Dokument: zentriert, rechtsbündig, Blocksatz	In documents: centred, right-aligned, justified
+# Rechtsklick-Menü im Dokument (AP-125)
+Keine Vorschläge	No suggestions
+Zum Wörterbuch hinzufügen	Add to dictionary
+Ausschneiden	Cut
+Strg+X	Ctrl+X
+Strg+C	Ctrl+C
+Strg+V	Ctrl+V
+Die Zwischenablage ist leer.	The clipboard is empty.
+Nur Text einfügen	Paste text only
+Strg+Umschalt+V	Ctrl+Shift+V
+Link öffnen	Open link
+Link entfernen	Remove link
+Mit Lora überarbeiten …	Revise with Lora …
+Strg+J	Ctrl+J
+Strg+A	Ctrl+A
+# Autokorrektur (AP-125)
+Autokorrektur …	AutoCorrect …
+Autokorrektur	AutoCorrect
+Beim Tippen in Dokumenten. Strg+Z direkt danach nimmt eine Korrektur zurück.	While typing in documents. Ctrl+Z right after it takes a correction back.
+„Anführungszeichen“ und Apostroph ’	“Smart quotes” and apostrophe ’
+-- wird –, ... wird …	-- becomes –, ... becomes …
+(c) wird ©, (r) wird ®, -> wird →	(c) becomes ©, (r) becomes ®, -> becomes →
+Satzanfang groß	Capitalise first letter of sentences
+ZWei GRoßbuchstaben am Wortanfang	TWo INitial CApitals
+Häufige Tippfehler (udn → und)	Common typos (teh → the)

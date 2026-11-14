@@ -150,7 +150,17 @@ soweit der gemeinsame Text-Kern (AP-43) es trägt.
 stolpern; Tests für Menü, Autokorrektur, Tasten, Bildgriffe und Tabellen (Muster `FlowEditorUiTest`).
 ◐ *Stand 14.11.2026*: aus (c) vorab mit APD-15 behoben – Strg+Z/Y nehmen im Fließtext Tastendruck für Tastendruck
 zurück (vorher fing das Fenster sie ab), Strg+F/H öffnen die Suche des Editors (Test `ui/DocEditorChromeTest`); Ausrichtung
-mit Strg+Umschalt+E/J und Strg+R; Strg+B/Strg+D erreichen die Editoren (`AppShortcuts`, siehe Entscheidung oben). Weiter mit (a).
+mit Strg+Umschalt+E/J und Strg+R; Strg+B/Strg+D erreichen die Editoren (`AppShortcuts`, siehe Entscheidung oben).
+**(a) ☑ Rechtsklick-Menü** (14.11.2026): `FlowTextMenu` – Cursor an die Klickstelle (eine Markierung bleibt), Rechtschreib-
+vorschläge des Geräts (`LocalSpelling`) mit *Zum Wörterbuch hinzufügen*, Ausschneiden/Kopieren/Einfügen/Nur Text einfügen
+(auch Strg+Umschalt+V), Link …/öffnen/entfernen, Kommentar, Lora, Format übertragen, Formatierung entfernen, Alles
+auswählen; Menütaste und Umschalt+F10; am PC ohne das englische Textmenü von Compose (`TextMenuPlatform` je Plattform);
+Menüzeilen mit Tasten in eigener Spalte (`MenuRow`, auch in den Leistenmenüs). Bilder und Tabellen bekommen ihr Menü in (d).
+**(b) ☑ Autokorrektur** (14.11.2026): `docs/text/AutoCorrect` – „Anführungszeichen“ und ’, -- → –, ... → …, (c)/(r)/(tm),
+Pfeile, Satzanfang groß (nicht nach Abkürzungen, Zahlen, Initialen), ZWei GRoßbuchstaben, häufige Tippfehler; nicht in Code;
+jede Korrektur ein eigener Schritt, Strg+Z direkt danach nimmt nur sie zurück; *Extras › Autokorrektur …* schaltet jede
+Regel (`docAutocorrectOff`). Tests `AutoCorrectTest`, `DocEditorChromeTest`. Offen: eigene Ersetzungen (Liste) später.
+Weiter mit (c) und (d).
 
 ### AP-126 ☐ Dokumente: Funktionsumfang wie Word und Google Docs · XL (Wunsch Hauptnutzer 14.11.2026, in Stufen)
 **Ziel**: Für die Arbeit an der TU Dresden (Briefe, Protokolle, Anträge, Hausarbeiten bis Dissertation, Skripte) braucht

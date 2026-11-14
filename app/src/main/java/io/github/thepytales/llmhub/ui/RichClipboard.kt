@@ -22,6 +22,11 @@ internal object RichClipboard {
         manager(c)?.primaryClip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.htmlText?.takeIf { it.isNotBlank() }
     }.getOrNull()
 
+    /** The plain text on the clipboard, or null (Rechtsklick › Einfügen, Nur Text einfügen; AP-125). */
+    fun text(c: AppContainer): String? = runCatching {
+        manager(c)?.primaryClip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(c.appContext)?.toString()?.takeIf { it.isNotEmpty() }
+    }.getOrNull()
+
     /** RTF is not passed between Android apps. */
     fun rtf(@Suppress("UNUSED_PARAMETER") c: AppContainer): String? = null
 }
