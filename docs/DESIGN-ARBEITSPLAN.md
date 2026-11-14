@@ -153,7 +153,7 @@ Viertel der Breite.
 **Fertig, wenn**: bei 1366 × 768 und 150 % mindestens 60 dp mehr Höhe für die Seite und nichts abgeschnitten ist;
 Vorher/Nachher-Bilder (klein, Full HD, groß; hell, dunkel, Hoher Kontrast) auf der Vergleichsseite; `FlowEditorUiTest`
 und die Tests von Strg+K/Spots grün.
-◐ *Stand 14.11.2026 (Stufe 1, wartet auf Freigabe)*: Kopf wie Docs (`FlowDocHeader` in `ui/DocsEditor.kt`: Zurück,
+◐ *Stand 14.11.2026 (Stufe 1, vom Hauptnutzer freigegeben: „Passt“)*: Kopf wie Docs (`FlowDocHeader` in `ui/DocsEditor.kt`: Zurück,
 Dokument-Symbol, Titel zum Umbenennen mit Status, Menüs darunter, rechts Kommentare, Lora, *Exportieren*); *Datei* enthält
 alles aus dem bisherigen „⋮“ (`FlowFileMenu`, `DocFileActions`); Reiterzeile erst ab zwei Tabs, *Einfügen › Tab*;
 Formatleiste über die ganze Breite (`FlowHost.menus`/`toolbar`: der Editor gibt Menüs und Leiste an das Fenster), Gruppen

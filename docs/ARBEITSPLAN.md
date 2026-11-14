@@ -136,8 +136,11 @@ soweit der gemeinsame Text-Kern (AP-43) es trägt.
   (wie Google Docs), Rechtsbündig Strg+R (wie Word); Link über Leiste, Menü und Rechtsklick. Linksbündig hat keine Taste
   (Strg+L ist Lora, Strg+Umschalt+L Literatur). Schon belegt sind auch Strg+B (Seitenleiste ↔ Fett) und Strg+D (Dateien ↔
   Duplizieren in Folien/Gestalten) – das Fenster fängt sie vor dem Editor ab (mit einem echten Fenster unter Xvfb
-  geprüft: der Tastendruck erreicht das Textfeld nicht), Fett per Strg+B geht im Hauptfenster also nicht; ebenso Strg+K
-  im Markdown-Editor. Lösung beim Hauptnutzer angefragt.
+  geprüft: der Tastendruck erreicht das Textfeld nicht), Fett per Strg+B ging im Hauptfenster also nicht. **Entscheidung
+  (Hauptnutzer 14.11.2026, Variante A): im Text gewinnt der Text** – `AppShortcuts` (desktop): Strg+N/,/K/,/L/T vor dem
+  fokussierten Element, Strg+B (Seitenleiste) und Strg+D (Dateien) erst danach; im Dokument, in Tabellen, Folien und
+  Gestalten machen sie fett bzw. duplizieren, überall sonst (auch im Videoeditor: Teilen ist S) bleiben sie die App-Kürzel.
+  Tastenübersicht (Strg+/) entsprechend. Test `AppShortcutsTest`.
 - **(d) Bilder und Tabellen anfassen**: Bild anklicken → Rahmen mit Griffen (Größe, Seitenverhältnis bleibt), an eine
   andere Stelle ziehen, schwebende Leiste *Mit Text in Zeile · Links · Rechts · Oben und unten*, Ausrichtung,
   Bildunterschrift, Zuschneiden, Alternativtext; Tabellen: Spaltenbreite und Zeilenhöhe ziehen, Tab springt in die nächste
@@ -146,7 +149,8 @@ soweit der gemeinsame Text-Kern (AP-43) es trägt.
 **Fertig, wenn**: jemand, der Word gewohnt ist, einen Antrag mit Tabelle und Bild schreibt, ohne über das Verhalten zu
 stolpern; Tests für Menü, Autokorrektur, Tasten, Bildgriffe und Tabellen (Muster `FlowEditorUiTest`).
 ◐ *Stand 14.11.2026*: aus (c) vorab mit APD-15 behoben – Strg+Z/Y nehmen im Fließtext Tastendruck für Tastendruck
-zurück (vorher fing das Fenster sie ab), Strg+F/H öffnen die Suche des Editors (Test `ui/DocEditorChromeTest`). Weiter mit (a).
+zurück (vorher fing das Fenster sie ab), Strg+F/H öffnen die Suche des Editors (Test `ui/DocEditorChromeTest`); Ausrichtung
+mit Strg+Umschalt+E/J und Strg+R; Strg+B/Strg+D erreichen die Editoren (`AppShortcuts`, siehe Entscheidung oben). Weiter mit (a).
 
 ### AP-126 ☐ Dokumente: Funktionsumfang wie Word und Google Docs · XL (Wunsch Hauptnutzer 14.11.2026, in Stufen)
 **Ziel**: Für die Arbeit an der TU Dresden (Briefe, Protokolle, Anträge, Hausarbeiten bis Dissertation, Skripte) braucht

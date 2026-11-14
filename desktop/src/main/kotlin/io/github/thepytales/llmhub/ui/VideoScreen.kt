@@ -626,7 +626,7 @@ private fun VideoEditor(c: AppContainer, id: String, onClose: () -> Unit) {
                 ev.isCmd && ev.isAltPressed && ev.key == Key.L -> { toggleLink(); true }
                 ev.isCmd && ev.key == Key.Z -> { h.undo(); true }
                 ev.isCmd && ev.key == Key.Y -> { h.redo(); true }
-                ev.isCmd && ev.key == Key.B -> { split(); true }
+                // Strg+B stays the app's Seitenleiste here (key list, AP-70); Teilen is S (AppShortcuts.late, AP-125).
                 ev.isAltPressed && ev.key == Key.X -> {
                     if (showSource) h.edit { pp -> pp.copy(media = pp.media.map { if (it.id == sourceId) it.copy(inSec = null, outSec = null) else it }) }
                     else h.edit { it.copy(markIn = null, markOut = null) }
