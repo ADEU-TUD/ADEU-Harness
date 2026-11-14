@@ -450,12 +450,30 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   - **Autokorrektur beim Tippen**: „Anführungszeichen“ und ’, -- wird –, ... wird …, (c) wird ©, -> wird →, Satzanfang groß
     (nicht nach z. B., Zahlen oder Initialen), ZWei GRoßbuchstaben, häufige Tippfehler (udn → und). Strg+Z direkt danach
     nimmt nur die Korrektur zurück; jede Regel lässt sich unter *Extras › Autokorrektur …* abschalten.
+  - **Tasten und Markieren wie in Word** (ab 1.0.72, AP-125 c): Strg+←/→ springt zum Anfang des nächsten Worts,
+    Strg+↑/↓ von Absatz zu Absatz, Strg+Pos1/Ende an Anfang und Ende des ganzen Dokuments – mit Umschalt wird markiert,
+    auch über Tabellen und Bilder hinweg. Strg+Rück/Entf löscht ein Wort, Alt+Umschalt+↑/↓ verschiebt einen Absatz,
+    Umschalt+F3 wechselt die Groß-/Kleinschreibung, Strg+Umschalt+> / Strg+< macht die Schrift größer bzw. kleiner,
+    Strg+Umschalt+C und Strg+Alt+V kopieren und übertragen ein Format, Strg+Enter fügt einen Seitenumbruch ein, F7 prüft
+    die Rechtschreibung, Strg+Klick markiert einen Satz (auf einem Link öffnet er ihn). Alles steht in der Tastenübersicht
+    (Strg+/) unter *Im Dokument (wie in Word)*.
+  - **Bilder und Tabellen zum Anfassen** (ab 1.0.72, AP-125 d): Ein Klick wählt ein Bild – Griffe an den Ecken ziehen die
+    Größe, eine Leiste darüber richtet es links, mittig oder rechts aus und öffnet Bildunterschrift, Alternativtext und
+    *Ersetzen*; die Bildunterschrift tippst du direkt unter dem Bild, Entf löscht es, der Rechtsklick bietet alles
+    zusammen. Tabellen sind ein Gitter über die Textbreite: Tab springt in die nächste Zelle (in der letzten entsteht eine
+    neue Zeile), Spaltengrenzen lassen sich ziehen, der Rechtsklick fügt Zeilen und Spalten ein oder löscht sie.
+    Spaltenbreiten und Bildausrichtung kommen so in Word und PDF an.
   - Nebenbei: *Datei › Exportieren* nahm den Stand beim Öffnen – jetzt den aktuellen.
-  Tests `DocEditorChromeTest`, `DocEditorLookTest` (Vorher/Nachher-Bilder), `AppShortcutsTest`, `AutoCorrectTest`.
+  Tests `DocEditorChromeTest`, `DocEditorLookTest` (Vorher/Nachher-Bilder), `AppShortcutsTest`, `AutoCorrectTest`,
+  `WordKeysTest`, `DocEditorKeysTest`, `FlowBlocksTest`, `DocEditorBlocksTest`, `DocBlocksLookTest` (Bilder).
 
   | Vorher | Nachher | Datei-Menü | Rechtsklick |
   | --- | --- | --- | --- |
   | ![Dokument-Editor vorher](docs/bilder/apd15-vorher.png) | ![Dokument-Editor nachher](docs/bilder/apd15-nachher.png) | ![Menü Datei](docs/bilder/apd15-datei.png) | ![Rechtsklick-Menü](docs/bilder/apd15-rechtsklick.png) |
+
+  | Bild gewählt | Tabelle mit Rechtsklick |
+  | --- | --- |
+  | ![Bild mit Griffen und Leiste](docs/bilder/ap125-bild.png) | ![Tabelle als Gitter mit Rechtsklick-Menü](docs/bilder/ap125-tabelle.png) |
 - **Videoeditor für Einsteiger** (seit 1.0.70, AP-121): Der Editor erklärt sich jetzt selbst – für alle, die noch nie ein
   Video geschnitten haben, ohne eigene „Einfach-Ansicht“. **Startseite** mit zwei großen Karten (*Video schneiden*,
   *Bildschirm aufnehmen*), die vier Schritte darunter, Projekte mit *Öffnen*, *Umbenennen*, *Kopie anlegen*, *Löschen*;

@@ -172,7 +172,22 @@ einfügen*); Strg+Enter Seitenumbruch; F7 Rechtschreibung; Strg+Klick markiert d
 Doppel-/Dreifachklick Wort/Absatz (Compose, geprüft). Neu im Menü *Format*: Schrift größer/kleiner,
 Groß-/Kleinschreibung; Tasten an *Seitenumbruch* und *Rechtschreibung prüfen*; Tastenübersicht (Strg+/) mit Abschnitt
 *Im Dokument (wie in Word)*. Tests `WordKeysTest`, `ui/DocEditorKeysTest` (echte Tasten und Klicks), `AppShortcutsTest`.
-Weiter mit (d).
+**(d) ◐ Bilder und Tabellen anfassen** (14.11.2026, Vergleichsseite gezeigt, Freigabe offen): `ui/FlowBlocks.kt` – **Bild**:
+Klick wählt es (Rahmen, vier Griffe ziehen die Breite, Seitenverhältnis bleibt, Prozent beim Ziehen), schwebende Leiste
+über dem Bild (links/mittig/rechts, Bildunterschrift, Alternativtext, Ersetzen, Löschen), Bildunterschrift direkt unter dem
+Bild tippen, Rechtsklick-Menü (Bild ersetzen, Breite 25–100 %, Ausrichtung, verschieben, Als Markdown, Löschen), Entf/Esc,
+Alt+Umschalt+↑/↓ verschiebt Bild und Tabelle wie einen Absatz; neue Bilder ohne Platzhalter-Unterschrift. Speicherung
+`{width=50% align=right alt="…"}` (`DocMarkup.Image`, ohne eigenen Alternativtext gilt die Unterschrift wie bisher); Word:
+`w:jc` und `descr`, PDF/HTML: `text-align`. **Tabelle**: echtes Gitter über die Textbreite (Kopfzeile grau und fett, Text oben
+in der Zelle, alle Zellen einer Zeile gleich hoch), Zellen mit Formatierung wie in Tabellen (AP-48, `SheetRichText`),
+Tab/Umschalt+Tab, Pfeile und Enter von Zelle zu Zelle (am Rand zurück in den Text), Tab in der letzten Zelle hängt eine
+Zeile an, Strg+B/I/U in der Zelle, Alt+Umschalt+↑/↓ verschiebt die Zeile, Spaltengrenzen ziehen – Breiten als Zahl der
+Striche in der Trennzeile (`DocBlocks.tableWidths`, wie Pandoc), in Word `w:gridCol`, im PDF `<colgroup>`; Rechtsklick-Menü
+(Ausschneiden/Kopieren/Einfügen, Zeile/Spalte einfügen und löschen, Breiten angleichen, Zeile/Tabelle verschieben, Tabelle
+löschen); „+ Zeile/+ Spalte“ unter der Tabelle beim Überfahren. Tippen in Zellen ist ein Rückgängig-Schritt je Pause
+(`setRaw(group)`). Tests `FlowBlocksTest`, `ui/DocEditorBlocksTest`, Bilder `ui/DocBlocksLookTest`. **Offen**: Textumbruch
+*Links/Rechts* (Text neben dem Bild, Rückfrage an den Hauptnutzer), Zuschneiden, Bild mit der Maus verschieben, Zellen
+über Ziehen markieren, Zeilenhöhe ziehen, Formatleiste in Zellen.
 
 ### AP-126 ☐ Dokumente: Funktionsumfang wie Word und Google Docs · XL (Wunsch Hauptnutzer 14.11.2026, in Stufen)
 **Ziel**: Für die Arbeit an der TU Dresden (Briefe, Protokolle, Anträge, Hausarbeiten bis Dissertation, Skripte) braucht
