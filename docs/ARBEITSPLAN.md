@@ -137,8 +137,8 @@ soweit der gemeinsame Text-Kern (AP-43) es trägt.
   (Strg+L ist Lora, Strg+Umschalt+L Literatur). Schon belegt sind auch Strg+B (Seitenleiste ↔ Fett) und Strg+D (Dateien ↔
   Duplizieren in Folien/Gestalten) – das Fenster fängt sie vor dem Editor ab (mit einem echten Fenster unter Xvfb
   geprüft: der Tastendruck erreicht das Textfeld nicht), Fett per Strg+B ging im Hauptfenster also nicht. **Entscheidung
-  (Hauptnutzer 14.11.2026, Variante A): im Text gewinnt der Text** – `AppShortcuts` (desktop): Strg+N/,/K/,/L/T vor dem
-  fokussierten Element, Strg+B (Seitenleiste) und Strg+D (Dateien) erst danach; im Dokument, in Tabellen, Folien und
+  (Hauptnutzer 14.11.2026, Variante A): im Text gewinnt der Text** – `AppShortcuts` (desktop): Strg+N, Strg+,, Strg+K, Strg+/, Strg+L und
+  Strg+T vor dem fokussierten Element, Strg+B (Seitenleiste) und Strg+D (Dateien) erst danach; im Dokument, in Tabellen, Folien und
   Gestalten machen sie fett bzw. duplizieren, überall sonst (auch im Videoeditor: Teilen ist S) bleiben sie die App-Kürzel.
   Tastenübersicht (Strg+/) entsprechend. Test `AppShortcutsTest`.
 - **(d) Bilder und Tabellen anfassen**: Bild anklicken → Rahmen mit Griffen (Größe, Seitenverhältnis bleibt), an eine

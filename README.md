@@ -428,6 +428,27 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   | ![Bedienelemente vorher](docs/bilder/bedienung-elemente-vorher.png) | ![Bedienelemente nachher](docs/bilder/bedienung-elemente-nachher.png) |
 
   ![Hinweis-Banner: Fehler, Rückgängig, Ergebnis](docs/bilder/bedienung-hinweise.png)
+- **Dokument-Editor aufgeräumt wie Google Docs** (nach 1.0.71, APD-15 und AP-125): Mehr Platz für die Seite und alles
+  erreichbar – auf dem Laptop (1366 × 768 bei 150 %) beginnt der Text bei 215 statt 320 dp.
+  - **Kopf wie Docs**: Titel (Klick: umbenennen) mit *Gespeichert*, die Menüs *Datei · Bearbeiten · Ansicht · Einfügen ·
+    Format · Extras* direkt darunter; rechts Kommentare, Lora und **Exportieren**. Alles aus dem früheren „⋮“ steht unter
+    *Datei* (Umbenennen, Kopie anlegen, Anheften, Ablageort, Exportieren, In Word öffnen, Teilen, Seite einrichten,
+    Design, Versionsverlauf, Löschen). Die Reiterzeile erscheint erst ab zwei Tabs (*Einfügen › Tab*).
+  - **Formatleiste** über die ganze Breite; was nicht passt, steht unter **„⋯“** statt abgeschnitten zu werden.
+    **Strg+Umschalt+F** (oder der Pfeil am Ende der Leiste) blendet Titel und Menüs aus.
+  - **Statusleiste** unten: Seite x von y, Wörter (auch der Markierung; Klick: Zeichen und Seiten), Zoom mit
+    *Seitenbreite*. Kein schwebendes „Mit KI schreiben“ mehr über dem Text (Lora: ✨ oben, Strg+E, Strg+J).
+  - **Tasten wie in Word, ohne Überschneidung mit der App**: Strg+Z nimmt zurück, was gerade getippt wurde (vorher
+    passierte direkt danach nichts), Strg+F sucht im Text, Strg+B macht im Text fett und Strg+D dupliziert in Folien und
+    Gestalten (vorher nahm die App beide Tasten für Seitenleiste und Dateien – außerhalb von Texten bleiben sie das).
+    Ausrichtung: Strg+Umschalt+E zentriert, Strg+R rechtsbündig, Strg+Umschalt+J Blocksatz; Strg+K bleibt die
+    Befehlssuche, Strg+E die KI.
+  - Nebenbei: *Datei › Exportieren* nahm den Stand beim Öffnen – jetzt den aktuellen.
+  Tests `DocEditorChromeTest`, `DocEditorLookTest` (Vorher/Nachher-Bilder), `AppShortcutsTest`.
+
+  | Vorher | Nachher | Datei-Menü |
+  | --- | --- | --- |
+  | ![Dokument-Editor vorher](docs/bilder/apd15-vorher.png) | ![Dokument-Editor nachher](docs/bilder/apd15-nachher.png) | ![Menü Datei](docs/bilder/apd15-datei.png) |
 - **Videoeditor für Einsteiger** (seit 1.0.70, AP-121): Der Editor erklärt sich jetzt selbst – für alle, die noch nie ein
   Video geschnitten haben, ohne eigene „Einfach-Ansicht“. **Startseite** mit zwei großen Karten (*Video schneiden*,
   *Bildschirm aufnehmen*), die vier Schritte darunter, Projekte mit *Öffnen*, *Umbenennen*, *Kopie anlegen*, *Löschen*;
