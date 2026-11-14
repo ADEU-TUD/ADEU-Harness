@@ -21,6 +21,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.LaunchedEffect
@@ -288,17 +290,20 @@ fun ShortcutsDialog(onDismiss: () -> Unit) {
         tr("Strg+Klick") to tr("Satz markieren bzw. Link öffnen"),
     )
     Dialog(onDismissRequest = onDismiss) {
-        Surface(shape = RoundedCornerShape(20.dp), tonalElevation = 6.dp, modifier = Modifier.widthIn(max = 480.dp)) {
+        Surface(shape = RoundedCornerShape(20.dp), tonalElevation = 6.dp, modifier = Modifier.widthIn(max = 620.dp)) {
             Column(Modifier.verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(tr("Tastenkürzel"), style = MaterialTheme.typography.titleLarge)
                 HorizontalDivider(Modifier.padding(vertical = 6.dp))
                 @Composable
                 fun row(key: String, what: String) = Row(verticalAlignment = Alignment.CenterVertically) {
-                    Surface(shape = RoundedCornerShape(6.dp), color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier.widthIn(min = 72.dp)) {
-                        Text(key, style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp))
+                    // Keys in a column of their own (long ones wrap there), the meaning beside them.
+                    Box(Modifier.width(230.dp)) {
+                        Surface(shape = RoundedCornerShape(6.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
+                            Text(key, style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp))
+                        }
                     }
                     Spacer(Modifier.size(12.dp))
-                    Text(what, style = MaterialTheme.typography.bodyMedium)
+                    Text(what, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
                 }
                 shortcuts.forEach { (key, what) -> row(key, what) }
                 Text(tr("Im Dokument (wie in Word)"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 10.dp))

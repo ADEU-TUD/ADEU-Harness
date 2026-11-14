@@ -315,6 +315,11 @@ class FlowState(markdown: String) {
     var formatClip: Pair<CharFormat, ParaFormat>? = null
     /** A text field that takes the focus as soon as it is shown (the text after a page break of Strg+Enter). */
     var wantFocus: FlowSeg.Text? = null
+    /** A new id for a piece of the document. */
+    fun newId(): Long = nextId++
+
+    /** Bilder anfassen (AP-125 d): the picture that is selected (its id), with handles and its bar; null: none. */
+    var picked by mutableStateOf<Long?>(null)
 
     // Suchen und Ersetzen (AP-44).
     var findOpen by mutableStateOf(false)
@@ -786,10 +791,13 @@ class FlowState(markdown: String) {
         changed()
     }
 
-    fun setRaw(seg: FlowSeg.Raw, markdown: String) {
-        val i = segs.indexOf(seg)
+    /** The block [seg] becomes [markdown] (blank: it goes); [group]: typing in a table cell is one step per pause. */
+    fun setRaw(seg: FlowSeg.Raw, markdown: String, group: Boolean = false) {
+        val i = segs.indexOf(seg).takeIf { it >= 0 } ?: segs.indexOfFirst { it.id == seg.id }
         if (i < 0) return
-        checkpoint()
+        val now = segs[i] as? FlowSeg.Raw ?: return
+        if (now.markdown == markdown) return
+        checkpoint(group)
         if (markdown.isBlank()) {
             segs.removeAt(i)
             // Two texts that meet are joined.
@@ -801,7 +809,7 @@ class FlowState(markdown: String) {
                 segs.remove(b)
                 if (active === b) active = a
             }
-        } else segs[i] = FlowSeg.Raw(seg.id, markdown).measuredLike(seg)
+        } else segs[i] = FlowSeg.Raw(seg.id, markdown).measuredLike(now)
         changed()
     }
 
@@ -871,6 +879,8 @@ class FlowHost(
     var find: (() -> Unit)? = null
     /** *Link …* for the selection (Rechtsklick-Menü, AP-125). */
     var link: (() -> Unit)? = null
+    /** *Bild ersetzen …* (AP-125 d): where the next picture chosen with [onImage] goes instead of the cursor. */
+    var imageInto: ((String) -> Unit)? = null
     /**
      * Menus and Formatleiste for the window's header (APD-15, like Google Docs: menus under the title, the Formatleiste
      * across the whole width). Set by the editor when it is shown with `chromeInHost`.
@@ -2210,7 +2220,7 @@ private fun FlowPages(
                             when (seg) {
                                 is FlowSeg.Text -> FlowField(c, state, seg, zoom, host, onWrite, onRevise, onFind)
                                 // Setting lines of the Formatvorlagen are not drawn (the look shows them).
-                                is FlowSeg.Raw -> if (!isHiddenSetting(seg.markdown)) RawBlock(doc, tabId, state, seg, pages)
+                                is FlowSeg.Raw -> if (!isHiddenSetting(seg.markdown)) RawBlock(doc, tabId, state, seg, pages, zoom, host)
                             }
                         }
                     }
@@ -2228,8 +2238,9 @@ private fun FlowPages(
 
 /** A block of its own between the running text: shown as it looks; tables edit in place, others via ✎. */
 @Composable
-private fun RawBlock(doc: LiveDoc, tabId: String?, state: FlowState, seg: FlowSeg.Raw, pages: Boolean) {
+private fun RawBlock(doc: LiveDoc, tabId: String?, state: FlowState, seg: FlowSeg.Raw, pages: Boolean, zoom: Float, host: FlowHost) {
     var editing by remember { mutableStateOf(false) }
+    val image = remember(seg.markdown) { DocMarkup.image(seg.markdown) }
     val density = LocalDensity.current
     // Room above it when it starts a page (Seitenansicht); its own height is measured without that room.
     // Inside a selection over several fields the block is marked as a whole.
@@ -2260,14 +2271,16 @@ private fun RawBlock(doc: LiveDoc, tabId: String?, state: FlowState, seg: FlowSe
     Row(outer.then(measure), verticalAlignment = Alignment.Top) {
         Box(Modifier.weight(1f)) {
             if (seg.markdown.trim().startsWith("|")) {
-                val rows = remember(seg.markdown) { DocBlocks.tableRows(seg.markdown) }
                 val paging = remember(seg) { rawPaging(seg) }
-                TableGrid(rows, paging = if (pages) paging else null) { r -> state.setRaw(seg, DocBlocks.table(r)) }
+                FlowTableBlock(state, seg, paging = if (pages) paging else null, zoom = zoom, onMarkdown = { editing = true })
+            } else if (image != null) {
+                FlowImageBlock(state, seg, image, host, onMarkdown = { editing = true })
             } else {
                 BlockView(doc, tabId, seg.markdown, highlight = false, editable = true, onClick = { editing = true }, onToggleTask = {}, onShowComments = {})
             }
         }
-        Column {
+        // Pictures and tables are handled on themselves (AP-125 d: handles, bar, Rechtsklick); other blocks keep ✎ and 🗑.
+        if (image == null && !seg.isTable) Column {
             IconButton(onClick = { editing = true }, modifier = Modifier.size(28.dp)) { Icon(Icons.Outlined.Edit, contentDescription = tr("Bearbeiten"), modifier = Modifier.size(16.dp)) }
             IconButton(onClick = { state.setRaw(seg, "") }, modifier = Modifier.size(28.dp)) { Icon(Icons.Outlined.Delete, contentDescription = tr("Löschen"), modifier = Modifier.size(16.dp)) }
         }
@@ -2433,14 +2446,14 @@ private fun FlowTextMenu(
 }
 
 /** Rows of the editor's menus: compact for the mouse on the PC (like Word and Docs), finger-sized on the phone. */
-private val MENU_ROW: Modifier = if (DESKTOP) Modifier.height(36.dp) else Modifier
+internal val MENU_ROW: Modifier = if (DESKTOP) Modifier.height(36.dp) else Modifier
 
 /**
  * A row of the editor's menus (APD-15/AP-125): the word on one line, its keys right-aligned in their own column – like
  * Word and Docs, and without the 280 dp limit of Material's menu rows (long keys such as Strg+Umschalt+V fit).
  */
 @Composable
-private fun MenuRow(label: String, keys: String, enabled: Boolean, onClick: () -> Unit) {
+internal fun MenuRow(label: String, keys: String, enabled: Boolean, onClick: () -> Unit) {
     val color = MaterialTheme.colorScheme.onSurface.let { if (enabled) it else it.copy(alpha = 0.38f) }
     Row(
         Modifier.fillMaxWidth().widthIn(min = 180.dp).heightIn(min = if (DESKTOP) 36.dp else 48.dp)
@@ -2701,6 +2714,7 @@ private fun FlowField(
                 .heightIn(min = 28.dp)
                 .focusRequester(seg.focus)
                 .onFocusChanged {
+                    if (it.isFocused) state.picked = null
                     if (!it.isFocused || state.active === seg) return@onFocusChanged
                     val before = state.active
                     // Umschalt+Klick into another field: the selection reaches from the cursor before to the click.

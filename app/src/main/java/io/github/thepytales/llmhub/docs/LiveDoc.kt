@@ -750,12 +750,37 @@ object DocBlocks {
         Regex("^\\s*[-*+]\\s\\[([ xX])]\\s?(.*)$").find(line)?.let { it.groupValues[2] to it.groupValues[1].isNotBlank() }
     }
 
-    fun table(rows: List<List<String>>): String {
+    fun table(rows: List<List<String>>, widths: List<Int>? = null): String {
         if (rows.isEmpty()) return ""
         val cols = rows.maxOf { it.size }
         fun line(r: List<String>) = "| " + (0 until cols).joinToString(" | ") { r.getOrElse(it) { "" }.replace("|", "/").replace("\n", " ") } + " |"
-        return (listOf(line(rows[0]), "| " + List(cols) { "---" }.joinToString(" | ") + " |") + rows.drop(1).map(::line)).joinToString("\n")
+        val w = widths?.takeIf { it.size == cols && it.distinct().size > 1 }
+        val rule = List(cols) { c -> "-".repeat(w?.get(c)?.coerceAtLeast(3) ?: 3) }
+        return (listOf(line(rows[0]), "| " + rule.joinToString(" | ") + " |") + rows.drop(1).map(::line)).joinToString("\n")
     }
+
+    /**
+     * Spaltenbreiten (AP-125 d) of a table block in percent of the text width, or null (all equal). They are the number
+     * of dashes in the line under the header (`| ---------- | ------------------------------ |` = 25 % and 75 %), as
+     * Pandoc reads them; other programs see an ordinary Markdown table.
+     */
+    fun tableWidths(block: String): List<Int>? {
+        val rule = block.lines().map { it.trim() }.firstOrNull { l -> l.startsWith("|") && l.trim('|').split('|').map(String::trim).let { c -> c.isNotEmpty() && c.all { it.matches(Regex(":?-{2,}:?")) } } }
+            ?: return null
+        val dashes = rule.trim('|').split('|').map { it.count { ch -> ch == '-' } }
+        return widthsOf(dashes)
+    }
+
+    /** Dash counts (or any relative widths) as percentages that add up to 100, or null when they are all equal. */
+    fun widthsOf(relative: List<Int>): List<Int>? {
+        if (relative.isEmpty() || relative.distinct().size == 1) return null
+        val sum = relative.sum().coerceAtLeast(1)
+        val out = relative.map { (it * 100f / sum).roundToIntSafe().coerceAtLeast(1) }.toMutableList()
+        out[out.indexOf(out.max())] += 100 - out.sum()
+        return out
+    }
+
+    private fun Float.roundToIntSafe(): Int = kotlin.math.round(this).toInt()
 }
 
 /** Word-level differences between two texts, for the version history and Word with tracked changes. */

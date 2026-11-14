@@ -400,11 +400,13 @@ fun DocPane(c: AppContainer, id: String, onClose: () -> Unit, onOpenChat: ((Stri
     }
 
     val pickImage = rememberImageBytesPicker { bytes ->
-        if (bytes == null || DocMarkup.imageType(bytes) == null) { if (bytes != null) Notices.error(tr("Das Bild konnte nicht gelesen werden (PNG, JPEG, GIF oder BMP).")); return@rememberImageBytesPicker }
+        if (bytes == null || DocMarkup.imageType(bytes) == null) { flowHost.imageInto = null; if (bytes != null) Notices.error(tr("Das Bild konnte nicht gelesen werden (PNG, JPEG, GIF oder BMP).")); return@rememberImageBytesPicker }
         scope.launch {
             val path = withContext(Dispatchers.IO) { runCatching { DocMarkup.storeImage(docBase, bytes) }.getOrNull() }
             if (path == null) Notices.error(tr("Das Bild konnte nicht gespeichert werden."))
-            else insertBlock(DocMarkup.Image("Bildunterschrift", path, 60).markdown())
+            else flowHost.imageInto?.let { into -> flowHost.imageInto = null; into(path) }
+                // A new picture without a caption: „Bildunterschrift hinzufügen“ invites one under it (AP-125 d).
+                ?: insertBlock(DocMarkup.Image(if (flowHost.insertBlock != null) "" else "Bildunterschrift", path, 60).markdown())
         }
     }
 

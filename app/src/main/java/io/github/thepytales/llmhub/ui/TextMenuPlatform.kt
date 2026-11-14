@@ -17,3 +17,7 @@ internal fun OwnTextMenu(content: @Composable () -> Unit) = content()
  * character it types; the Windows version also knows the key beside Umschalt of a German keyboard.
  */
 internal fun isAngleKey(e: KeyEvent): Boolean = e.utf16CodePoint == '<'.code || e.utf16CodePoint == '>'.code
+
+/** Pointer over the handles of a picture and the column borders of a table (AP-125 d). Android: no own pointer. */
+internal val DiagonalResizeIcon: androidx.compose.ui.input.pointer.PointerIcon = androidx.compose.ui.input.pointer.PointerIcon.Crosshair
+internal val ColumnResizeIcon: androidx.compose.ui.input.pointer.PointerIcon = androidx.compose.ui.input.pointer.PointerIcon.Crosshair

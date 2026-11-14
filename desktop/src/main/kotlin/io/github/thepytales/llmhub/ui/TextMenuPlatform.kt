@@ -35,3 +35,7 @@ private val GREATER = Key(java.awt.event.KeyEvent.VK_GREATER)
  */
 internal fun isAngleKey(e: KeyEvent): Boolean =
     e.key == LESS || e.key == GREATER || e.awtEventOrNull?.keyChar.let { it == '<' || it == '>' }
+
+/** Pointer over the handles of a picture and the column borders of a table (AP-125 d), as in Word. */
+internal val DiagonalResizeIcon: androidx.compose.ui.input.pointer.PointerIcon = androidx.compose.ui.input.pointer.PointerIcon(java.awt.Cursor(java.awt.Cursor.SE_RESIZE_CURSOR))
+internal val ColumnResizeIcon: androidx.compose.ui.input.pointer.PointerIcon = androidx.compose.ui.input.pointer.PointerIcon(java.awt.Cursor(java.awt.Cursor.E_RESIZE_CURSOR))

@@ -89,10 +89,10 @@ fun FlowState.deleteWord(t: FlowSeg.Text, forward: Boolean): Boolean {
 }
 
 /** Each paragraph of [r] as a piece of its own (with its formats). */
-private fun paragraphsOf(r: RichText): List<RichText> = r.paras.indices.map { i -> r.paraRange(i).let { r.slice(it.first, it.last + 1) } }
+internal fun paragraphsOf(r: RichText): List<RichText> = r.paras.indices.map { i -> r.paraRange(i).let { r.slice(it.first, it.last + 1) } }
 
 /** Pieces of one paragraph each, joined into one text again. */
-private fun joined(parts: List<RichText>): RichText {
+internal fun joined(parts: List<RichText>): RichText {
     if (parts.isEmpty()) return RichText.empty()
     val text = parts.joinToString("\n") { it.text }
     val chars = ArrayList<CharFormat>(text.length)
