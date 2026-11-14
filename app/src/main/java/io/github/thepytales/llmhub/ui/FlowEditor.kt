@@ -96,6 +96,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.isSecondaryPressed
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.SolidColor
@@ -221,6 +223,7 @@ sealed class FlowSeg {
 
         /** Where [offset] of the text is in the shown text (with the room of the page breaks and removed text). */
         fun shown(offset: Int): Int = shownOffset(breaks, deleted, offset)
+
 
         /** This text as Markdown blocks, made once per text (große Dokumente: only the piece typed in is made anew). */
         fun blocks(): List<String> {
@@ -857,6 +860,8 @@ class FlowHost(
     var undo: (() -> Unit)? = null
     var redo: (() -> Unit)? = null
     var find: (() -> Unit)? = null
+    /** *Link …* for the selection (Rechtsklick-Menü, AP-125). */
+    var link: (() -> Unit)? = null
     /**
      * Menus and Formatleiste for the window's header (APD-15, like Google Docs: menus under the title, the Formatleiste
      * across the whole width). Set by the editor when it is shown with `chromeInHost`.
@@ -1185,6 +1190,7 @@ fun FlowEditor(
         host.undo = { state.undo() }
         host.redo = { state.redo() }
         host.find = ::openFind
+        host.link = { state.active?.selection?.let { linkFor = it.min until it.max } }
         if (chromeInHost) {
             host.menus = menus
             host.toolbar = toolbar
@@ -1193,6 +1199,7 @@ fun FlowEditor(
             host.undo = null
             host.redo = null
             host.find = null
+            host.link = null
             host.menus = null
             host.toolbar = null
         }
@@ -2290,6 +2297,130 @@ private fun copySelection(c: AppContainer, seg: FlowSeg.Text): Boolean {
     return RichClipboard.copy(c, RichHtml.fromRich(piece), plain, runCatching { io.github.thepytales.llmhub.docs.text.RichRtf.fromRich(piece) }.getOrNull())
 }
 
+/**
+ * Rechtsklick-Menü im Text (AP-125, like Word and Google Docs): spelling suggestions for the word under the cursor (on
+ * the device), Ausschneiden · Kopieren · Einfügen · Nur Text einfügen, Link (öffnen, entfernen), Kommentar, Lora,
+ * Formatierung, Alles auswählen – with the keys beside them.
+ */
+@Composable
+private fun FlowTextMenu(
+    c: AppContainer, state: FlowState, seg: FlowSeg.Text, host: FlowHost,
+    onWrite: () -> Unit, onRevise: (String?) -> Unit, onDismiss: () -> Unit,
+) {
+    val sel = seg.selection
+    val hasSelection = !sel.collapsed || state.spanParts() != null
+    val text = seg.rich.text
+    // The word under the cursor (or the selected word) and what the spell checker of the device suggests for it.
+    val word = remember(sel, seg.rich) {
+        if (!sel.collapsed && sel.max - sel.min <= 40) text.substring(sel.min, sel.max).takeIf { w -> w.isNotBlank() && w.all { it.isLetter() || it == '-' } }?.let { sel.min until sel.max }
+        else if (sel.collapsed) {
+            var a = sel.start.coerceIn(0, text.length)
+            var b = a
+            while (a > 0 && text[a - 1].isLetter()) a--
+            while (b < text.length && text[b].isLetter()) b++
+            if (b - a >= 2) a until b else null
+        } else null
+    }
+    var suggestions by remember(word) { mutableStateOf<List<String>?>(null) }
+    LaunchedEffect(word) {
+        val w = word ?: return@LaunchedEffect
+        val found = runCatching { io.github.thepytales.llmhub.docs.LocalSpelling.check(text.substring(w.first, w.last + 1)) }.getOrDefault(emptyList())
+        suggestions = found.firstOrNull()?.suggestions?.take(5)
+    }
+    val link = seg.rich.chars.getOrNull(sel.start.coerceAtMost(text.length - 1).coerceAtLeast(0))?.link?.takeIf { text.isNotEmpty() }
+    val uri = androidx.compose.ui.platform.LocalUriHandler.current
+    @Composable
+    fun entry(label: String, keys: String = "", enabled: Boolean = true, onClick: () -> Unit) = DropdownMenuItem(
+        text = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(label, Modifier.weight(1f, fill = false))
+                if (keys.isNotEmpty()) { Spacer(Modifier.width(24.dp)); Text(keys, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall) }
+            }
+        },
+        enabled = enabled, onClick = { onDismiss(); onClick() },
+    )
+    DropdownMenu(true, onDismiss) {
+        val w = word
+        suggestions?.let { list ->
+            if (w != null) {
+                if (list.isEmpty()) Text(tr("Keine Vorschläge"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
+                list.forEach { s ->
+                    DropdownMenuItem(text = { Text(s, fontWeight = FontWeight.SemiBold) }, onClick = {
+                        onDismiss()
+                        state.checkpoint()
+                        seg.rich = seg.rich.replace(w.first until w.last + 1, s, seg.rich.chars.getOrNull(w.first)?.stored ?: CharFormat.PLAIN.stored)
+                        seg.selection = TextRange(w.first + s.length)
+                        state.changed()
+                    })
+                }
+                entry(tr("Zum Wörterbuch hinzufügen")) {
+                    val word0 = text.substring(w.first, w.last + 1)
+                    kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Default).launch { runCatching { io.github.thepytales.llmhub.docs.LocalSpelling.learn(word0) } }
+                }
+                HorizontalDivider()
+            }
+        }
+        entry(tr("Ausschneiden"), tr("Strg+X"), enabled = hasSelection) { cutSelection(c, state, seg) }
+        entry(tr("Kopieren"), tr("Strg+C"), enabled = hasSelection) { if (state.spanParts() != null) state.copySpan(c) else copySelection(c, seg) }
+        entry(tr("Einfügen"), tr("Strg+V")) { if (!pasteClipboard(c, state, seg, plain = false)) Notices.info(tr("Die Zwischenablage ist leer.")) }
+        entry(tr("Nur Text einfügen"), tr("Strg+Umschalt+V")) { if (!pasteClipboard(c, state, seg, plain = true)) Notices.info(tr("Die Zwischenablage ist leer.")) }
+        HorizontalDivider()
+        if (link != null) {
+            entry(tr("Link öffnen")) { runCatching { uri.openUri(link) } }
+            entry(tr("Link entfernen")) {
+                // The whole link around the cursor.
+                var a = sel.start.coerceAtMost(text.length - 1)
+                var b = a
+                while (a > 0 && seg.rich.chars[a - 1].link == link) a--
+                while (b < text.length && seg.rich.chars[b].link == link) b++
+                state.checkpoint()
+                seg.rich = seg.rich.format(a until b) { it.copy(link = null) }
+                state.changed()
+            }
+        } else entry(tr("Link …"), enabled = !sel.collapsed) { host.link?.invoke() }
+        entry(tr("Kommentar")) { host.onComment(if (sel.collapsed) "" else text.substring(sel.min, sel.max)) }
+        if (hasSelection) {
+            entry(tr("Mit Lora überarbeiten …")) { onRevise(null) }
+            entry(tr("Lora fragen")) { host.onAskAi() }
+        } else entry(tr("Hilf mir schreiben"), tr("Strg+J")) { onWrite() }
+        HorizontalDivider()
+        entry(tr("Format übertragen")) { state.painter = state.formatHere() to state.paraHere() }
+        entry(tr("Formatierung entfernen"), "Strg+\\") { state.clearFormat() }
+        entry(tr("Alles auswählen"), tr("Strg+A")) {
+            // Several fields: the selection over all of them; one field: its whole text.
+            if (!state.selectAllPieces()) state.focusPiece(seg, TextRange(0, seg.rich.text.length), keepSpan = false)
+        }
+    }
+}
+
+/** Ausschneiden (Strg+X, Rechtsklick): the selection with its formatting to the clipboard, then out of the text. */
+private fun cutSelection(c: AppContainer, state: FlowState, seg: FlowSeg.Text): Boolean {
+    if (state.spanParts() != null) return state.copySpan(c) && state.deleteSpan()
+    if (!copySelection(c, seg)) return false
+    val sel = seg.selection
+    state.checkpoint()
+    seg.rich = seg.rich.cut(sel.min, sel.max)
+    seg.selection = TextRange(sel.min)
+    state.changed()
+    return true
+}
+
+/**
+ * Einfügen from the clipboard (Strg+V, Strg+Umschalt+V, Rechtsklick): with formatting from Word, Docs and the browser
+ * (HTML, RTF), or [plain] – only the text, in the format at the cursor (*Nur Text einfügen*, AP-125).
+ */
+private fun pasteClipboard(c: AppContainer, state: FlowState, seg: FlowSeg.Text, plain: Boolean): Boolean {
+    if (!plain) {
+        val piece = (RichClipboard.html(c)?.let { runCatching { RichHtml.toRich(it) }.getOrNull() }
+            ?: RichClipboard.rtf(c)?.let { runCatching { io.github.thepytales.llmhub.docs.text.RichRtf.toRich(it) }.getOrNull() })?.takeIf { it.text.isNotEmpty() }
+        if (piece != null) { state.paste(seg, piece); return true }
+    }
+    val text = RichClipboard.text(c)?.replace("\r\n", "\n")?.replace('\r', '\n') ?: return false
+    state.active = seg
+    state.insertText(text)
+    return true
+}
+
 /** One stretch of running text: the text field with list marks in the gutter and the keys of a word processor. */
 @Composable
 private fun FlowField(
@@ -2326,6 +2457,8 @@ private fun FlowField(
     val measurer = rememberTextMeasurer()
     val marksList = remember(rich) { listMarks(rich) }
     val onSurface = MaterialTheme.colorScheme.onSurface
+    /** Rechtsklick-Menü (AP-125): where it opens in this field, or null. */
+    var menuAt by remember { mutableStateOf<Offset?>(null) }
 
     // Format übertragen (AP-46): the next selection takes the format, once the selection rests.
     LaunchedEffect(seg.selection, state.painter) {
@@ -2419,7 +2552,35 @@ private fun FlowField(
             val y = page.localPositionOf(co, Offset.Zero).y
             if (state.segTop[seg.id]?.let { kotlin.math.abs(it - y) < 0.5f } != true) state.segTop[seg.id] = y
         }
+    }.pointerInput(seg) {
+        // Rechtsklick (AP-125, like Word): the cursor goes to the click unless it is inside the selection, then the menu
+        // opens there. Read in the first pass, so the text field does not treat the press as its own.
+        awaitPointerEventScope {
+            while (true) {
+                val e = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                if (e.type != androidx.compose.ui.input.pointer.PointerEventType.Press || !e.buttons.isSecondaryPressed) continue
+                val at = e.changes.firstOrNull()?.position ?: continue
+                e.changes.forEach { it.consume() }
+                val l = seg.layout
+                if (l != null) {
+                    val o = Shown(seg.rich.text, seg.breaks, seg.deleted).toOrig(l.getOffsetForPosition(at)).coerceIn(0, seg.rich.text.length)
+                    val sel = seg.selection
+                    if (sel.collapsed || o < sel.min || o > sel.max) {
+                        state.spanAnchor = null
+                        seg.selection = TextRange(o)
+                    }
+                }
+                state.active = seg
+                menuAt = at
+            }
+        }
     }) {
+        menuAt?.let { at ->
+            Box(Modifier.offset { androidx.compose.ui.unit.IntOffset(at.x.roundToInt(), at.y.roundToInt()) }.size(1.dp)) {
+                FlowTextMenu(c, state, seg, host, onWrite = onWrite, onRevise = onRevise, onDismiss = { menuAt = null })
+            }
+        }
+        OwnTextMenu {
         BasicTextField(
             value = value,
             onValueChange = ::onValue,
@@ -2489,15 +2650,14 @@ private fun FlowField(
                         cmd && e.key == Key.Backslash -> { state.clearFormat(); true }
                         // Zwischenablage mit Formatierung (AP-43): HTML for Word and the browser, HTML from them.
                         cmd && !e.isShiftPressed && e.key == Key.C -> copySelection(c, seg)
-                        cmd && !e.isShiftPressed && e.key == Key.X -> {
-                            if (!copySelection(c, seg)) false else {
-                                val sel = seg.selection
-                                state.checkpoint()
-                                seg.rich = seg.rich.cut(sel.min, sel.max)
-                                seg.selection = TextRange(sel.min)
-                                state.changed()
-                                true
-                            }
+                        cmd && !e.isShiftPressed && e.key == Key.X -> cutSelection(c, state, seg)
+                        // Nur Text einfügen (AP-125, like Word and Docs).
+                        cmd && e.isShiftPressed && e.key == Key.V -> pasteClipboard(c, state, seg, plain = true)
+                        // The menu key and Umschalt+F10 open the Rechtsklick-Menü at the cursor (keyboard, AP-30).
+                        (e.key == Key.Menu || e.isShiftPressed && e.key == Key.F10) && !cmd -> {
+                            val l = seg.layout
+                            menuAt = l?.let { val r = it.getCursorRect(seg.shown(seg.selection.end).coerceIn(0, it.layoutInput.text.length)); Offset(r.left, r.bottom) } ?: Offset.Zero
+                            true
                         }
                         cmd && !e.isShiftPressed && e.key == Key.V -> {
                             val piece = (RichClipboard.html(c)?.let { runCatching { RichHtml.toRich(it) }.getOrNull() }
@@ -2525,6 +2685,7 @@ private fun FlowField(
                     }
                 },
         )
+        }
         // Checkboxes of the checklist: real buttons in the gutter.
         val layout = seg.layout
         if (layout != null) marksList.filter { it.second == "check" }.forEach { (pi, _) ->

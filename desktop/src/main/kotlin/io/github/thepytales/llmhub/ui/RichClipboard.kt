@@ -43,6 +43,13 @@ internal object RichClipboard {
         (clip.getData(DataFlavor.allHtmlFlavor) as? String)?.takeIf { it.isNotBlank() }
     }.getOrNull()
 
+    /** The plain text on the clipboard, or null (Rechtsklick › Einfügen, Nur Text einfügen; AP-125). */
+    fun text(@Suppress("UNUSED_PARAMETER") c: AppContainer): String? = runCatching {
+        val clip = Toolkit.getDefaultToolkit().systemClipboard
+        if (!clip.isDataFlavorAvailable(DataFlavor.stringFlavor)) return null
+        (clip.getData(DataFlavor.stringFlavor) as? String)?.takeIf { it.isNotEmpty() }
+    }.getOrNull()
+
     /** The RTF on the clipboard, or null. */
     fun rtf(@Suppress("UNUSED_PARAMETER") c: AppContainer): String? = runCatching {
         val clip = Toolkit.getDefaultToolkit().systemClipboard

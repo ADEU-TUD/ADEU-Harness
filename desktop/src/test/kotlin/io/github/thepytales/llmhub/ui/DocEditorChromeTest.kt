@@ -8,7 +8,12 @@ import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performMouseInput
+import androidx.compose.ui.test.rightClick
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.pressKey
@@ -131,6 +136,47 @@ class DocEditorChromeTest {
         field.performKeyInput { withKeyDown(Key.CtrlLeft) { pressKey(Key.R) } }
         settle(10)
         assertTrue("<!--a:r" in c.docs.get(id)!!.tabs.first().markdown, c.docs.get(id)!!.tabs.first().markdown)
+    }
+
+    /**
+     * Rechtsklick-Menü (AP-125): the app's menu (not Compose's English one) with Ausschneiden … Alles auswählen; with a
+     * display also Einfügen with formatting and Nur Text einfügen through the real clipboard.
+     */
+    @Test
+    fun rightClickMenuLikeWord() = runSkikoComposeUiTest(Size(1300f, 900f), Density(1f)) {
+        val id = open("# Antrag\n\nErster Absatz.\n")
+        val field = onAllNodesWithContentDescription("Dokumenttext").onFirst()
+        field.performMouseInput { rightClick(center) }
+        settle()
+        listOf("Ausschneiden", "Kopieren", "Einfügen", "Nur Text einfügen", "Kommentar", "Formatierung entfernen", "Alles auswählen")
+            .forEach { assertTrue(has(it), "Menü: $it") }
+        assertFalse(has("Paste") || has("Select All"), "kein zweites Menü von Compose")
+        onAllNodesWithText("Kopieren").onFirst().assertIsNotEnabled()
+        // Alles auswählen, and Kopieren is possible.
+        onAllNodesWithText("Alles auswählen").onFirst().performClick()
+        settle()
+        field.performMouseInput { rightClick(center) }
+        settle()
+        onAllNodesWithText("Kopieren").onFirst().assertIsEnabled()
+        onAllNodesWithText("Formatierung entfernen").onFirst().performClick()
+        settle()
+        if (java.awt.GraphicsEnvironment.isHeadless()) return@runSkikoComposeUiTest
+        // Through the real clipboard: Nur Text einfügen drops the formatting, Einfügen keeps it.
+        field.performClick()
+        assertTrue(RichClipboard.copy(c, "<b>Fett</b>", "Fett"))
+        field.performMouseInput { rightClick(center) }
+        settle()
+        onAllNodesWithText("Nur Text einfügen").onFirst().performClick()
+        settle(10)
+        val plain = c.docs.get(id)!!.tabs.first().markdown
+        assertTrue("Fett" in plain && "**Fett**" !in plain, plain)
+        field.performMouseInput { rightClick(center) }
+        settle()
+        // The entry of the menu (with its key), not the menu *Einfügen* of the header.
+        onAllNodes(hasText("Einfügen") and hasText("Strg+V")).onFirst().performClick()
+        settle(10)
+        val rich = c.docs.get(id)!!.tabs.first().markdown
+        assertTrue("**Fett**" in rich, rich)
     }
 
     private fun SkikoComposeUiTest.has(text: String, substring: Boolean) =
