@@ -85,7 +85,7 @@ Gilt als Abnahme jedes Pakets. Je Bildschirm:
 
 | Abschnitt | Pakete |
 | --- | --- |
-| **Jetzt** (14.11.2026, Editoren) | **APD-17a Videoeditor: Richtung wählen ◐** · **APD-15 Dokument-Editor aufgeräumt wie Google Docs ☐** · **APD-16 Folien, Gestalten, Whiteboard im selben Rahmen ☐** · **APD-17b Videoeditor übersichtlich ☐** |
+| **Jetzt** (14.11.2026, Editoren) | ~~APD-17a Videoeditor: Richtung wählen~~ ☑ („A mit B“) · **APD-15 Dokument-Editor aufgeräumt wie Google Docs ◐** · **APD-16 Folien, Gestalten, Whiteboard im selben Rahmen ☐** · **APD-17b Videoeditor übersichtlich ☐** |
 | **Später** | – |
 | **Erledigt** | APD-01 Umfassendes UI-Review (13.11.2026; Pakete daraus verworfen) · Grundlage: AP-123 *Bedienelemente aus einem Guss* (allgemeiner Arbeitsplan, 1.0.71) |
 
@@ -112,7 +112,7 @@ Reihenfolge über beide Pläne: **APD-17a** (Entwürfe Video, damit die Entschei
 Gestalten, Whiteboard) → **APD-17b + AP-130** (Video: Oberfläche und flüssige Vorschau) → **AP-128** (Video: Datenschutz)
 → **AP-129** (Video: fehlende Funktionen).
 
-### APD-17a ◐ Videoeditor: Richtung wählen · S (Wunsch Hauptnutzer 14.11.2026, D)
+### APD-17a ☑ Videoeditor: Richtung wählen · S (Wunsch Hauptnutzer 14.11.2026, D)
 Zwei Entwürfe des ganzen Editors auf einer Vergleichsseite (Artefakt), gleiche Aufgabe (Vorlesung kürzen, Titel,
 Export), damit der Hauptnutzer das Vorbild entscheidet:
 - **A – Richtung Clipchamp/CapCut**: große Vorschau, links eine Leiste mit *Medien · Text · Übergänge · Ton · Untertitel ·
@@ -123,6 +123,10 @@ Export), damit der Hauptnutzer das Vorbild entscheidet:
 - Beide behalten alle Tasten und Loras Aktionen; beide gehen bei 1366 × 768 und auf großen Monitoren.
 **Fertig, wenn**: der Hauptnutzer eine Richtung (oder eine Mischung) gewählt hat; die Wahl steht hier und im
 allgemeinen Arbeitsplan unter *Grundsätze › Umfang der Werkzeuge*.
+☑ *14.11.2026*: Vergleichsseite als Artefakt („Videoeditor-Richtung wählen“). **Entscheidung des Hauptnutzers: „A mit B“**
+– Aufbau wie A (Clipchamp/CapCut), dazu aus B: Spurnamen, Sperren und Stummschalten erscheinen beim Überfahren einer Reihe;
+genaue Zahlen für Beginn und Dauer unter den Schiebereglern; eine Mehrkamera-Ansicht für Interviews; alle Tasten, Loras
+Aktionen und der Schnitt im Transkript bleiben. Grundlage für APD-17b.
 
 ### APD-15 ☐ Dokument-Editor aufgeräumt wie Google Docs · M (Wunsch Hauptnutzer 14.11.2026)
 **Befund** (Bild aus APD-01 bei 1366 × 768 und 150 %): Titelzeile, Reiterzeile („Tab 1“ auch bei nur einem Tab), Menüzeile,
@@ -162,7 +166,7 @@ Derselbe Kopf und dieselbe Leistenlogik wie APD-15 für Folien, Gestalten und Wh
 **Fertig, wenn**: alle drei Editoren bei 1366 × 768 und 150 % ohne Umbruch und Abschneiden; Vorher/Nachher-Bilder.
 
 ### APD-17b ☐ Videoeditor übersichtlich · L (Wunsch Hauptnutzer 14.11.2026, D, nach APD-17a)
-Umbau nach der gewählten Richtung: eine übersichtliche Seite (weniger gleichzeitig, klare Gruppen), klarer Einstieg (leeres
+Umbau nach der gewählten Richtung **„A mit B“** (siehe APD-17a): eine übersichtliche Seite (weniger gleichzeitig, klare Gruppen), klarer Einstieg (leeres
 Projekt zeigt „Video hierher ziehen“ in der Zeitleiste), Zeitleiste wie selbstverständlich (siehe AP-130 für das Tempo):
 Clips ziehen und kürzen mit Einrasten und sichtbarer Zeit, Strg+Mausrad zoomt um den Mauszeiger, Lücken schließen per
 Rechtsklick, Spuren mit Klartext-Namen, gewählte Clips deutlich. Derselbe Kopf wie APD-15.
