@@ -172,7 +172,7 @@ einfügen*); Strg+Enter Seitenumbruch; F7 Rechtschreibung; Strg+Klick markiert d
 Doppel-/Dreifachklick Wort/Absatz (Compose, geprüft). Neu im Menü *Format*: Schrift größer/kleiner,
 Groß-/Kleinschreibung; Tasten an *Seitenumbruch* und *Rechtschreibung prüfen*; Tastenübersicht (Strg+/) mit Abschnitt
 *Im Dokument (wie in Word)*. Tests `WordKeysTest`, `ui/DocEditorKeysTest` (echte Tasten und Klicks), `AppShortcutsTest`.
-**(d) ◐ Bilder und Tabellen anfassen** (14.11.2026, Vergleichsseite gezeigt, Freigabe offen): `ui/FlowBlocks.kt` – **Bild**:
+**(d) ☑ Bilder und Tabellen anfassen** (14.11.2026, vom Hauptnutzer freigegeben): `ui/FlowBlocks.kt` – **Bild**:
 Klick wählt es (Rahmen, vier Griffe ziehen die Breite, Seitenverhältnis bleibt, Prozent beim Ziehen), schwebende Leiste
 über dem Bild (links/mittig/rechts, Bildunterschrift, Alternativtext, Ersetzen, Löschen), Bildunterschrift direkt unter dem
 Bild tippen, Rechtsklick-Menü (Bild ersetzen, Breite 25–100 %, Ausrichtung, verschieben, Als Markdown, Löschen), Entf/Esc,
@@ -185,9 +185,11 @@ Zeile an, Strg+B/I/U in der Zelle, Alt+Umschalt+↑/↓ verschiebt die Zeile, Sp
 Striche in der Trennzeile (`DocBlocks.tableWidths`, wie Pandoc), in Word `w:gridCol`, im PDF `<colgroup>`; Rechtsklick-Menü
 (Ausschneiden/Kopieren/Einfügen, Zeile/Spalte einfügen und löschen, Breiten angleichen, Zeile/Tabelle verschieben, Tabelle
 löschen); „+ Zeile/+ Spalte“ unter der Tabelle beim Überfahren. Tippen in Zellen ist ein Rückgängig-Schritt je Pause
-(`setRaw(group)`). Tests `FlowBlocksTest`, `ui/DocEditorBlocksTest`, Bilder `ui/DocBlocksLookTest`. **Offen**: Textumbruch
-*Links/Rechts* (Text neben dem Bild, Rückfrage an den Hauptnutzer), Zuschneiden, Bild mit der Maus verschieben, Zellen
-über Ziehen markieren, Zeilenhöhe ziehen, Formatleiste in Zellen.
+(`setRaw(group)`). Tests `FlowBlocksTest`, `ui/DocEditorBlocksTest`, Bilder `ui/DocBlocksLookTest`. Offen: Zuschneiden,
+Bild mit der Maus verschieben, Zellen über Ziehen markieren, Zeilenhöhe ziehen, Formatleiste in Zellen.
+**(e) ☐ Textumbruch ums Bild wie Word** (Entscheidung Hauptnutzer 14.11.2026: „genau wie Word“, eigene Stufe): *Links* und
+*Rechts* – der Text nach dem Bild läuft daneben weiter, die Zeilen neben dem Bild sind schmaler, darunter wieder voll
+breit; in Word als verankertes Bild mit Umbruch „Quadrat“, im PDF umfließend. Vorher/Nachher-Bilder vor dem PR.
 
 ### AP-126 ☐ Dokumente: Funktionsumfang wie Word und Google Docs · XL (Wunsch Hauptnutzer 14.11.2026, in Stufen)
 **Ziel**: Für die Arbeit an der TU Dresden (Briefe, Protokolle, Anträge, Hausarbeiten bis Dissertation, Skripte) braucht
