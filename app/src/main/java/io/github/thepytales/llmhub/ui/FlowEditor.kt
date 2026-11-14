@@ -89,6 +89,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
@@ -317,6 +318,9 @@ class FlowState(markdown: String) {
     var wantFocus: FlowSeg.Text? = null
     /** A new id for a piece of the document. */
     fun newId(): Long = nextId++
+
+    /** Textumbruch (AP-125 e): text field id → the picture before it that the text runs beside. */
+    val wraps = mutableStateMapOf<Long, ImageWrap>()
 
     /** Bilder anfassen (AP-125 d): the picture that is selected (its id), with handles and its bar; null: none. */
     var picked by mutableStateOf<Long?>(null)
@@ -2246,6 +2250,8 @@ private fun RawBlock(doc: LiveDoc, tabId: String?, state: FlowState, seg: FlowSe
     // Inside a selection over several fields the block is marked as a whole.
     val inSpan = state.spanIn(seg) != null
     val outer = Modifier.fillMaxWidth().padding(top = with(density) { seg.push.toDp() })
+        // A picture the text runs beside lies over that text (AP-125 e).
+        .then(if (DocMarkup.image(seg.markdown)?.wrap != null) Modifier.zIndex(1f) else Modifier)
         .then(if (inSpan) Modifier.background(LocalChatLook.current.brand.copy(alpha = 0.18f), RoundedCornerShape(4.dp)) else Modifier)
     val measure = Modifier.onSizeChanged { if (kotlin.math.abs(seg.height - it.height) > 0.5f) seg.height = it.height.toFloat() }
     // Abschnittsumbruch (AP-43/45): a new page with the section's own header and footer.
@@ -2528,9 +2534,15 @@ private fun FlowField(
     val inserted = seg.hunks.map { it.ins }.filter { !it.isEmpty() }
     val annotated = remember(rich, look.brand, zoom, sheet, marks, inserted) { flowAnnotated(rich, base, look.brand, muted, codeBg, density.density, sheet, zoom, marks, inserted) }
     val tabbed = remember(annotated, seg.tabExtra, density) { FlowTabs.annotate(annotated, seg.tabExtra, density.density, density.fontScale) }
-    val value = TextFieldValue(tabbed, seg.selection, seg.composition)
-    val pxPerMm = with(density) { (3.7795f * zoom).dp.toPx() }
     val measurer = rememberTextMeasurer()
+    // Textumbruch ums Bild (AP-125 e): the lines beside a picture before this text are narrower.
+    val wrap = state.wraps[seg.id]
+    val fieldPx = seg.layout?.size?.width ?: 0
+    val shownText = remember(tabbed, wrap, fieldPx, base) {
+        if (wrap == null || fieldPx == 0) tabbed else wrapAround(tabbed, measurer, base, fieldPx, wrap, with(density) { 1.sp.toPx() })
+    }
+    val value = TextFieldValue(shownText, seg.selection, seg.composition)
+    val pxPerMm = with(density) { (3.7795f * zoom).dp.toPx() }
     val marksList = remember(rich) { listMarks(rich) }
     val onSurface = MaterialTheme.colorScheme.onSurface
     /** Rechtsklick-Menü (AP-125): where it opens in this field, or null. */
@@ -2711,7 +2723,8 @@ private fun FlowField(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 28.dp)
+                // Beside a picture the text field is at least as high as the picture (the next block starts below it).
+                .heightIn(min = maxOf(28.dp, with(density) { (wrap?.height ?: 0f).toDp() }))
                 .focusRequester(seg.focus)
                 .onFocusChanged {
                     if (it.isFocused) state.picked = null

@@ -7291,3 +7291,9 @@ Tabelle löschen	Delete table
 Bild links	Image left
 Bild zentriert	Image centred
 Bild rechts	Image right
+Text daneben	Wrap text
+Mit Text in Zeile: links	In line with text: left
+Mit Text in Zeile: zentriert	In line with text: centred
+Mit Text in Zeile: rechts	In line with text: right
+Links, Text rechts daneben	Left, text beside it
+Rechts, Text links daneben	Right, text beside it

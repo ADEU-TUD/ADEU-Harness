@@ -187,9 +187,19 @@ Striche in der Trennzeile (`DocBlocks.tableWidths`, wie Pandoc), in Word `w:grid
 löschen); „+ Zeile/+ Spalte“ unter der Tabelle beim Überfahren. Tippen in Zellen ist ein Rückgängig-Schritt je Pause
 (`setRaw(group)`). Tests `FlowBlocksTest`, `ui/DocEditorBlocksTest`, Bilder `ui/DocBlocksLookTest`. Offen: Zuschneiden,
 Bild mit der Maus verschieben, Zellen über Ziehen markieren, Zeilenhöhe ziehen, Formatleiste in Zellen.
-**(e) ☐ Textumbruch ums Bild wie Word** (Entscheidung Hauptnutzer 14.11.2026: „genau wie Word“, eigene Stufe): *Links* und
-*Rechts* – der Text nach dem Bild läuft daneben weiter, die Zeilen neben dem Bild sind schmaler, darunter wieder voll
-breit; in Word als verankertes Bild mit Umbruch „Quadrat“, im PDF umfließend. Vorher/Nachher-Bilder vor dem PR.
+**(e) ☑ Textumbruch ums Bild wie Word** (Entscheidung Hauptnutzer 14.11.2026: „genau wie Word“, eigene Stufe; vom
+Hauptnutzer freigegeben, „geht klar“): `{wrap=left|right}` (`DocMarkup.Image.wrap`); Leiste *Text daneben*, Rechtsklick
+*Mit Text in Zeile: links/zentriert/rechts* · *Links, Text rechts daneben* · *Rechts, Text links daneben*; beim Einschalten
+geht ein breites Bild auf 40 %. Editor (`ui/FlowWrap.kt`): das Bild liegt über dem Anfang des folgenden Textfelds, dessen
+Zeilen neben dem Bild dort enden, wo sie bei der schmaleren Breite enden (Absatzgrenzen nur in der Anzeige, der Text bleibt
+unverändert, Cursor und Seitenplan brauchen nichts Neues), links mit Einzug; das Textfeld ist mindestens so hoch wie das
+Bild. Word: Bild und Unterschrift in einem randlosen, am Rand verankerten Textfeld mit Umbruch „Quadrat“ (so macht es Word
+selbst), vor dem nächsten Block (Tabelle, Bild …) Words Textumbruch-Wechsel unter das Bild; PDF/HTML: `float`, Blöcke mit
+`clear:both`. In LibreOffice und Chrome geprüft (Bilder). **Blocksatz** neben dem Bild (Frage Hauptnutzer): der fehlende Platz jeder
+Zeile dort geht auf ihre Wortabstände (`letterSpacing`, gemessen linksbündig, neben dem Bild ohne Silbentrennung).
+Nebenbei behoben: das PDF übernahm die Ausrichtung von Absätzen und Überschriften gar nicht (`DocumentWriter.alignStyle`:
+zentriert, rechtsbündig, Blocksatz mit Silbentrennung). Tests `FlowBlocksTest`, `ui/DocEditorBlocksTest`, Bilder
+`ui/DocBlocksLookTest`. Offen: Seitenplan berücksichtigt ein Bild, das höher ist als der Text daneben, noch nicht genau.
 
 ### AP-126 ☐ Dokumente: Funktionsumfang wie Word und Google Docs · XL (Wunsch Hauptnutzer 14.11.2026, in Stufen)
 **Ziel**: Für die Arbeit an der TU Dresden (Briefe, Protokolle, Anträge, Hausarbeiten bis Dissertation, Skripte) braucht

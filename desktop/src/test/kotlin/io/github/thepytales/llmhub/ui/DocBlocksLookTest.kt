@@ -139,6 +139,82 @@ class DocBlocksLookTest {
         shot("7-menue-format")
     }
 
+    /** Textumbruch (AP-125 e): a picture at the right edge with text beside it, and selected with its bar. */
+    @Test
+    fun wrapForTheComparison() = runSkikoComposeUiTest(Size(1920f, 1080f), Density(1.25f)) {
+        mainClock.autoAdvance = false
+        val text = """
+            Die Vorlesung *Einführung in die Statistik* hat jedes Semester rund 400 Teilnehmende. Die Übungen sind überlaufen, und viele Studierende brechen das Modul im ersten Semester ab.
+
+            ![Abb. 1: Der Hörsaal im HSZ](${picture().absolutePath}){width=40% wrap=right}
+
+            Mit dem Vorhaben sollen Selbstlernmodule entstehen, die an die Vorlesung anschließen und in OPAL bereitstehen. Jedes Modul behandelt ein Thema der Vorlesung, erklärt es an Beispielen aus der Forschung der TU Dresden und endet mit Aufgaben, die sofort ausgewertet werden. So können sich die Studierenden im eigenen Tempo vorbereiten und sehen, wo sie noch Lücken haben.
+
+            Die Module werden in drei Phasen entwickelt: Konzept, Umsetzung und Erprobung mit Studierenden. Die Evaluation erfolgt gemeinsam mit dem Zentrum für interdisziplinäres Lernen und Lehren, die Ergebnisse fließen in die zweite Fassung ein.
+
+            Die Materialien stehen unter offener Lizenz und können von anderen Lehrenden übernommen werden.
+        """.trimIndent() + "\n"
+        val doc = DocsHandoff.open(c, "Antrag Lehrinnovation", text)
+        setContent {
+            androidx.compose.runtime.CompositionLocalProvider(androidx.lifecycle.compose.LocalLifecycleOwner provides owner) {
+                LlmHubTheme(AppSettings()) { androidx.compose.material3.Surface { DocPane(c, doc.id, onClose = {}) } }
+            }
+        }
+        settle(16)
+        shot("10-textumbruch")
+        onAllNodesWithContentDescription("Abb. 1: Der Hörsaal im HSZ").onFirst().performClick()
+        settle()
+        shot("11-textumbruch-gewaehlt")
+    }
+
+    /** The same document as Word file and PDF (built-in renderer) and as HTML for the browser's print (Edge/Chrome). */
+    @Test
+    fun exportsForTheComparison() {
+        val md = """
+            Die Vorlesung *Einführung in die Statistik* hat jedes Semester rund 400 Teilnehmende. Die Übungen sind überlaufen, und viele Studierende brechen das Modul im ersten Semester ab.
+
+            ![Abb. 1: Der Hörsaal im HSZ](${picture().absolutePath}){width=40% wrap=right}
+
+            Mit dem Vorhaben sollen Selbstlernmodule entstehen, die an die Vorlesung anschließen und in OPAL bereitstehen. Jedes Modul behandelt ein Thema der Vorlesung, erklärt es an Beispielen aus der Forschung der TU Dresden und endet mit Aufgaben, die sofort ausgewertet werden. So können sich die Studierenden im eigenen Tempo vorbereiten und sehen, wo sie noch Lücken haben.
+
+            | Phase | Zeitraum | Ergebnis |
+            | ---------- | ---------- | ------------------------------ |
+            | Konzept | 04/2027 – 06/2027 | Lernziele und Aufbau |
+            | Umsetzung | 07/2027 – 12/2027 | Zwölf Module in OPAL |
+
+            Die Materialien stehen unter offener Lizenz und können von anderen Lehrenden übernommen werden.
+        """.trimIndent() + "\n"
+        io.github.thepytales.llmhub.docs.MarkdownDocx.write(File(out, "export.docx"), "Antrag", md)
+        val html = io.github.thepytales.llmhub.docs.DocumentWriter.toHtml("Antrag", md, print = true)
+        File(out, "export.html").writeText(html)
+        runCatching { io.github.thepytales.llmhub.docs.HtmlPdf.renderBuiltIn(html, File(out, "export.pdf")) }
+    }
+
+    /** Blocksatz (AP-125 e): the same with justified paragraphs, in the editor, as Word file and as HTML for the PDF. */
+    @Test
+    fun justifiedWrapForTheComparison() = runSkikoComposeUiTest(Size(1920f, 1080f), Density(1.25f)) {
+        mainClock.autoAdvance = false
+        val text = """
+            <!--a:j-->Die Vorlesung *Einführung in die Statistik* hat jedes Semester rund 400 Teilnehmende. Die Übungen sind überlaufen, und viele Studierende brechen das Modul im ersten Semester ab.
+
+            ![Abb. 1: Der Hörsaal im HSZ](${picture().absolutePath}){width=40% wrap=right}
+
+            <!--a:j-->Mit dem Vorhaben sollen Selbstlernmodule entstehen, die an die Vorlesung anschließen und in OPAL bereitstehen. Jedes Modul behandelt ein Thema der Vorlesung, erklärt es an Beispielen aus der Forschung der TU Dresden und endet mit Aufgaben, die sofort ausgewertet werden. So können sich die Studierenden im eigenen Tempo vorbereiten und sehen, wo sie noch Lücken haben.
+
+            <!--a:j-->Die Module werden in drei Phasen entwickelt: Konzept, Umsetzung und Erprobung mit Studierenden. Die Evaluation erfolgt gemeinsam mit dem Zentrum für interdisziplinäres Lernen und Lehren, die Ergebnisse fließen in die zweite Fassung ein.
+        """.trimIndent() + "\n"
+        io.github.thepytales.llmhub.docs.MarkdownDocx.write(File(out, "blocksatz.docx"), "Antrag", text)
+        File(out, "blocksatz.html").writeText(io.github.thepytales.llmhub.docs.DocumentWriter.toHtml("Antrag", text, print = true))
+        val doc = DocsHandoff.open(c, "Antrag Lehrinnovation", text)
+        setContent {
+            androidx.compose.runtime.CompositionLocalProvider(androidx.lifecycle.compose.LocalLifecycleOwner provides owner) {
+                LlmHubTheme(AppSettings()) { androidx.compose.material3.Surface { DocPane(c, doc.id, onClose = {}) } }
+            }
+        }
+        settle(16)
+        shot("12-blocksatz")
+    }
+
     /** Strg+/ (the Tastenübersicht of the window) with the new part „Im Dokument (wie in Word)“. */
     @Test
     fun shortcutsOverview() = runSkikoComposeUiTest(Size(1920f, 1080f), Density(1.25f)) {

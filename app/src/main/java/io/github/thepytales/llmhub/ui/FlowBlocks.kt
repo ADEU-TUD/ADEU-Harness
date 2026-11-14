@@ -30,6 +30,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ShortText
+import androidx.compose.material.icons.automirrored.outlined.WrapText
 import androidx.compose.material.icons.outlined.FormatAlignLeft
 import androidx.compose.material.icons.outlined.FormatAlignRight
 import androidx.compose.material.icons.outlined.Delete
@@ -49,6 +50,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.layout
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -167,15 +171,35 @@ internal fun FlowImageBlock(state: FlowState, seg: FlowSeg.Raw, img: DocMarkup.I
         state.spanAnchor = null
         runCatching { focus.requestFocus() }
     }
-    BoxWithConstraints(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+    // Textumbruch (AP-125 e): the picture lies over the start of the text after it, which runs on beside it.
+    val next = state.segs.getOrNull(state.segs.indexOfFirst { it.id == seg.id } + 1) as? FlowSeg.Text
+    val wrapping = img.wrap != null && next != null
+    DisposableEffect(next?.id, wrapping) { onDispose { next?.let { state.wraps.remove(it.id) } } }
+    if (!wrapping && next != null && state.wraps.containsKey(next.id)) state.wraps.remove(next.id)
+    val gapPx = with(density) { 14.dp.toPx() }
+    BoxWithConstraints(
+        Modifier
+            .fillMaxWidth()
+            .then(if (wrapping) Modifier.layout { m, c -> val p = m.measure(c); layout(p.width, 0) { p.place(0, 0) } } else Modifier)
+            .padding(vertical = if (wrapping) 2.dp else 6.dp),
+    ) {
         val full = maxWidth
         val aspect = bitmap?.let { it.width.toFloat() / it.height.coerceAtLeast(1) } ?: (4f / 3f)
         val pct = (dragPct ?: (img.width ?: 100).toFloat()).coerceIn(5f, 100f)
         var w = full * (pct / 100f)
         var h = w / aspect
         if (h > 520.dp) { h = 520.dp; w = h * aspect }
-        val align = when (img.align) { "left" -> Alignment.Start; "right" -> Alignment.End; else -> Alignment.CenterHorizontally }
-        Column(Modifier.fillMaxWidth(), horizontalAlignment = align) {
+        val align = when (img.wrap ?: img.align) { "left" -> Alignment.Start; "right" -> Alignment.End; else -> Alignment.CenterHorizontally }
+        val widthPx = with(density) { w.coerceAtLeast(if (img.alt.isNotBlank() || picked) 160.dp else 0.dp).toPx() }
+        Column(
+            Modifier.fillMaxWidth().onSizeChanged { size ->
+                if (wrapping && next != null) {
+                    val room = ImageWrap(img.wrap!!, widthPx + gapPx, size.height + gapPx / 2)
+                    if (state.wraps[next.id] != room) state.wraps[next.id] = room
+                }
+            },
+            horizontalAlignment = align,
+        ) {
             Box(
                 Modifier
                     .size(w, h)
@@ -253,7 +277,7 @@ internal fun FlowImageBlock(state: FlowState, seg: FlowSeg.Raw, img: DocMarkup.I
                 }
                 // The bar floats over the picture's upper edge, over the text, so nothing moves and the caption stays free.
                 if (picked && dragPct == null) androidx.compose.ui.window.Popup(popupPositionProvider = AboveAnchor(with(density) { 8.dp.roundToPx() }), properties = androidx.compose.ui.window.PopupProperties(focusable = false)) {
-                    ImageBar(img, onAlign = { write(img.copy(align = it)) }, onCaption = { captionFocus = true; runCatching { captionRequester.requestFocus() } }, onDescribe = { describe = true }, onReplace = { replaceImage(state, seg, img, host) }, onDelete = { state.removeBlock(seg) })
+                    ImageBar(img, onAlign = { write(placed(img, it)) }, onWrap = { write(wrapped(img, img.wrap == null)) }, onCaption = { captionFocus = true; runCatching { captionRequester.requestFocus() } }, onDescribe = { describe = true }, onReplace = { replaceImage(state, seg, img, host) }, onDelete = { state.removeBlock(seg) })
                 }
                 menu?.let { at ->
                     Box(Modifier.offset { IntOffset(at.x.roundToInt(), at.y.roundToInt()) }.size(1.dp)) {
@@ -283,6 +307,21 @@ private class AboveAnchor(private val gap: Int) : androidx.compose.ui.window.Pop
     }
 }
 
+/** The picture at [side] ("left", "right" or null: centred): beside the text when it runs around it, else in its line. */
+internal fun placed(img: DocMarkup.Image, side: String?): DocMarkup.Image = when {
+    img.wrap != null && side != null -> img.copy(wrap = side, align = null)
+    img.wrap != null -> img.copy(wrap = null, align = null)
+    else -> img.copy(align = side)
+}
+
+/**
+ * Textumbruch on or off (AP-125 e): on, the picture goes to its edge (right when it was centred) and, when it was wider
+ * than 60 %, to 40 % so the text has room beside it; off, it keeps its edge as its place in a line of its own.
+ */
+internal fun wrapped(img: DocMarkup.Image, on: Boolean): DocMarkup.Image =
+    if (on) img.copy(wrap = img.wrap ?: img.align ?: "right", align = null, width = (img.width ?: 100).let { if (it > 60) 40 else it })
+    else img.copy(wrap = null, align = img.wrap)
+
 /** *Bild ersetzen …*: the next picture chosen in the file dialog takes this one's place (width, place and caption stay). */
 private fun replaceImage(state: FlowState, seg: FlowSeg.Raw, img: DocMarkup.Image, host: FlowHost) {
     host.imageInto = { src -> state.setRaw(seg, img.copy(src = src).markdown()) }
@@ -291,12 +330,12 @@ private fun replaceImage(state: FlowState, seg: FlowSeg.Raw, img: DocMarkup.Imag
 
 /** The floating bar of a selected picture: Ausrichtung, Bildunterschrift, Alternativtext, Ersetzen, Löschen. */
 @Composable
-private fun ImageBar(img: DocMarkup.Image, onAlign: (String?) -> Unit, onCaption: () -> Unit, onDescribe: () -> Unit, onReplace: () -> Unit, onDelete: () -> Unit) {
+private fun ImageBar(img: DocMarkup.Image, onAlign: (String?) -> Unit, onWrap: () -> Unit, onCaption: () -> Unit, onDescribe: () -> Unit, onReplace: () -> Unit, onDelete: () -> Unit) {
     Surface(shape = RoundedCornerShape(8.dp), tonalElevation = 3.dp, shadowElevation = 3.dp) {
         Row(Modifier.padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             @Composable
             fun pick(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String?) {
-                val on = img.align == value
+                val on = (img.wrap ?: img.align) == value
                 IconButton(onClick = { onAlign(value) }, modifier = Modifier.size(34.dp).then(if (on) Modifier.background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(6.dp)) else Modifier)) {
                     Icon(icon, contentDescription = label, modifier = Modifier.size(18.dp))
                 }
@@ -304,6 +343,11 @@ private fun ImageBar(img: DocMarkup.Image, onAlign: (String?) -> Unit, onCaption
             pick(Icons.Outlined.FormatAlignLeft, tr("Bild links"), "left")
             pick(Icons.Outlined.FormatAlignCenter, tr("Bild zentriert"), null)
             pick(Icons.Outlined.FormatAlignRight, tr("Bild rechts"), "right")
+            // Textumbruch (AP-125 e): the text runs on beside the picture.
+            val wrapOn = img.wrap != null
+            TextButton(onClick = onWrap, modifier = if (wrapOn) Modifier.background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(6.dp)) else Modifier) {
+                Icon(Icons.AutoMirrored.Outlined.WrapText, null, Modifier.size(16.dp)); Spacer(Modifier.width(4.dp)); Text(tr("Text daneben"))
+            }
             Box(Modifier.padding(horizontal = 4.dp).width(1.dp).height(20.dp).background(MaterialTheme.colorScheme.outlineVariant))
             TextButton(onClick = onCaption) { Icon(Icons.Outlined.Title, null, Modifier.size(16.dp)); Spacer(Modifier.width(4.dp)); Text(tr("Bildunterschrift")) }
             TextButton(onClick = onDescribe) { Icon(Icons.AutoMirrored.Outlined.ShortText, null, Modifier.size(16.dp)); Spacer(Modifier.width(4.dp)); Text(tr("Alternativtext")) }
@@ -365,9 +409,12 @@ private fun ImageMenu(
             entry((if ((img.width ?: 100) == p) "✓ " else "") + tr("Breite {0} %", p)) { onWrite(img.copy(width = p.takeIf { it < 100 })) }
         }
         HorizontalDivider()
-        entry((if (img.align == "left") "✓ " else "") + tr("Links")) { onWrite(img.copy(align = "left")) }
-        entry((if (img.align == null) "✓ " else "") + tr("Zentriert")) { onWrite(img.copy(align = null)) }
-        entry((if (img.align == "right") "✓ " else "") + tr("Rechts")) { onWrite(img.copy(align = "right")) }
+        // Textumbruch like Word: in a line of its own (with its place) or at an edge with the text beside it.
+        entry((if (img.wrap == null && img.align == "left") "✓ " else "") + tr("Mit Text in Zeile: links")) { onWrite(img.copy(wrap = null, align = "left")) }
+        entry((if (img.wrap == null && img.align == null) "✓ " else "") + tr("Mit Text in Zeile: zentriert")) { onWrite(img.copy(wrap = null, align = null)) }
+        entry((if (img.wrap == null && img.align == "right") "✓ " else "") + tr("Mit Text in Zeile: rechts")) { onWrite(img.copy(wrap = null, align = "right")) }
+        entry((if (img.wrap == "left") "✓ " else "") + tr("Links, Text rechts daneben")) { onWrite(wrapped(img.copy(align = "left"), true)) }
+        entry((if (img.wrap == "right") "✓ " else "") + tr("Rechts, Text links daneben")) { onWrite(wrapped(img.copy(align = "right"), true)) }
         HorizontalDivider()
         entry(tr("Nach oben verschieben"), tr("Alt+Umschalt+↑")) { state.moveBlock(seg, up = true) }
         entry(tr("Nach unten verschieben"), tr("Alt+Umschalt+↓")) { state.moveBlock(seg, up = false) }

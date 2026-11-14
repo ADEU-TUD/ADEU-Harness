@@ -463,6 +463,12 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
     zusammen. Tabellen sind ein Gitter über die Textbreite: Tab springt in die nächste Zelle (in der letzten entsteht eine
     neue Zeile), Spaltengrenzen lassen sich ziehen, der Rechtsklick fügt Zeilen und Spalten ein oder löscht sie.
     Spaltenbreiten und Bildausrichtung kommen so in Word und PDF an.
+  - **Text ums Bild wie in Word** (ab 1.0.72, AP-125 e): *Text daneben* in der Leiste des Bildes (oder Rechtsklick ›
+    *Links, Text rechts daneben* bzw. *Rechts, Text links daneben*) stellt das Bild an den Rand, der Text läuft daneben
+    weiter und darunter wieder über die ganze Breite. In Word steht es wie dort üblich als verankertes Bild mit
+    Bildunterschrift und Umbruch „Quadrat“, im PDF genauso. Auch im Blocksatz reichen die Zeilen neben dem Bild bis an
+    das Bild. Nebenbei: Das PDF übernimmt jetzt die Ausrichtung von Absätzen (zentriert, rechtsbündig, Blocksatz) – vorher
+    stand dort alles linksbündig.
   - Nebenbei: *Datei › Exportieren* nahm den Stand beim Öffnen – jetzt den aktuellen.
   Tests `DocEditorChromeTest`, `DocEditorLookTest` (Vorher/Nachher-Bilder), `AppShortcutsTest`, `AutoCorrectTest`,
   `WordKeysTest`, `DocEditorKeysTest`, `FlowBlocksTest`, `DocEditorBlocksTest`, `DocBlocksLookTest` (Bilder).
@@ -471,9 +477,9 @@ vorhandene Daten bleiben so, wo sie sind. Ein Umzug auf neue technische Namen w�
   | --- | --- | --- | --- |
   | ![Dokument-Editor vorher](docs/bilder/apd15-vorher.png) | ![Dokument-Editor nachher](docs/bilder/apd15-nachher.png) | ![Menü Datei](docs/bilder/apd15-datei.png) | ![Rechtsklick-Menü](docs/bilder/apd15-rechtsklick.png) |
 
-  | Bild gewählt | Tabelle mit Rechtsklick |
-  | --- | --- |
-  | ![Bild mit Griffen und Leiste](docs/bilder/ap125-bild.png) | ![Tabelle als Gitter mit Rechtsklick-Menü](docs/bilder/ap125-tabelle.png) |
+  | Bild gewählt | Tabelle mit Rechtsklick | Text ums Bild |
+  | --- | --- | --- |
+  | ![Bild mit Griffen und Leiste](docs/bilder/ap125-bild.png) | ![Tabelle als Gitter mit Rechtsklick-Menü](docs/bilder/ap125-tabelle.png) | ![Bild rechts, Text daneben](docs/bilder/ap125-textumbruch.png) |
 - **Videoeditor für Einsteiger** (seit 1.0.70, AP-121): Der Editor erklärt sich jetzt selbst – für alle, die noch nie ein
   Video geschnitten haben, ohne eigene „Einfach-Ansicht“. **Startseite** mit zwei großen Karten (*Video schneiden*,
   *Bildschirm aufnehmen*), die vier Schritte darunter, Projekte mit *Öffnen*, *Umbenennen*, *Kopie anlegen*, *Löschen*;
