@@ -5,6 +5,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,7 +40,9 @@ import androidx.compose.material.icons.automirrored.outlined.FormatIndentIncreas
 import androidx.compose.material.icons.automirrored.outlined.FormatListBulleted
 import androidx.compose.material.icons.automirrored.outlined.Redo
 import androidx.compose.material.icons.automirrored.outlined.Undo
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AddComment
+import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.CheckBox
@@ -45,6 +50,8 @@ import androidx.compose.material.icons.outlined.CheckBoxOutlineBlank
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.EditNote
+import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.FormatAlignCenter
 import androidx.compose.material.icons.outlined.FormatAlignJustify
 import androidx.compose.material.icons.outlined.FormatBold
@@ -67,6 +74,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -109,6 +117,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.ParagraphStyle
@@ -314,6 +323,9 @@ class FlowState(markdown: String) {
     var scrollTo: ((Float) -> Unit)? = null
     /** Pages of the Seitenansicht (from [io.github.thepytales.llmhub.docs.text.PageLayout]). */
     var pageCount by mutableIntStateOf(1)
+    /** The page at the top third of the window (Statusleiste, APD-15) and the zoom at which a page fills the width. */
+    var pageNow by mutableIntStateOf(1)
+    var fitZoom by mutableFloatStateOf(1f)
     /** Abschnitte (AP-43/45): first page (1-based) of each section after the first, with its header and footer. */
     var sectionPages by mutableStateOf<List<Pair<Int, DocMarkup.Section>>>(emptyList())
     /** Text area height and room between two text areas of the Seitenansicht (px), as the page plan used them. */
@@ -829,12 +841,28 @@ class FlowHost(
     val onTrack: (() -> Unit)? = null,
     val onAskAi: () -> Unit = {},
     val onShowComments: () -> Unit = {},
+    /** The *Datei* menu of the document (APD-15): what the window around the editor offers (export, copy, delete …). */
+    val fileMenu: (@Composable (close: () -> Unit) -> Unit)? = null,
+    /** *Einfügen › Tab* (APD-15): the tabs row only shows with more than one tab. */
+    val onAddTab: (() -> Unit)? = null,
+    /** *Extras › Rechtschreibung prüfen (KI)*. */
+    val onSpellAi: (() -> Unit)? = null,
 ) {
     /** Set by the editor while it is shown: puts a block (picture …) or text (a citation) at the cursor. */
     var insertBlock: ((String) -> Unit)? = null
     var insertText: ((String) -> Unit)? = null
     /** The editor's Markdown right now (including what was not saved yet). */
     var markdown: (() -> String)? = null
+    /** The editor's own Rückgängig, Wiederholen and Suchen (APD-15): Strg+Z/Y/F reach them from anywhere in the window. */
+    var undo: (() -> Unit)? = null
+    var redo: (() -> Unit)? = null
+    var find: (() -> Unit)? = null
+    /**
+     * Menus and Formatleiste for the window's header (APD-15, like Google Docs: menus under the title, the Formatleiste
+     * across the whole width). Set by the editor when it is shown with `chromeInHost`.
+     */
+    var menus by mutableStateOf<(@Composable () -> Unit)?>(null)
+    var toolbar by mutableStateOf<(@Composable () -> Unit)?>(null)
 }
 
 /** Text colours and highlight colours of the palettes (Docs-like; the first is „automatisch“). */
@@ -1018,6 +1046,11 @@ fun FlowEditor(
     /** Änderungen nachverfolgen (AP-44): the tab's Markdown when tracking began; accepted changes move into it. */
     trackBase: String? = null,
     onTrackBase: (String) -> Unit = {},
+    /**
+     * APD-15: menus and Formatleiste go to the window's header through [FlowHost.menus] and [FlowHost.toolbar] (like
+     * Google Docs) instead of above the page; a Statusleiste shows pages, words and zoom.
+     */
+    chromeInHost: Boolean = false,
 ) {
     val state = remember(doc.id, tabId) { FlowState(markdown).also { FlowState.shown = java.lang.ref.WeakReference(it) } }
     val scope = rememberCoroutineScope()
@@ -1128,16 +1161,49 @@ fun FlowEditor(
         state.findOpen = true
     }
 
+    // Menus and Formatleiste: above the page, or in the window's header (APD-15). Remembered once per editor, so the
+    // header does not recompose with every key; they read the current document and the editor's state when shown.
+    val docNow by rememberUpdatedState(doc)
+    val menus: @Composable () -> Unit = remember(state, host) {
+        @Composable {
+            FlowMenus(
+                c, docNow, state, view, onView = { view = it }, zoom = zoom, onZoom = { zoom = it }, host = host, onWrite = { askWrite = true }, onRevise = { askRevise = true },
+                onLink = { state.active?.selection?.takeIf { !it.collapsed }?.let { linkFor = it.min until it.max } },
+                outline = outline, onOutline = { outline = !outline }, ruler = ruler, onRuler = { ruler = !ruler }, onFind = ::openFind,
+                compact = chromeInHost,
+            )
+        }
+    }
+    val toolbar: @Composable () -> Unit = remember(state, host) {
+        @Composable {
+            FlowToolbar(c, docNow, state, host, onWrite = { askWrite = true }, onLink = {
+                state.active?.selection?.let { linkFor = it.min until it.max }
+            })
+        }
+    }
+    DisposableEffect(state, host, chromeInHost) {
+        host.undo = { state.undo() }
+        host.redo = { state.redo() }
+        host.find = ::openFind
+        if (chromeInHost) {
+            host.menus = menus
+            host.toolbar = toolbar
+        }
+        onDispose {
+            host.undo = null
+            host.redo = null
+            host.find = null
+            host.menus = null
+            host.toolbar = null
+        }
+    }
+
     Column(Modifier.fillMaxSize()) {
-        FlowMenus(
-            c, doc, state, view, onView = { view = it }, zoom = zoom, onZoom = { zoom = it }, host = host, onWrite = { askWrite = true }, onRevise = { askRevise = true },
-            onLink = { state.active?.selection?.takeIf { !it.collapsed }?.let { linkFor = it.min until it.max } },
-            outline = outline, onOutline = { outline = !outline }, ruler = ruler, onRuler = { ruler = !ruler }, onFind = ::openFind,
-        )
-        FlowToolbar(c, doc, state, host, onWrite = { askWrite = true }, onLink = {
-            state.active?.selection?.let { linkFor = it.min until it.max }
-        })
-        HorizontalDivider()
+        if (!chromeInHost) {
+            menus()
+            toolbar()
+            HorizontalDivider()
+        }
         if (state.findOpen) FlowFindBar(state) { seg, range -> state.show(seg, range) }
         // Lora writes (AP-47): her request, then Übernehmen · Neu · Verwerfen.
         LoraWriteBar(c, doc, state)
@@ -1145,7 +1211,7 @@ fun FlowEditor(
         if (trackBase != null) TrackBar(state, onBase = onTrackBase, onStop = { host.onTrack?.invoke() })
         Row(Modifier.weight(1f).fillMaxWidth().background(MaterialTheme.colorScheme.surfaceContainerLow)) {
             if (outline && !narrow) {
-                FlowOutline(state, onJump = { state.jumpToHeading(it) }, onClose = { outline = false }, modifier = Modifier.width(240.dp))
+                FlowOutline(state, onJump = { state.jumpToHeading(it) }, onClose = { outline = false }, modifier = Modifier.width(if (chromeInHost) 208.dp else 240.dp))
                 androidx.compose.material3.VerticalDivider()
             }
             Box(Modifier.weight(1f).fillMaxHeight()) {
@@ -1155,6 +1221,7 @@ fun FlowEditor(
                 )
             }
         }
+        if (chromeInHost && !narrow) FlowStatusBar(state, view, zoom, onZoom = { zoom = it }, tracking = trackBase != null, onTrack = host.onTrack)
     }
 
     if (askWrite) {
@@ -1452,6 +1519,8 @@ private fun FlowMenus(
     c: AppContainer, doc: LiveDoc, state: FlowState, view: FlowView, onView: (FlowView) -> Unit, zoom: Float, onZoom: (Float) -> Unit, host: FlowHost,
     onWrite: () -> Unit, onRevise: () -> Unit, onLink: () -> Unit,
     outline: Boolean, onOutline: () -> Unit, ruler: Boolean, onRuler: () -> Unit, onFind: () -> Unit,
+    /** In the window's header under the title (APD-15): small menu names like in Google Docs. */
+    compact: Boolean = false,
 ) {
     var open by remember { mutableStateOf<String?>(null) }
     var tablePick by remember { mutableStateOf(false) }
@@ -1462,7 +1531,22 @@ private fun FlowMenus(
     @Composable
     fun menu(name: String, items: @Composable (close: () -> Unit) -> Unit) {
         Box {
-            TextButton(onClick = { open = name }, contentPadding = PaddingValues(horizontal = 8.dp)) { Text(tr(name), style = MaterialTheme.typography.bodyMedium) }
+            if (compact) {
+                // Like Google Docs: plain words, a soft background on hover and while the menu is open.
+                val source = remember { MutableInteractionSource() }
+                val hovered by source.collectIsHoveredAsState()
+                Text(
+                    tr(name), style = MaterialTheme.typography.bodyMedium, maxLines = 1,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(if (open == name || hovered) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f) else Color.Transparent)
+                        .hoverable(source)
+                        .clickable(interactionSource = source, indication = null, role = androidx.compose.ui.semantics.Role.Button) { open = name }
+                        .padding(horizontal = 7.dp, vertical = 3.dp),
+                )
+            } else {
+                TextButton(onClick = { open = name }, contentPadding = PaddingValues(horizontal = 8.dp)) { Text(tr(name), style = MaterialTheme.typography.bodyMedium) }
+            }
             DropdownMenu(open == name, { open = null }) { items { open = null } }
         }
     }
@@ -1471,11 +1555,14 @@ private fun FlowMenus(
         text = { Row { Text(tr(label), Modifier.weight(1f, fill = false)); if (shortcut.isNotEmpty()) { Spacer(Modifier.width(24.dp)); Text(tr(shortcut), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall) } } },
         enabled = enabled, onClick = { close(); onClick() },
     )
-    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(Modifier.then(if (compact) Modifier else Modifier.fillMaxWidth()).horizontalScroll(rememberScrollState()).padding(horizontal = if (compact) 0.dp else 6.dp), verticalAlignment = Alignment.CenterVertically) {
         menu("Datei") { close ->
-            item("Exportieren …", onClick = host.onExport, close = close)
-            item("Seite einrichten …", onClick = host.onPageSetup, close = close)
-            item("Versionen …", onClick = host.onHistory, close = close)
+            val file = host.fileMenu
+            if (file != null) file(close) else {
+                item("Exportieren …", onClick = host.onExport, close = close)
+                item("Seite einrichten …", onClick = host.onPageSetup, close = close)
+                item("Versionen …", onClick = host.onHistory, close = close)
+            }
         }
         menu("Bearbeiten") { close ->
             item("Rückgängig", "Strg+Z", state.canUndo, { state.undo() }, close)
@@ -1511,6 +1598,10 @@ private fun FlowMenus(
             item("Trennlinie", onClick = { state.insertBlock("---") }, close = close)
             item("Datum", onClick = { state.insertText(DocMarkup.today()) }, close = close)
             item("Sonderzeichen …", onClick = { special = true }, close = close)
+            host.onAddTab?.let { add ->
+                HorizontalDivider()
+                item("Tab", onClick = add, close = close)
+            }
         }
         menu("Format") { close ->
             item("Fett", "Strg+B", onClick = { state.toggle({ it.bold }) { f, v -> f.copy(bold = v) } }, close = close)
@@ -1551,6 +1642,7 @@ private fun FlowMenus(
             item("Markierung mit Lora überarbeiten …", onClick = onRevise, close = close)
             item("Lora fragen", onClick = host.onAskAi, close = close)
             item("Rechtschreibung prüfen", onClick = host.onSpell, close = close)
+            host.onSpellAi?.let { item("Rechtschreibung prüfen (KI)", onClick = it, close = close) }
             host.onTrack?.let { item("Änderungen nachverfolgen", onClick = it, close = close) }
             item("Wortzahl", onClick = {
                 val words = state.segs.filterIsInstance<FlowSeg.Text>().sumOf { t -> Regex("\\S+").findAll(t.rich.text).count() }
@@ -1662,107 +1754,259 @@ private fun FlowToolbar(c: AppContainer, doc: LiveDoc, state: FlowState, host: F
     @Suppress("UNUSED_VARIABLE") val v = state.version
     val f = state.formatHere()
     val p = state.paraHere()
-    Row(
-        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 6.dp, vertical = 2.dp),
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp),
-    ) {
-        ToolIcon(Icons.AutoMirrored.Outlined.Undo, tr("Rückgängig"), enabled = state.canUndo) { state.undo() }
-        ToolIcon(Icons.AutoMirrored.Outlined.Redo, tr("Wiederholen"), enabled = state.canRedo) { state.redo() }
-        Sep()
-        var styleMenu by remember { mutableStateOf(false) }
+    // Diktat (AP-65): speak at the cursor; „Punkt“, „Komma“, „neuer Absatz“ become marks and paragraphs.
+    val dictation = rememberDictation(c) { text -> state.dictate(text) }
+    // Groups in the order of Google Docs; what does not fit goes into „⋯“ from the right (APD-15), nothing is cut off.
+    val groups: List<@Composable () -> Unit> = listOf(
+        {
+            ToolIcon(Icons.AutoMirrored.Outlined.Undo, tr("Rückgängig") + " (Strg+Z)", enabled = state.canUndo) { state.undo() }
+            ToolIcon(Icons.AutoMirrored.Outlined.Redo, tr("Wiederholen") + " (Strg+Y)", enabled = state.canRedo) { state.redo() }
+        },
+        {
+            var styleMenu by remember { mutableStateOf(false) }
+            Box {
+                BarDropdown(tr(p.kind.label), tr("Formatvorlage"), Modifier.widthIn(max = 132.dp)) { styleMenu = true }
+                DropdownMenu(styleMenu, { styleMenu = false }) {
+                    // The Formatvorlagen as they look in this document (AP-46); lists are the buttons further right.
+                    Styles.KINDS.forEach { k ->
+                        val d = state.sheet.of(k)
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    tr(k.label),
+                                    fontSize = ptSp(d.size.coerceIn(9f, 20f), 0.9f),
+                                    fontWeight = if (d.bold) FontWeight.Bold else null,
+                                    fontStyle = if (d.italic) FontStyle.Italic else null,
+                                    fontFamily = if (k == ParaKind.CODE) FontFamily.Monospace else familyOf(d.font),
+                                    color = d.color?.let(::hex) ?: Color.Unspecified,
+                                    maxLines = 1,
+                                )
+                            },
+                            trailingIcon = { if (Styles.base(p.kind) == k) Icon(Icons.Outlined.Check, null, Modifier.size(16.dp)) },
+                            onClick = { styleMenu = false; state.kind(k) },
+                        )
+                    }
+                    HorizontalDivider()
+                    DropdownMenuItem(text = { Text(tr("„{0}“ an Markierung anpassen", tr(Styles.base(p.kind).label))) }, onClick = { styleMenu = false; adaptStyle(state) })
+                    Text(tr("Vorlagensatz"), style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
+                    StyleSet.entries.forEach { set ->
+                        DropdownMenuItem(
+                            text = { Column { Text(tr(set.label)); Text(tr(set.description), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) } },
+                            trailingIcon = { if (state.sheet.set == set) Icon(Icons.Outlined.Check, null, Modifier.size(16.dp)) },
+                            onClick = { styleMenu = false; switchStyleSet(c, doc, state, set) },
+                        )
+                    }
+                }
+            }
+            var fontMenu by remember { mutableStateOf(false) }
+            Box {
+                BarDropdown(f.font ?: tr("Standard"), tr("Schriftart"), Modifier.widthIn(max = 116.dp)) { fontMenu = true }
+                DropdownMenu(fontMenu, { fontMenu = false }) {
+                    FONTS.forEach { (font, label) -> DropdownMenuItem(text = { Text(tr(label), fontFamily = familyOf(font)) }, onClick = { fontMenu = false; state.format { it.copy(font = font) } }) }
+                }
+            }
+            var sizeMenu by remember { mutableStateOf(false) }
+            Box {
+                val size = f.size?.toString() ?: state.sheet.of(p.kind).size.let { if (it == it.toInt().toFloat()) it.toInt().toString() else it.toString().replace('.', ',') }
+                BarDropdown(size, tr("Schriftgröße")) { sizeMenu = true }
+                DropdownMenu(sizeMenu, { sizeMenu = false }) {
+                    DropdownMenuItem(text = { Text(tr("Standard")) }, onClick = { sizeMenu = false; state.format { it.copy(size = null) } })
+                    SIZES.forEach { s -> DropdownMenuItem(text = { Text("$s") }, onClick = { sizeMenu = false; state.format { it.copy(size = s) } }) }
+                }
+            }
+        },
+        {
+            ToolIcon(Icons.Outlined.FormatBold, tr("Fett") + " (Strg+B)", active = f.bold) { state.toggle({ it.bold }) { x, on -> x.copy(bold = on) } }
+            ToolIcon(Icons.Outlined.FormatItalic, tr("Kursiv") + " (Strg+I)", active = f.italic) { state.toggle({ it.italic }) { x, on -> x.copy(italic = on) } }
+            ToolIcon(Icons.Outlined.FormatUnderlined, tr("Unterstrichen") + " (Strg+U)", active = f.underline) { state.toggle({ it.underline }) { x, on -> x.copy(underline = on) } }
+            ColorButton(Icons.Outlined.FormatColorText, tr("Textfarbe"), TEXT_COLORS, f.color) { col -> state.format { it.copy(color = col) } }
+            ColorButton(Icons.Outlined.FormatColorFill, tr("Hervorheben"), HIGHLIGHTS, f.highlight) { col -> state.format { it.copy(highlight = col) } }
+        },
+        {
+            ToolIcon(Icons.Outlined.Link, tr("Link")) { onLink() }
+            ToolIcon(Icons.Outlined.AddComment, tr("Kommentar")) { host.onComment(selectedText(state)) }
+            ToolIcon(Icons.Outlined.Image, tr("Bild")) { host.onImage() }
+        },
+        {
+            // Ausrichtung as one button with its four choices (like Google Docs); it shows the current one.
+            var alignMenu by remember { mutableStateOf(false) }
+            val aligns = listOf(
+                Align.LEFT to (Icons.AutoMirrored.Outlined.FormatAlignLeft to "Linksbündig"),
+                Align.CENTER to (Icons.Outlined.FormatAlignCenter to "Zentriert"),
+                Align.RIGHT to (Icons.AutoMirrored.Outlined.FormatAlignRight to "Rechtsbündig"),
+                Align.JUSTIFY to (Icons.Outlined.FormatAlignJustify to "Blocksatz"),
+            )
+            Box {
+                val (icon, _) = aligns.firstOrNull { it.first == p.align }?.second ?: aligns.first().second
+                ToolIcon(icon, tr("Ausrichtung")) { alignMenu = true }
+                DropdownMenu(alignMenu, { alignMenu = false }) {
+                    Row(Modifier.padding(horizontal = 6.dp)) {
+                        aligns.forEach { (a, il) -> ToolIcon(il.first, tr(il.second), active = p.align == a) { alignMenu = false; state.paragraph { it.copy(align = a) } } }
+                    }
+                }
+            }
+            var spacingMenu by remember { mutableStateOf(false) }
+            Box {
+                ToolIcon(Icons.Outlined.FormatLineSpacing, tr("Zeilenabstand")) { spacingMenu = true }
+                DropdownMenu(spacingMenu, { spacingMenu = false }) {
+                    LINE_SPACINGS.forEach { (z, label) ->
+                        DropdownMenuItem(text = { Text(tr(label)) }, trailingIcon = { if (p.spacing == z) Icon(Icons.Outlined.Check, null, Modifier.size(16.dp)) }, onClick = { spacingMenu = false; state.paragraph { it.copy(spacing = z) } })
+                    }
+                    DropdownMenuItem(text = { Text(tr("Wie Formatvorlage")) }, trailingIcon = { if (p.spacing == null) Icon(Icons.Outlined.Check, null, Modifier.size(16.dp)) }, onClick = { spacingMenu = false; state.paragraph { it.copy(spacing = null) } })
+                }
+            }
+        },
+        {
+            ToolIcon(Icons.Outlined.CheckBox, tr("Checkliste"), active = p.kind == ParaKind.CHECK) { state.kind(ParaKind.CHECK) }
+            ToolIcon(Icons.AutoMirrored.Outlined.FormatListBulleted, tr("Aufzählung"), active = p.kind == ParaKind.BULLET) { state.kind(ParaKind.BULLET) }
+            ToolIcon(Icons.Outlined.FormatListNumbered, tr("Nummerierte Liste"), active = p.kind == ParaKind.NUMBERED) { state.kind(ParaKind.NUMBERED) }
+            ToolIcon(Icons.AutoMirrored.Outlined.FormatIndentDecrease, tr("Einzug verkleinern"), enabled = p.kind.list && p.indent > 0) { state.indent(-1) }
+            ToolIcon(Icons.AutoMirrored.Outlined.FormatIndentIncrease, tr("Einzug vergrößern"), enabled = p.kind.list) { state.indent(1) }
+        },
+        {
+            ToolIcon(Icons.Outlined.FormatPaint, tr("Format übertragen (Pinsel)"), active = state.painter != null) {
+                state.painter = if (state.painter != null) null else state.formatHere() to state.paraHere()
+                if (state.painter != null) Notices.info(tr("Jetzt den Text markieren, der dieses Format bekommen soll."))
+            }
+            ToolIcon(Icons.Outlined.FormatClear, tr("Formatierung entfernen") + " (Strg+\\)") { state.clearFormat() }
+        },
+        {
+            ToolIcon(Icons.Outlined.EditNote, tr("Hilf mir schreiben") + " (Strg+J)") { onWrite() }
+            DictateIcon(dictation)
+        },
+    )
+    CompositionLocalProvider(LocalToolIconSize provides 34.dp) {
+        OverflowBar(groups, Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 1.dp))
+    }
+}
 
-        Box {
-            TextButton(onClick = { styleMenu = true }, contentPadding = PaddingValues(horizontal = 8.dp)) { Text(tr(p.kind.label) + " ▾", style = MaterialTheme.typography.bodySmall, maxLines = 1) }
-            DropdownMenu(styleMenu, { styleMenu = false }) {
-                // The Formatvorlagen as they look in this document (AP-46); lists are the buttons further right.
-                Styles.KINDS.forEach { k ->
-                    val d = state.sheet.of(k)
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                tr(k.label),
-                                fontSize = ptSp(d.size.coerceIn(9f, 20f), 0.9f),
-                                fontWeight = if (d.bold) FontWeight.Bold else null,
-                                fontStyle = if (d.italic) FontStyle.Italic else null,
-                                fontFamily = if (k == ParaKind.CODE) FontFamily.Monospace else familyOf(d.font),
-                                color = d.color?.let(::hex) ?: Color.Unspecified,
-                                maxLines = 1,
+/**
+ * A row of tool groups that never cuts anything off (APD-15): the groups that fit stand in the row, the rest open from
+ * „⋯“ at its end – like the Formatleiste of Google Docs in a narrow window. Separators stand between the groups.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun OverflowBar(groups: List<@Composable () -> Unit>, modifier: Modifier = Modifier) {
+    var moreOpen by remember { mutableStateOf(false) }
+    // How many groups stand in the row (set while measuring; the menu of „⋯“ shows the others).
+    var shownForMenu by remember { mutableIntStateOf(groups.size) }
+    androidx.compose.ui.layout.SubcomposeLayout(modifier) { constraints ->
+        val loose = androidx.compose.ui.unit.Constraints(maxHeight = constraints.maxHeight)
+        val parts = groups.mapIndexed { i, g ->
+            subcompose("g$i") { Row(verticalAlignment = Alignment.CenterVertically) { if (i > 0) Sep(); g() } }.map { it.measure(loose) }
+        }
+        val widths = parts.map { ps -> ps.sumOf { it.width } }
+        val total = widths.sum()
+        val max = if (constraints.hasBoundedWidth) constraints.maxWidth else Int.MAX_VALUE
+        var shown = groups.size
+        val more = if (total <= max) null else {
+            val moreParts = subcompose("more") {
+                Box {
+                    ToolIcon(Icons.Outlined.MoreHoriz, tr("Weitere Werkzeuge"), active = moreOpen) { moreOpen = true }
+                    DropdownMenu(moreOpen, { moreOpen = false }) {
+                        FlowRow(Modifier.widthIn(max = 340.dp).padding(horizontal = 6.dp), verticalArrangement = Arrangement.Center) {
+                            groups.drop(shownForMenu).forEach { g -> Row(verticalAlignment = Alignment.CenterVertically) { g() } }
+                        }
+                    }
+                }
+            }.map { it.measure(loose) }
+            val moreW = moreParts.sumOf { it.width }
+            var used = 0
+            shown = 0
+            while (shown < groups.size && used + widths[shown] + moreW <= max) { used += widths[shown]; shown++ }
+            moreParts
+        }
+        if (shownForMenu != shown) shownForMenu = shown
+        val placed = parts.take(shown).flatten() + more.orEmpty()
+        val height = (placed.maxOfOrNull { it.height } ?: 0).coerceIn(constraints.minHeight, constraints.maxHeight)
+        val width = if (constraints.hasBoundedWidth) constraints.maxWidth else placed.sumOf { it.width }
+        layout(width, height) {
+            var x = 0
+            placed.forEach { pl -> pl.placeRelative(x, (height - pl.height) / 2); x += pl.width }
+        }
+    }
+}
+
+/**
+ * Statusleiste under the page (APD-15, like Word): page of pages, words (of the selection, too), tracked changes, zoom.
+ * The words are counted a moment after typing stops, off the main thread (long documents).
+ */
+@Composable
+private fun FlowStatusBar(state: FlowState, view: FlowView, zoom: Float, onZoom: (Float) -> Unit, tracking: Boolean, onTrack: (() -> Unit)?) {
+    var words by remember { mutableIntStateOf(0) }
+    var chars by remember { mutableIntStateOf(0) }
+    LaunchedEffect(state.version) {
+        delay(300)
+        val texts = state.segs.filterIsInstance<FlowSeg.Text>().map { it.rich.text }
+        val (w, ch) = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { texts.sumOf { t -> WORD.findAll(t).count() } to texts.sumOf { it.length } }
+        words = w
+        chars = ch
+    }
+    val selected = state.active?.let { t -> if (t.selection.collapsed) null else t.rich.text.substring(t.selection.min, t.selection.max.coerceAtMost(t.rich.text.length)) }
+    val muted = MaterialTheme.colorScheme.onSurfaceVariant
+    val small = MaterialTheme.typography.labelSmall
+    @Composable
+    fun part(text: String, label: String? = null, onClick: (() -> Unit)? = null) = Text(
+        text, style = small, color = muted, maxLines = 1,
+        modifier = Modifier
+            .clip(RoundedCornerShape(4.dp))
+            .then(if (onClick != null) Modifier.clickable(onClickLabel = label, role = androidx.compose.ui.semantics.Role.Button, onClick = onClick) else Modifier)
+            .padding(horizontal = 6.dp, vertical = 2.dp),
+    )
+    Column(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface)) {
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
+        Row(Modifier.fillMaxWidth().height(26.dp).padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            if (view == FlowView.PAGES) part(tr("Seite {0} von {1}", state.pageNow, state.pageCount.coerceAtLeast(1)))
+            val wordText = if (selected != null) tr("{0} von {1} Wörtern", WORD.findAll(selected).count(), words) else tr("{0} Wörter", words)
+            part(wordText, tr("Wortzahl")) { Notices.info(tr("{0} Wörter · {1} Zeichen · {2} Seiten", words, chars, state.pageCount.coerceAtLeast(1))) }
+            if (tracking) part(tr("Änderungen werden nachverfolgt"), tr("Änderungen nachverfolgen"), onTrack)
+            Spacer(Modifier.weight(1f))
+            CompositionLocalProvider(LocalToolIconSize provides 26.dp) {
+                ToolIcon(Icons.Outlined.Remove, tr("Verkleinern")) { onZoom(ZOOMS.lastOrNull { it < zoom - 0.01f } ?: zoom) }
+                var zoomMenu by remember { mutableStateOf(false) }
+                Box {
+                    part("${(zoom * 100).roundToInt()} %", tr("Zoom")) { zoomMenu = true }
+                    DropdownMenu(zoomMenu, { zoomMenu = false }) {
+                        DropdownMenuItem(text = { Text(tr("Seitenbreite")) }, onClick = { zoomMenu = false; onZoom(state.fitZoom) })
+                        HorizontalDivider()
+                        ZOOMS.forEach { z ->
+                            DropdownMenuItem(
+                                text = { Text("${(z * 100).roundToInt()} %") },
+                                trailingIcon = { if (kotlin.math.abs(zoom - z) < 0.01f) Icon(Icons.Outlined.Check, null, Modifier.size(16.dp)) },
+                                onClick = { zoomMenu = false; onZoom(z) },
                             )
-                        },
-                        trailingIcon = { if (Styles.base(p.kind) == k) Icon(Icons.Outlined.Check, null, Modifier.size(16.dp)) },
-                        onClick = { styleMenu = false; state.kind(k) },
-                    )
+                        }
+                    }
                 }
-                HorizontalDivider()
-                DropdownMenuItem(text = { Text(tr("„{0}“ an Markierung anpassen", tr(Styles.base(p.kind).label))) }, onClick = { styleMenu = false; adaptStyle(state) })
-                Text(tr("Vorlagensatz"), style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
-                StyleSet.entries.forEach { set ->
-                    DropdownMenuItem(
-                        text = { Column { Text(tr(set.label)); Text(tr(set.description), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) } },
-                        trailingIcon = { if (state.sheet.set == set) Icon(Icons.Outlined.Check, null, Modifier.size(16.dp)) },
-                        onClick = { styleMenu = false; switchStyleSet(c, doc, state, set) },
-                    )
-                }
+                ToolIcon(Icons.Outlined.Add, tr("Vergrößern")) { onZoom(ZOOMS.firstOrNull { it > zoom + 0.01f } ?: zoom) }
             }
         }
-        var fontMenu by remember { mutableStateOf(false) }
-        Box {
-            TextButton(onClick = { fontMenu = true }, contentPadding = PaddingValues(horizontal = 8.dp)) { Text((f.font ?: tr("Standard")) + " ▾", style = MaterialTheme.typography.bodySmall, maxLines = 1) }
-            DropdownMenu(fontMenu, { fontMenu = false }) {
-                FONTS.forEach { (font, label) -> DropdownMenuItem(text = { Text(tr(label), fontFamily = familyOf(font)) }, onClick = { fontMenu = false; state.format { it.copy(font = font) } }) }
-            }
-        }
-        var sizeMenu by remember { mutableStateOf(false) }
-        Box {
-            TextButton(onClick = { sizeMenu = true }, contentPadding = PaddingValues(horizontal = 6.dp)) { Text("${f.size ?: state.sheet.of(p.kind).size.let { if (it == it.toInt().toFloat()) it.toInt().toString() else it.toString().replace('.', ',') }} ▾", style = MaterialTheme.typography.bodySmall) }
-            DropdownMenu(sizeMenu, { sizeMenu = false }) {
-                DropdownMenuItem(text = { Text(tr("Standard")) }, onClick = { sizeMenu = false; state.format { it.copy(size = null) } })
-                SIZES.forEach { s -> DropdownMenuItem(text = { Text("$s") }, onClick = { sizeMenu = false; state.format { it.copy(size = s) } }) }
-            }
-        }
-        Sep()
-        ToolIcon(Icons.Outlined.FormatBold, tr("Fett") + " (Strg+B)", active = f.bold) { state.toggle({ it.bold }) { x, on -> x.copy(bold = on) } }
-        ToolIcon(Icons.Outlined.FormatItalic, tr("Kursiv") + " (Strg+I)", active = f.italic) { state.toggle({ it.italic }) { x, on -> x.copy(italic = on) } }
-        ToolIcon(Icons.Outlined.FormatUnderlined, tr("Unterstrichen") + " (Strg+U)", active = f.underline) { state.toggle({ it.underline }) { x, on -> x.copy(underline = on) } }
-        ToolIcon(Icons.Outlined.FormatStrikethrough, tr("Durchgestrichen"), active = f.strike) { state.toggle({ it.strike }) { x, on -> x.copy(strike = on) } }
-        ColorButton(Icons.Outlined.FormatColorText, tr("Textfarbe"), TEXT_COLORS, f.color) { col -> state.format { it.copy(color = col) } }
-        ColorButton(Icons.Outlined.FormatColorFill, tr("Hervorheben"), HIGHLIGHTS, f.highlight) { col -> state.format { it.copy(highlight = col) } }
-        Sep()
-        ToolIcon(Icons.Outlined.Link, tr("Link")) { onLink() }
-        ToolIcon(Icons.Outlined.AddComment, tr("Kommentar")) { host.onComment(selectedText(state)) }
-        ToolIcon(Icons.Outlined.Image, tr("Bild")) { host.onImage() }
-        Sep()
-        ToolIcon(Icons.AutoMirrored.Outlined.FormatAlignLeft, tr("Linksbündig"), active = p.align == Align.LEFT) { state.paragraph { it.copy(align = Align.LEFT) } }
-        ToolIcon(Icons.Outlined.FormatAlignCenter, tr("Zentriert"), active = p.align == Align.CENTER) { state.paragraph { it.copy(align = Align.CENTER) } }
-        ToolIcon(Icons.AutoMirrored.Outlined.FormatAlignRight, tr("Rechtsbündig"), active = p.align == Align.RIGHT) { state.paragraph { it.copy(align = Align.RIGHT) } }
-        ToolIcon(Icons.Outlined.FormatAlignJustify, tr("Blocksatz"), active = p.align == Align.JUSTIFY) { state.paragraph { it.copy(align = Align.JUSTIFY) } }
-        Sep()
-        var spacingMenu by remember { mutableStateOf(false) }
-        Box {
-            ToolIcon(Icons.Outlined.FormatLineSpacing, tr("Zeilenabstand")) { spacingMenu = true }
-            DropdownMenu(spacingMenu, { spacingMenu = false }) {
-                LINE_SPACINGS.forEach { (z, label) ->
-                    DropdownMenuItem(text = { Text(tr(label)) }, trailingIcon = { if (p.spacing == z) Icon(Icons.Outlined.Check, null, Modifier.size(16.dp)) }, onClick = { spacingMenu = false; state.paragraph { it.copy(spacing = z) } })
-                }
-                DropdownMenuItem(text = { Text(tr("Wie Formatvorlage")) }, trailingIcon = { if (p.spacing == null) Icon(Icons.Outlined.Check, null, Modifier.size(16.dp)) }, onClick = { spacingMenu = false; state.paragraph { it.copy(spacing = null) } })
-            }
-        }
-        Sep()
-        ToolIcon(Icons.AutoMirrored.Outlined.FormatListBulleted, tr("Aufzählung"), active = p.kind == ParaKind.BULLET) { state.kind(ParaKind.BULLET) }
-        ToolIcon(Icons.Outlined.FormatListNumbered, tr("Nummerierte Liste"), active = p.kind == ParaKind.NUMBERED) { state.kind(ParaKind.NUMBERED) }
-        ToolIcon(Icons.Outlined.CheckBox, tr("Checkliste"), active = p.kind == ParaKind.CHECK) { state.kind(ParaKind.CHECK) }
-        ToolIcon(Icons.AutoMirrored.Outlined.FormatIndentDecrease, tr("Einzug verkleinern"), enabled = p.kind.list && p.indent > 0) { state.indent(-1) }
-        ToolIcon(Icons.AutoMirrored.Outlined.FormatIndentIncrease, tr("Einzug vergrößern"), enabled = p.kind.list) { state.indent(1) }
-        ToolIcon(Icons.Outlined.FormatPaint, tr("Format übertragen (Pinsel)"), active = state.painter != null) {
-            state.painter = if (state.painter != null) null else state.formatHere() to state.paraHere()
-            if (state.painter != null) Notices.info(tr("Jetzt den Text markieren, der dieses Format bekommen soll."))
-        }
-        ToolIcon(Icons.Outlined.FormatClear, tr("Formatierung entfernen")) { state.clearFormat() }
-        Sep()
-        ToolIcon(Icons.Outlined.AutoAwesome, tr("Hilf mir schreiben") + " (Strg+J)") { onWrite() }
-        // Diktat (AP-65): speak at the cursor; „Punkt“, „Komma“, „neuer Absatz“ become marks and paragraphs.
-        val dictation = rememberDictation(c) { text -> state.dictate(text) }
-        DictateIcon(dictation)
+    }
+}
+
+private val WORD = Regex("\\S+")
+private val ZOOMS = listOf(0.5f, 0.75f, 0.9f, 1f, 1.25f, 1.5f, 2f)
+
+/** A choice in the Formatleiste as a word with ▾ (Formatvorlage, Schrift, Größe), compact like in Google Docs. */
+@Composable
+private fun BarDropdown(text: String, label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val source = remember { MutableInteractionSource() }
+    val hovered by source.collectIsHoveredAsState()
+    // Bounded width, so the word can shorten with „…“ (the Formatleiste measures its groups without a width limit).
+    Row(
+        modifier
+            .widthIn(max = 140.dp)
+            .height(LocalToolIconSize.current - 6.dp)
+            .clip(RoundedCornerShape(6.dp))
+            .background(if (hovered) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f) else Color.Transparent)
+            .hoverable(source)
+            .clickable(interactionSource = source, indication = null, role = androidx.compose.ui.semantics.Role.Button, onClickLabel = label, onClick = onClick)
+            .semantics { contentDescription = "$label: $text" }
+            .padding(horizontal = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(text, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+        Text(" ▾", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -1844,6 +2088,15 @@ private fun FlowPages(
     val viewHeight = with(density) { maxHeight.toPx() }.takeIf { it.isFinite() } ?: 4000f
     // Comments at the margin only where they fit beside the page (not with a narrow window or the side panel open).
     val showComments = !narrow && state.comments.isNotEmpty() && (!pages || maxWidth >= pageWidth + 250.dp)
+    // Statusleiste (APD-15): the page in the upper third of the window, and the zoom at which a page fills the width.
+    val pitchPx = with(density) { (pageFull + pageGap).toPx() }
+    val fit = ((maxWidth - 48.dp) / 794.dp).coerceIn(0.5f, 2f)
+    androidx.compose.runtime.SideEffect { if (state.fitZoom != fit) state.fitZoom = fit }
+    LaunchedEffect(scroll, pitchPx, pages, viewHeight) {
+        snapshotFlow { scroll.value }.collect { y ->
+            state.pageNow = if (!pages) 1 else ((y + viewHeight / 3f) / pitchPx).toInt().plus(1).coerceIn(1, state.pageCount.coerceAtLeast(1))
+        }
+    }
     Box(Modifier.fillMaxSize().verticalScroll(scroll), contentAlignment = Alignment.TopCenter) {
         Row(Modifier.onGloballyPositioned { state.contentCoords = it }, verticalAlignment = Alignment.Top) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = if (pages) Modifier else Modifier.weight(1f, fill = false)) {

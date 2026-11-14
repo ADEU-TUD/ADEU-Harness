@@ -7197,3 +7197,14 @@ Erste Schritte, Tour, Tastenkürzel und Lora fragen.	First steps, tour, keyboard
 # Bedienelemente aus einem Guss (AP-123)
 Transkription abbrechen	Cancel transcription
 Weiterlaufen lassen	Keep running
+# Dokument-Editor aufgeräumt wie Google Docs (APD-15)
+Formatvorlage	Paragraph style
+KI arbeitet am {0} …	AI is working on the {0} …
+Schriftart	Font
+Seitenbreite	Page width
+Tab	Tab
+Weitere Werkzeuge	More tools
+{0} Wörter · {1} Zeichen · {2} Seiten	{0} words · {1} characters · {2} pages
+{0} von {1} Wörtern	{0} of {1} words
+Menüs ausblenden (Strg+Umschalt+F)	Hide the menus (Ctrl+Shift+F)
+Menüs einblenden (Strg+Umschalt+F)	Show the menus (Ctrl+Shift+F)

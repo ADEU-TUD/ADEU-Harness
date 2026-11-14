@@ -128,7 +128,7 @@ allgemeinen Arbeitsplan unter *Grundsätze › Umfang der Werkzeuge*.
 genaue Zahlen für Beginn und Dauer unter den Schiebereglern; eine Mehrkamera-Ansicht für Interviews; alle Tasten, Loras
 Aktionen und der Schnitt im Transkript bleiben. Grundlage für APD-17b.
 
-### APD-15 ☐ Dokument-Editor aufgeräumt wie Google Docs · M (Wunsch Hauptnutzer 14.11.2026)
+### APD-15 ◐ Dokument-Editor aufgeräumt wie Google Docs · M (Wunsch Hauptnutzer 14.11.2026)
 **Befund** (Bild aus APD-01 bei 1366 × 768 und 150 %): Titelzeile, Reiterzeile („Tab 1“ auch bei nur einem Tab), Menüzeile,
 Formatleiste und Lineal nehmen rund 190 dp ein – über ein Drittel der Höhe; Rückgängig/Wiederholen stehen doppelt (Kopf und
 Formatleiste); die Formatleiste wird rechts abgeschnitten (Listen, Einzug, Formatierung entfernen sind nur durch
@@ -153,6 +153,19 @@ Viertel der Breite.
 **Fertig, wenn**: bei 1366 × 768 und 150 % mindestens 60 dp mehr Höhe für die Seite und nichts abgeschnitten ist;
 Vorher/Nachher-Bilder (klein, Full HD, groß; hell, dunkel, Hoher Kontrast) auf der Vergleichsseite; `FlowEditorUiTest`
 und die Tests von Strg+K/Spots grün.
+◐ *Stand 14.11.2026 (Stufe 1, wartet auf Freigabe)*: Kopf wie Docs (`FlowDocHeader` in `ui/DocsEditor.kt`: Zurück,
+Dokument-Symbol, Titel zum Umbenennen mit Status, Menüs darunter, rechts Kommentare, Lora, *Exportieren*); *Datei* enthält
+alles aus dem bisherigen „⋮“ (`FlowFileMenu`, `DocFileActions`); Reiterzeile erst ab zwei Tabs, *Einfügen › Tab*;
+Formatleiste über die ganze Breite (`FlowHost.menus`/`toolbar`: der Editor gibt Menüs und Leiste an das Fenster), Gruppen
+wie Docs mit „⋯“ statt Abschneiden (`OverflowBar`), Ausrichtung als ein Knopf, Symbole 34 dp (`LocalToolIconSize`);
+Strg+Umschalt+F bzw. Pfeil am Ende der Leiste blendet Titel und Menüs aus; kein schwebendes „Mit KI schreiben“;
+Statusleiste (`FlowStatusBar`: Seite x von y, Wörter auch der Markierung, Nachverfolgen, Zoom mit *Seitenbreite*);
+Gliederung 208 dp ohne Erklärtext. **Gemessen**: Text der Seite beginnt bei 215 dp statt 320 dp (Laptop), 219 statt 321 dp
+(Full HD). **Nebenbei behoben**: Strg+Z/Y/F im Fließtext erreichten zuerst das Fenster (Rückgängig ganzer gespeicherter
+Stände, direkt nach dem Tippen wirkungslos) – jetzt das Rückgängig und die Suche des Editors; *Datei › Exportieren* nahm
+den Stand beim Öffnen – jetzt den aktuellen. Tests `ui/DocEditorChromeTest` (scheitern auf dem alten Stand),
+`ui/DocEditorLookTest` (Bilder in `build/apd15`, Messung in `messung.txt`). **Offen**: Bausteine nach `ui/EditorChrome.kt`
+verschieben, wenn APD-16 sie braucht; Gliederung per Symbol wieder öffnen und Zustand merken.
 
 ### APD-16 ☐ Folien, Gestalten, Whiteboard im selben Rahmen · M (Wunsch Hauptnutzer 14.11.2026, Eigenregie)
 Derselbe Kopf und dieselbe Leistenlogik wie APD-15 für Folien, Gestalten und Whiteboard.

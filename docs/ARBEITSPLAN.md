@@ -76,7 +76,7 @@ Fairlight).
 | ~~Lora im Alltag~~ ☑ | AP-74 Fehlermeldungen in Klartext · AP-75 Lora-Verlauf mit „Nochmal“ · AP-76 Sprachmodell-Empfehlung nach Messung · AP-77 Probelauf und „Alles rückgängig“ · AP-78 Eigene Wörter und Wissenspakete · AP-79 Hausstil- und Barrierefreiheits-Check · AP-80 Rollenauswahl · AP-81 Videoexport-Warteschlange · AP-82 Vorschau für Video und Ton · AP-83 Lora-Pakete teilen · AP-84 Lora in mehreren Fenstern · AP-85 Große Anhänge vollständig nutzen (erledigt 10.11.2026, siehe *Erledigt*) |
 | **Danach** | ~~AP-86 Lokale Modelle auf dem Mac laden~~ ☑ (10.11.2026, 1.0.67) |
 | **Runde 3 – Lora offline** | AP-105 Geräteprofil und Messung ◐ · AP-106 Modellkatalog in feinen Stufen, nach Zweck ◐ · AP-107 Suche nach Bedeutung auf dem Gerät ◐ (Rest in der App) · AP-108 Lange Texte lokal ◐ · AP-109 Lora selbst lokal · AP-110 Bilder verstehen lokal ◐ · AP-111 Sprachausgabe lokal ☑ · AP-112 Offline-Schiene in der Oberfläche ◐ · AP-104 Lora Postfach · AP-113 Lora Namensschutz Runde 3 · AP-114 Lora Befehle nachtrainieren · AP-115 Reste aus 1.0.66 ☑ · **AP-116 Lokale Modelle: Tempo, Abbruch, Hitze ◐** (Fehler aus 1.0.67, vor AP-109) · ~~AP-117 Eigene Modelle aktualisieren, auf GitHub~~ ☑ (11.11.2026) |
-| **Neu (14.11.2026, Office und Video)** | **AP-125 Dokumente verhalten sich wie Word ☐** · **AP-126 Dokumente: Funktionsumfang wie Word und Google Docs ☐** · **AP-127 Folien, Gestalten, Whiteboard: anfassen wie PowerPoint und Canva ☐** · **AP-128 Video: Datenschutz in Unterrichtsvideos ☐** · **AP-129 Video: was im Alltag fehlt ☐** · **AP-130 Video: flüssige Vorschau ☐** (Oberfläche dazu: APD-15 bis APD-17 im [Design-Arbeitsplan](DESIGN-ARBEITSPLAN.md); vor den übrigen Paketen) |
+| **Neu (14.11.2026, Office und Video)** | **AP-125 Dokumente verhalten sich wie Word ◐** · **AP-126 Dokumente: Funktionsumfang wie Word und Google Docs ☐** · **AP-127 Folien, Gestalten, Whiteboard: anfassen wie PowerPoint und Canva ☐** · **AP-128 Video: Datenschutz in Unterrichtsvideos ☐** · **AP-129 Video: was im Alltag fehlt ☐** · **AP-130 Video: flüssige Vorschau ☐** (Oberfläche dazu: APD-15 bis APD-17 im [Design-Arbeitsplan](DESIGN-ARBEITSPLAN.md); vor den übrigen Paketen) |
 | **Neu (13.11.2026, Bedienung)** | ~~AP-124 Die ganze App weiter verbessern~~ → **APD-01** im [Design-Arbeitsplan](DESIGN-ARBEITSPLAN.md) · **AP-123 Bedienelemente aus einem Guss ◐** (Knöpfe nach Stil, Dialoge mit Hauptknopf und Enter/Esc, rote Lösch-Knöpfe, Tooltips an Symbol-Knöpfen, Passwort-Auge, Hinweis-Banner, Bildlaufleisten am PC; freigegeben, Prüfung am Gerät offen) |
 | **Neu (13.11.2026)** | **AP-121 Videoeditor für Einsteiger ◐** (Startseite, „So entsteht dein Video“, einfach schneiden, Rechtsklick, klarere Leisten; Prüfung am Gerät offen) |
 | **Neu (12.11.2026)** | **AP-122 Lora: neues Aussehen und lebendigere Animationen ☑** (Wunsch Hauptnutzer; am 13.11.2026 freigegeben, in der App, für 1.0.70) |
@@ -111,7 +111,7 @@ und intuitiv sein“. Die Funktionen stehen hier (AP-125 bis AP-130), die Oberfl
 Reihenfolge über beide Pläne). **Diese Pakete kommen vor den übrigen unter *Jetzt***: APD-17a → APD-15 + AP-125 → AP-126
 → APD-16 + AP-127 → APD-17b + AP-130 → AP-128 → AP-129.
 
-### AP-125 ☐ Dokumente verhalten sich wie Word · L (Wunsch Hauptnutzer 14.11.2026, in Stufen)
+### AP-125 ◐ Dokumente verhalten sich wie Word · L (Wunsch Hauptnutzer 14.11.2026, in Stufen)
 **Befund**: Der Fließtext-Editor (AP-43 bis AP-47) kann viel, verhält sich aber an vielen Stellen anders als Word und
 Docs: kein Rechtsklick-Menü, keine Autokorrektur (nur Markdown-Kürzel), Bilder sind Blöcke mit Stift und Papierkorb
 daneben (Bearbeiten = Markdown-Dialog), Tabellen ohne Spaltenbreite zum Ziehen.
@@ -139,6 +139,8 @@ soweit der gemeinsame Text-Kern (AP-43) es trägt.
   ein. Alles kommt unverändert in Word und PDF an (Word-Treue AP-45, `PruefsammlungTest` grün).
 **Fertig, wenn**: jemand, der Word gewohnt ist, einen Antrag mit Tabelle und Bild schreibt, ohne über das Verhalten zu
 stolpern; Tests für Menü, Autokorrektur, Tasten, Bildgriffe und Tabellen (Muster `FlowEditorUiTest`).
+◐ *Stand 14.11.2026*: aus (c) vorab mit APD-15 behoben – Strg+Z/Y nehmen im Fließtext Tastendruck für Tastendruck
+zurück (vorher fing das Fenster sie ab), Strg+F/H öffnen die Suche des Editors (Test `ui/DocEditorChromeTest`). Weiter mit (a).
 
 ### AP-126 ☐ Dokumente: Funktionsumfang wie Word und Google Docs · XL (Wunsch Hauptnutzer 14.11.2026, in Stufen)
 **Ziel**: Für die Arbeit an der TU Dresden (Briefe, Protokolle, Anträge, Hausarbeiten bis Dissertation, Skripte) braucht
